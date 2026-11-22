@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import {
+  alamatKlien,
   buatTokenSesi,
   catatKegagalan,
   cocokPin,
   hapusCatatanPercobaan,
   sudahMasuk,
   tanggapiGalat,
-  asalValid,
+  pastikanAman,
   bolehMencoba,
   pilihanCookie,
 } from "@/lib/akses";
@@ -20,12 +21,11 @@ export async function GET() {
 
 export async function POST(permintaan: Request) {
   try {
-    if (!asalValid(permintaan)) {
-      return NextResponse.json({ pesan: "Asal permintaan tidak valid" }, { status: 403 });
-    }
+    const penolakan = await pastikanAman(permintaan, false);
+    if (penolakan) return penolakan;
 
     const badan = skemaLogin.parse(await permintaan.json());
-    const alamat = permintaan.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "lokal";
+    const alamat = alamatKlien(permintaan);
 
     if (!bolehMencoba(alamat)) {
       return NextResponse.json(

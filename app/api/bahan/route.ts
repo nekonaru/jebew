@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-  asalValid,
+  pastikanAman,
   sudahMasuk,
   tanggapiGalat,
 } from "@/lib/akses";
@@ -27,8 +27,8 @@ const skemaStokBahan = z
   .object({ id: z.number().int().positive(), data: skemaPenyesuaianStok })
   .strict();
 
-async function izin(permintaan: Request): Promise<boolean> {
-  return asalValid(permintaan) && (await sudahMasuk());
+async function izin(permintaan: Request): Promise<Response | null> {
+  return pastikanAman(permintaan, true);
 }
 
 function ditolak(): NextResponse {
@@ -42,7 +42,8 @@ export async function GET() {
 
 export async function POST(permintaan: Request) {
   try {
-    if (!(await izin(permintaan))) return ditolak();
+    const penolakan = await izin(permintaan);
+    if (penolakan) return penolakan;
     const badan = skemaBahan.parse(await permintaan.json());
     return NextResponse.json({ id: simpanBahan(badan) }, { status: 201 });
   } catch (kesalahan) {
@@ -52,7 +53,8 @@ export async function POST(permintaan: Request) {
 
 export async function PUT(permintaan: Request) {
   try {
-    if (!(await izin(permintaan))) return ditolak();
+    const penolakan = await izin(permintaan);
+    if (penolakan) return penolakan;
     const badan = skemaUbah.parse(await permintaan.json());
     return NextResponse.json({ id: simpanBahan(badan.data, badan.id) });
   } catch (kesalahan) {
@@ -62,7 +64,8 @@ export async function PUT(permintaan: Request) {
 
 export async function PATCH(permintaan: Request) {
   try {
-    if (!(await izin(permintaan))) return ditolak();
+    const penolakan = await izin(permintaan);
+    if (penolakan) return penolakan;
     const badan = await permintaan.json();
     if ("tambahan" in badan) {
       const data = skemaRestockBahan.parse(badan);
@@ -79,7 +82,8 @@ export async function PATCH(permintaan: Request) {
 
 export async function DELETE(permintaan: Request) {
   try {
-    if (!(await izin(permintaan))) return ditolak();
+    const penolakan = await izin(permintaan);
+    if (penolakan) return penolakan;
     const badan = skemaHapus.parse(await permintaan.json());
     hapusBahan(badan.id);
     return NextResponse.json({ berhasil: true });

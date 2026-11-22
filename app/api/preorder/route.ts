@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { asalValid, sudahMasuk, tanggapiGalat } from "@/lib/akses";
+import {
+  alamatKlien,
+  izinPreorder,
+  pastikanAman,
+  sudahMasuk,
+  tanggapiGalat,
+} from "@/lib/akses";
 import { ambilPengaturan, ambilPreorder, simpanPreorder, ubahStatusPreorder } from "@/lib/operasi";
 import { skemaPreorder, skemaStatusPreorder } from "@/lib/validasi";
 import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa";
@@ -20,8 +26,13 @@ export async function GET() {
 
 export async function POST(permintaan: Request) {
   try {
-    if (!asalValid(permintaan)) {
-      return NextResponse.json({ pesan: "Asal permintaan tidak valid" }, { status: 403 });
+    const penolakan = await pastikanAman(permintaan, false);
+    if (penolakan) return penolakan;
+    if (!izinPreorder(alamatKlien(permintaan))) {
+      return NextResponse.json(
+        { pesan: "Terlalu banyak pre-order dalam waktu singkat. Coba lagi sebentar." },
+        { status: 429 },
+      );
     }
     const badan = skemaPreorder.parse(await permintaan.json());
     const hasil = simpanPreorder(badan);
@@ -56,9 +67,8 @@ export async function POST(permintaan: Request) {
 
 export async function PUT(permintaan: Request) {
   try {
-    if (!asalValid(permintaan) || !(await sudahMasuk())) {
-      return NextResponse.json({ pesan: "Silakan masuk ke dashboard admin" }, { status: 401 });
-    }
+    const penolakan = await pastikanAman(permintaan, true);
+    if (penolakan) return penolakan;
     const badan = skemaUbahStatus.parse(await permintaan.json());
     ubahStatusPreorder(badan.id, badan.status);
     return NextResponse.json({ berhasil: true });
