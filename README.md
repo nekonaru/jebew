@@ -125,7 +125,6 @@ Inti sistem ada pada resep. Setiap menu menyimpan daftar bahan dan jumlah per sa
 ```bash
 git clone https://github.com/nekonaru/jebew.git
 cd jebew
-git checkout feat/prototipe
 ```
 
 </details>
@@ -136,7 +135,7 @@ git checkout feat/prototipe
 1. Buka halaman repositori di GitHub
 2. Klik tombol hijau **Code**, lalu pilih **Download ZIP**
 3. Ekstrak berkas ZIP ke folder pilihanmu
-4. Di terminal, masuk ke folder tersebut, misalnya `cd Downloads/jebew-feat-prototipe`
+4. Di terminal, masuk ke folder tersebut, misalnya `cd Downloads/jebew-main`
 
 </details>
 
@@ -328,7 +327,7 @@ Kerentanan dependensi diperiksa di CI pada setiap push. Cara melaporkan temuan a
 |----------|--------|
 | `ci.yml` | Menjalankan pemeriksaan tipe, pengujian, audit dependensi, dan build pada setiap push dan pull request |
 
-Alur pengiriman memakai branch `feat/prototipe`. Setiap commit didorong ke GitHub, lalu CI menilai perubahan. Penggabungan ke `main` dilakukan setelah pemeriksaan hijau.
+Setiap perubahan dikerjakan pada branch tersendiri, lalu dikirim sebagai pull request ke `main`. CI menilai setiap push dan pull request. Penggabungan ke `main` hanya dilakukan setelah pemeriksaan hijau. Prototipe Tahap 1 sudah tergabung dan dirilis sebagai `v0.1.0`.
 
 ---
 
