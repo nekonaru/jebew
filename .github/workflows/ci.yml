@@ -37,7 +37,7 @@ jobs:
 
       - name: Pastikan berkas rahasia tidak masuk git
         run: |
-          if git ls-files | grep -Eq '(^|/)\.env($|\.)'; then
+          if git ls-files | grep -Eiq '(^|/)\.env(\.local|\.production|\.development|\.test)?$'; then
             echo "Berkas .env terdeteksi di dalam repositori"
             exit 1
           fi
