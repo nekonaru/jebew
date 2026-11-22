@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-kremMuda font-isi text-coklat antialiased;
+}
+
+h1, h2, h3, h4 {
+  @apply font-judul;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid #F29A2E;
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+input, select, textarea {
+  @apply min-h-[48px] w-full rounded-xl border border-tepi bg-white px-3 py-2 text-base text-coklat placeholder:text-coklatMuda/60;
+}
+
+textarea {
+  @apply min-h-[88px] resize-y;
+}
+
+label {
+  @apply mb-1 block text-sm font-medium text-coklat;
+}
+
+dialog::backdrop {
+  background: rgba(58, 34, 24, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+dialog {
+  @apply w-[min(100%-2rem,32rem)] rounded-2xl border border-tepi bg-white p-0 text-coklat shadow-2xl;
+}
+
+dialog:not([open]) {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

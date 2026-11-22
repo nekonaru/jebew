@@ -1,9 +1,7 @@
 -- Skema database prototipe Jebew.
 -- Dijalankan otomatis saat aplikasi pertama kali menyentuh data.
-
-PRAGMA journal_mode = WAL;
-PRAGMA foreign_keys = ON;
-PRAGMA busy_timeout = 5000;
+-- PRAGMA busy_timeout, foreign_keys, dan journal_mode diatur di lib/database.ts
+-- sebelum berkas ini dijalankan, supaya aman bila beberapa proses build bersamaan.
 
 CREATE TABLE IF NOT EXISTS bahan (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

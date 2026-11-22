@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="judul-ikon">
+  <title id="judul-ikon">Ikon aplikasi Jebew</title>
+  <rect width="256" height="256" rx="56" fill="#D8432B" />
+  <g transform="translate(8 44) scale(2.4)" fill="none" stroke-linecap="round">
+    <path d="M60 30 V56 A18 18 0 0 1 24 56" stroke="#FFF1D6" stroke-width="12" />
+    <path d="M30 24 Q38 12 46 24 T62 24 T78 24" stroke="#F29A2E" stroke-width="8" stroke-linejoin="round" />
+  </g>
+</svg>

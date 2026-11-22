@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="judul-tanda">
+  <title id="judul-tanda">Tanda Jebew</title>
+  <g transform="translate(-17 26.5) scale(2.9)" fill="none" stroke-linecap="round">
+    <path d="M60 30 V56 A18 18 0 0 1 24 56" stroke="#D8432B" stroke-width="12" />
+    <path d="M30 24 Q38 12 46 24 T62 24 T78 24" stroke="#F29A2E" stroke-width="8" stroke-linejoin="round" />
+  </g>
+</svg>
