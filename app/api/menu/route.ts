@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { asalValid, sudahMasuk, tanggapiGalat } from "@/lib/akses";
+import { pastikanAman, sudahMasuk, tanggapiGalat } from "@/lib/akses";
 import { ambilMenu, hapusMenu, simpanMenu } from "@/lib/operasi";
 import { skemaMenu } from "@/lib/validasi";
 
@@ -11,8 +11,8 @@ const skemaUbah = z
   .strict();
 const skemaHapus = z.object({ id: z.number().int().positive() }).strict();
 
-async function izin(permintaan: Request): Promise<boolean> {
-  return asalValid(permintaan) && (await sudahMasuk());
+async function izin(permintaan: Request): Promise<Response | null> {
+  return pastikanAman(permintaan, true);
 }
 
 function ditolak(): NextResponse {
@@ -26,7 +26,8 @@ export async function GET() {
 
 export async function POST(permintaan: Request) {
   try {
-    if (!(await izin(permintaan))) return ditolak();
+    const penolakan = await izin(permintaan);
+    if (penolakan) return penolakan;
     const badan = skemaMenu.parse(await permintaan.json());
     return NextResponse.json({ id: simpanMenu(badan) }, { status: 201 });
   } catch (kesalahan) {
@@ -36,7 +37,8 @@ export async function POST(permintaan: Request) {
 
 export async function PUT(permintaan: Request) {
   try {
-    if (!(await izin(permintaan))) return ditolak();
+    const penolakan = await izin(permintaan);
+    if (penolakan) return penolakan;
     const badan = skemaUbah.parse(await permintaan.json());
     return NextResponse.json({ id: simpanMenu(badan.data, badan.id) });
   } catch (kesalahan) {
@@ -46,7 +48,8 @@ export async function PUT(permintaan: Request) {
 
 export async function DELETE(permintaan: Request) {
   try {
-    if (!(await izin(permintaan))) return ditolak();
+    const penolakan = await izin(permintaan);
+    if (penolakan) return penolakan;
     const badan = skemaHapus.parse(await permintaan.json());
     hapusMenu(badan.id);
     return NextResponse.json({ berhasil: true });

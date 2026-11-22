@@ -9,9 +9,13 @@ const NAMA_COOKIE = "jebew_sesi";
 const DURASI_AKTIF = 60 * 60 * 8;
 const BATAS_PERCOBAAN = 5;
 const JENDELA_PERCOBAAN = 10 * 60 * 1000;
+const BATAS_UKURAN = 64 * 1024;
+const BATAS_PREORDER = 5;
+const JENDELA_PREORDER = 60 * 1000;
 
 type CatatanPercobaan = { jumlah: number; resetPada: number };
 const percobaanMasuk = new Map<string, CatatanPercobaan>();
+const kirimanPreorder = new Map<string, CatatanPercobaan>();
 
 function kunciRahasia(): string {
   return process.env.RAHASIA_SESI ?? "jebew-prototipe-kunci-sesi-ganti-melalui-env";
@@ -80,6 +84,49 @@ export function catatKegagalan(kunci: string): void {
 
 export function hapusCatatanPercobaan(kunci: string): void {
   percobaanMasuk.delete(kunci);
+}
+
+/** Batasi pre-order agar form publik tidak bisa dipakai untuk membanjiri database. */
+export function izinPreorder(kunci: string): boolean {
+  const sekarang = Date.now();
+  const catatan = kirimanPreorder.get(kunci);
+  if (!catatan || catatan.resetPada <= sekarang) {
+    kirimanPreorder.set(kunci, { jumlah: 1, resetPada: sekarang + JENDELA_PREORDER });
+    return true;
+  }
+  if (catatan.jumlah >= BATAS_PREORDER) return false;
+  catatan.jumlah += 1;
+  return true;
+}
+
+/** Alamat klien untuk keperluan pembatasan. Mengambil nilai pertama bila lewat proxy. */
+export function alamatKlien(permintaan: Request): string {
+  return permintaan.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "lokal";
+}
+
+export function ukuranWajar(permintaan: Request): boolean {
+  const panjang = Number(permintaan.headers.get("content-length") ?? "0");
+  return Number.isFinite(panjang) && panjang <= BATAS_UKURAN;
+}
+
+/**
+ * Satu pemeriksaan untuk semua endpoint yang mengubah data:
+ * ukuran permintaan, asal permintaan, dan sesi admin bila diperlukan.
+ */
+export async function pastikanAman(
+  permintaan: Request,
+  perluAdmin: boolean,
+): Promise<Response | null> {
+  if (!ukuranWajar(permintaan)) {
+    return Response.json({ pesan: "Permintaan terlalu besar" }, { status: 413 });
+  }
+  if (!asalValid(permintaan)) {
+    return Response.json({ pesan: "Asal permintaan tidak valid" }, { status: 403 });
+  }
+  if (perluAdmin && !(await sudahMasuk())) {
+    return Response.json({ pesan: "Silakan masuk ke dashboard admin" }, { status: 401 });
+  }
+  return null;
 }
 
 export const pilihanCookie = {

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verifikasi:
+    name: Pemeriksaan tipe, pengujian, audit, dan build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode sumber
+        uses: actions/checkout@v4
+
+      - name: Pasang Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Pasang dependensi
+        run: npm ci
+
+      - name: Periksa tipe
+        run: npm run typecheck
+
+      - name: Jalankan pengujian
+        run: npm test
+
+      - name: Audit dependensi
+        run: npm audit --audit-level=high
+
+      - name: Pastikan berkas rahasia tidak masuk git
+        run: |
+          if git ls-files | grep -Eiq '(^|/)\.env(\.local|\.production|\.development|\.test)?$'; then
+            echo "Berkas .env terdeteksi di dalam repositori"
+            exit 1
+          fi
+
+      - name: Build produksi
+        run: npm run build
