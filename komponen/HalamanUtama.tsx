@@ -230,6 +230,7 @@ export default function HalamanUtama() {
                   </label>
                   <select
                     id={`menu-${indeks}`}
+                    name={`menu-${indeks}`}
                     required
                     value={item.menu_id}
                     onChange={(peristiwa) => ubahBaris(indeks, { menu_id: peristiwa.target.value })}
@@ -246,6 +247,7 @@ export default function HalamanUtama() {
                   </label>
                   <input
                     id={`jumlah-${indeks}`}
+                    name={`jumlah-${indeks}`}
                     type="number"
                     min={1}
                     max={100}
@@ -277,6 +279,7 @@ export default function HalamanUtama() {
               <label htmlFor="nama-pelanggan">Nama kamu</label>
               <input
                 id="nama-pelanggan"
+                name="nama_pelanggan"
                 autoComplete="name"
                 required
                 maxLength={100}
@@ -288,6 +291,7 @@ export default function HalamanUtama() {
               <label htmlFor="whatsapp-pelanggan">Nomor WhatsApp</label>
               <input
                 id="whatsapp-pelanggan"
+                name="whatsapp"
                 autoComplete="tel"
                 inputMode="tel"
                 required
@@ -303,6 +307,7 @@ export default function HalamanUtama() {
             <label htmlFor="waktu-ambil">Waktu ambil</label>
             <input
               id="waktu-ambil"
+              name="waktu_ambil"
               type="datetime-local"
               required
               value={waktuAmbil}
@@ -314,6 +319,7 @@ export default function HalamanUtama() {
             <label htmlFor="catatan-pelanggan">Catatan (opsional)</label>
             <textarea
               id="catatan-pelanggan"
+              name="catatan"
               maxLength={300}
               value={catatan}
               onChange={(peristiwa) => setCatatan(peristiwa.target.value)}
