@@ -12,6 +12,7 @@ export function Tombol({
   nonaktif = false,
   kelas = "",
   nama = "",
+  ditekan,
 }: {
   children: ReactNode;
   onClick?: () => void;
@@ -20,6 +21,7 @@ export function Tombol({
   nonaktif?: boolean;
   kelas?: string;
   nama?: string;
+  ditekan?: boolean;
 }) {
   const gaya = {
     utama: "bg-bata text-white hover:bg-bataGelap",
@@ -32,6 +34,7 @@ export function Tombol({
     <button
       type={tipe}
       name={nama}
+      aria-pressed={ditekan}
       onClick={onClick}
       disabled={nonaktif}
       className={`inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${gaya} ${kelas}`}

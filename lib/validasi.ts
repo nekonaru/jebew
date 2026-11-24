@@ -10,9 +10,18 @@ export const satuanValid = [
   "butir",
   "pcs",
   "sendok",
+  "botol",
 ] as const;
 
-export const kategoriValid = ["Makanan", "Minuman", "Lainnya"] as const;
+export const kategoriValid = [
+  "Mie Jebew",
+  "Wonton Ayam Chili Oil",
+  "Mie Chili Oil",
+  "Extra Topping",
+  "Minuman",
+  "Makanan",
+  "Lainnya",
+] as const;
 export const metodeValid = ["tunai", "qris", "transfer"] as const;
 export const statusValid = ["baru", "diproses", "selesai", "batal"] as const;
 

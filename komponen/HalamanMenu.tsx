@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { formatAngka, formatRupiah } from "@/lib/format.ts";
 import { kategoriValid } from "@/lib/validasi.ts";
 import { Dialog, Kartu, Penanda, Pesan, Tombol } from "./ui.tsx";
+import { ambilJson } from "./api-klien.ts";
 
 type ResepTampil = {
   bahan_id: number;
@@ -66,10 +67,10 @@ export default function HalamanMenu() {
         fetch("/api/menu"),
         fetch("/api/bahan"),
       ]);
-      const dataMenu = (await jawabanMenu.json()) as { menu: MenuTampil[] };
-      const dataBahan = (await jawabanBahan.json()) as { bahan: BahanPilihan[] };
-      setDaftar(dataMenu.menu);
-      setBahan(dataBahan.bahan);
+      const dataMenu = await ambilJson<{ menu: MenuTampil[] }>(jawabanMenu);
+      const dataBahan = await ambilJson<{ bahan: BahanPilihan[] }>(jawabanBahan);
+      setDaftar(dataMenu.menu ?? []);
+      setBahan(dataBahan.bahan ?? []);
       setPesan("");
     } catch {
       setJenisPesan("galat");

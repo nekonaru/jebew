@@ -87,6 +87,16 @@ async function ambilResepMenu(menuId: number): Promise<BarisResep[]> {
   );
 }
 
+/** Semua resep diambil sekaligus agar daftar menu tidak perlu puluhan query. */
+async function ambilSemuaResep(): Promise<BarisResep[]> {
+  return query<BarisResep>(
+    `SELECT r.menu_id, r.bahan_id, r.jumlah_per_porsi,
+            b.nama AS nama_bahan, b.satuan, b.stok
+     FROM resep r JOIN bahan b ON b.id = r.bahan_id
+     ORDER BY r.menu_id, r.id`,
+  );
+}
+
 /** Daftar bahan beserta status menipisnya untuk dashboard admin. */
 export async function ambilBahan() {
   const daftar = await ambilSemuaBahan();
@@ -156,10 +166,17 @@ export async function ambilMenu(): Promise<MenuTampil[]> {
     aktif: boolean;
   }>("SELECT id, nama, harga, deskripsi, kategori, foto, aktif FROM menu ORDER BY kategori, id");
   const semuaBahan = await ambilSemuaBahan();
+  const semuaResep = await ambilSemuaResep();
+  const resepPerMenu = new Map<number, BarisResep[]>();
+  for (const baris of semuaResep) {
+    const kumpulan = resepPerMenu.get(baris.menu_id) ?? [];
+    kumpulan.push(baris);
+    resepPerMenu.set(baris.menu_id, kumpulan);
+  }
 
   const hasil: MenuTampil[] = [];
   for (const menu of daftarMenu) {
-    const barisResep = await ambilResepMenu(menu.id);
+    const barisResep = resepPerMenu.get(menu.id) ?? [];
     const itemResep: ItemResep[] = barisResep.map((baris) => ({
       bahanId: baris.bahan_id,
       jumlahPerPorsi: baris.jumlah_per_porsi,
@@ -246,22 +263,43 @@ export async function hapusMenu(id: number): Promise<void> {
   });
 }
 
+type PetaMenu = Map<number, { id: number; nama: string; harga: number; aktif: boolean }>;
+type PetaResep = Map<number, BarisResep[]>;
+
+/** Ambil semua menu yang terlibat dalam satu kueri. */
+async function ambilPetaMenu(ids: number[]): Promise<PetaMenu> {
+  if (ids.length === 0) return new Map();
+  const baris = await query<{ id: number; nama: string; harga: number; aktif: boolean }>(
+    "SELECT id, nama, harga, aktif FROM menu WHERE id = ANY($1)",
+    [ids],
+  );
+  return new Map(baris.map((item) => [item.id, item]));
+}
+
+function kelompokkanResep(semua: BarisResep[]): PetaResep {
+  const peta: PetaResep = new Map();
+  for (const baris of semua) {
+    const kumpulan = peta.get(baris.menu_id) ?? [];
+    kumpulan.push(baris);
+    peta.set(baris.menu_id, kumpulan);
+  }
+  return peta;
+}
+
 async function siapkanBarang(
   items: { menu_id: number; jumlah: number }[],
-): Promise<{ barang: BarangTransaksi[]; total: number }> {
+): Promise<{ barang: BarangTransaksi[]; total: number; resepPerMenu: PetaResep }> {
+  const petaMenu = await ambilPetaMenu(items.map((item) => item.menu_id));
+  const resepPerMenu = kelompokkanResep(await ambilSemuaResep());
   const barang: BarangTransaksi[] = [];
 
   for (const item of items) {
-    const menu = await querySatu<{ id: number; nama: string; harga: number; aktif: boolean }>(
-      "SELECT id, nama, harga, aktif FROM menu WHERE id = $1",
-      [item.menu_id],
-    );
-
+    const menu = petaMenu.get(item.menu_id);
     if (!menu || !menu.aktif) {
       throw new GalatBisnis(`Menu dengan id ${item.menu_id} tidak tersedia`);
     }
 
-    const barisResep = await ambilResepMenu(menu.id);
+    const barisResep = resepPerMenu.get(menu.id) ?? [];
     if (barisResep.length === 0) {
       throw new GalatBisnis(`Menu ${menu.nama} belum punya resep`);
     }
@@ -297,6 +335,7 @@ async function siapkanBarang(
   return {
     barang,
     total: hitungTotal(barang.map((item) => ({ hargaSatuan: item.harga_satuan, jumlah: item.jumlah }))),
+    resepPerMenu,
   };
 }
 
@@ -307,6 +346,7 @@ async function tulisPenjualan(
   catatan: string,
   sumber: string,
   preorderId: number | null,
+  resepPerMenu: PetaResep,
 ): Promise<number> {
   const baris = await querySatu<{ id: number }>(
     `INSERT INTO penjualan (total, metode, catatan, sumber, preorder_id)
@@ -324,18 +364,25 @@ async function tulisPenjualan(
     );
   }
 
-  await potongStok(barang);
+  await potongStok(barang, resepPerMenu);
   return penjualanId;
 }
 
-async function potongStok(barang: BarangTransaksi[]): Promise<void> {
+/**
+ * Pemotongan memakai UPDATE bersyarat. Bila stok berubah oleh transaksi lain sebelum UPDATE ini,
+ * baris tidak terpengaruh dan transaksi dibatalkan dengan pesanan yang jelas.
+ */
+async function potongStok(barang: BarangTransaksi[], resepPerMenu: PetaResep): Promise<void> {
   for (const item of barang) {
-    const barisResep = await ambilResepMenu(item.menu_id);
-    for (const bahan of barisResep) {
-      await jalankan(
-        "UPDATE bahan SET stok = stok - $1 WHERE id = $2",
-        [bahan.jumlah_per_porsi * item.jumlah, bahan.bahan_id],
+    for (const bahan of resepPerMenu.get(item.menu_id) ?? []) {
+      const kebutuhan = bahan.jumlah_per_porsi * item.jumlah;
+      const terpengaruh = await jalankan(
+        "UPDATE bahan SET stok = stok - $1 WHERE id = $2 AND stok >= $1",
+        [kebutuhan, bahan.bahan_id],
       );
+      if (terpengaruh === 0) {
+        throw new GalatBisnis(`Stok ${bahan.nama_bahan} berubah saat transaksi diproses. Coba lagi.`);
+      }
     }
   }
 }
@@ -343,8 +390,8 @@ async function potongStok(barang: BarangTransaksi[]): Promise<void> {
 /** Catat penjualan kasir. Pengecekan stok dan pemotongan terjadi dalam satu transaksi. */
 export async function catatPenjualan(input: KasirInput): Promise<{ id: number; total: number }> {
   return denganTransaksi(async () => {
-    const { barang, total } = await siapkanBarang(input.items);
-    const id = await tulisPenjualan(barang, total, input.metode, input.catatan, "kasir", null);
+    const { barang, total, resepPerMenu } = await siapkanBarang(input.items);
+    const id = await tulisPenjualan(barang, total, input.metode, input.catatan, "kasir", null, resepPerMenu);
     return { id, total };
   });
 }
@@ -422,27 +469,39 @@ export async function ambilPreorder(): Promise<PreorderTampil[]> {
             penjualan_id, dibuat_pada FROM preorder ORDER BY id DESC`,
   );
 
-  const hasil: PreorderTampil[] = [];
-  for (const preorder of daftar) {
-    const items = await query<BarangTransaksi>(
-      `SELECT menu_id, nama_menu, harga_satuan, jumlah, subtotal
-       FROM item_preorder WHERE preorder_id = $1 ORDER BY id`,
-      [preorder.id],
-    );
-    hasil.push({
+  const semuaItem = await query<BarangTransaksi & { preorder_id: number }>(
+    `SELECT preorder_id, menu_id, nama_menu, harga_satuan, jumlah, subtotal
+     FROM item_preorder ORDER BY id`,
+  );
+  const itemPerPreorder = new Map<number, BarangTransaksi[]>();
+  for (const baris of semuaItem) {
+    const kumpulan = itemPerPreorder.get(baris.preorder_id) ?? [];
+    kumpulan.push({
+      menu_id: baris.menu_id,
+      nama_menu: baris.nama_menu,
+      harga_satuan: baris.harga_satuan,
+      jumlah: baris.jumlah,
+      subtotal: baris.subtotal,
+    });
+    itemPerPreorder.set(baris.preorder_id, kumpulan);
+  }
+
+  return daftar.map((preorder) => {
+    const items = itemPerPreorder.get(preorder.id) ?? [];
+    return {
       ...preorder,
       total: items.reduce((nilai, item) => nilai + item.subtotal, 0),
       items,
-    });
-  }
-  return hasil;
+    };
+  });
 }
 
 /** Menandai preorder selesai sekaligus mencatat penjualan dan memotong stok. */
 export async function selesaikanPreorder(id: number): Promise<void> {
   await denganTransaksi(async () => {
+    // Kunci baris preorder agar dua permintaan bersamaan tidak bisa mencatat dua penjualan.
     const preorder = await querySatu<{ id: number; status: string; catatan: string; penjualan_id: number | null }>(
-      "SELECT id, status, catatan, penjualan_id FROM preorder WHERE id = $1",
+      "SELECT id, status, catatan, penjualan_id FROM preorder WHERE id = $1 FOR UPDATE",
       [id],
     );
 
@@ -451,14 +510,25 @@ export async function selesaikanPreorder(id: number): Promise<void> {
     if (preorder.status === "batal") throw new GalatBisnis("Preorder ini sudah dibatalkan");
     if (preorder.penjualan_id) throw new GalatBisnis("Preorder ini sudah dicatat sebagai penjualan");
 
-    const barisItems = await query<{ menu_id: number; jumlah: number }>(
-      "SELECT menu_id, jumlah FROM item_preorder WHERE preorder_id = $1",
+    const barisItems = await query<BarangTransaksi>(
+      `SELECT menu_id, nama_menu, harga_satuan, jumlah, subtotal
+       FROM item_preorder WHERE preorder_id = $1 ORDER BY id`,
       [id],
     );
     if (barisItems.length === 0) throw new GalatBisnis("Preorder tidak punya item");
 
-    const { barang, total } = await siapkanBarang(barisItems);
-    const penjualanId = await tulisPenjualan(barang, total, "tunai", preorder.catatan, "preorder", id);
+    const { barang, resepPerMenu } = await siapkanBarang(barisItems);
+    // Nama dan harga memakai snapshot saat pesanan dibuat, bukan harga menu saat ini.
+    const barangSnapshot = barang.map((item, indeks) => ({
+      ...item,
+      nama_menu: barisItems[indeks].nama_menu,
+      harga_satuan: barisItems[indeks].harga_satuan,
+      subtotal: barisItems[indeks].subtotal,
+    }));
+    const total = barangSnapshot.reduce((nilai, item) => nilai + item.subtotal, 0);
+    const penjualanId = await tulisPenjualan(
+      barangSnapshot, total, "tunai", preorder.catatan, "preorder", id, resepPerMenu,
+    );
     await jalankan(
       "UPDATE preorder SET status = 'selesai', penjualan_id = $1 WHERE id = $2",
       [penjualanId, id],
@@ -477,7 +547,7 @@ export async function ubahStatusPreorder(
 
   await denganTransaksi(async () => {
     const preorder = await querySatu<{ status: string }>(
-      "SELECT status FROM preorder WHERE id = $1",
+      "SELECT status FROM preorder WHERE id = $1 FOR UPDATE",
       [id],
     );
     if (!preorder) throw new GalatBisnis("Preorder tidak ditemukan");

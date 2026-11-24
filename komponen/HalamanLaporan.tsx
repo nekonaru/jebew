@@ -28,16 +28,24 @@ export default function HalamanLaporan() {
   const muat = useCallback(async (tanggalAwal: string, tanggalAkhir: string) => {
     try {
       const jawaban = await fetch(`/api/laporan?dari=${tanggalAwal}&sampai=${tanggalAkhir}`);
+      if (jawaban.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+      if (!jawaban.ok) throw new Error("Gagal memuat laporan");
       const data = (await jawaban.json()) as { daftar: Transaksi[]; ringkasan: Ringkasan };
-      setDaftar(data.daftar);
-      setRingkasan(data.ringkasan);
+      setDaftar(data.daftar ?? []);
+      setRingkasan(data.ringkasan ?? null);
       setPesan("");
     } catch {
       setPesan("Laporan gagal dimuat.");
     }
   }, []);
 
-  useEffect(() => { void muat(dari, sampai); }, [muat, dari, sampai]);
+  useEffect(() => {
+    const hariIni = tanggalHariIni();
+    void muat(hariIni, hariIni);
+  }, [muat]);
 
   function terapkan(peristiwa: FormEvent<HTMLFormElement>) {
     peristiwa.preventDefault();

@@ -150,6 +150,9 @@ export const pilihanCookie = {
 
 /** Menolak permintaan yang asalnya bukan situs yang sama. */
 export function asalValid(permintaan: Request): boolean {
+  const situs = permintaan.headers.get("sec-fetch-site");
+  if (situs && situs !== "same-origin" && situs !== "none") return false;
+
   const asal = permintaan.headers.get("origin");
   if (!asal) return true;
   try {

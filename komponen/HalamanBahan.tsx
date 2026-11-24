@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { formatAngka } from "@/lib/format.ts";
 import { satuanValid } from "@/lib/validasi.ts";
 import { Dialog, Kartu, Penanda, Pesan, Tombol } from "./ui.tsx";
+import { ambilJson } from "./api-klien.ts";
 
 type Bahan = {
   id: number;
@@ -37,9 +38,8 @@ export default function HalamanBahan() {
 
   const muat = useCallback(async () => {
     try {
-      const jawaban = await fetch("/api/bahan");
-      const data = (await jawaban.json()) as { bahan: Bahan[] };
-      setDaftar(data.bahan);
+      const data = await ambilJson<{ bahan: Bahan[] }>(await fetch("/api/bahan"));
+      setDaftar(data.bahan ?? []);
       setPesan("");
     } catch {
       setJenisPesan("galat");

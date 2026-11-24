@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { formatRupiah } from "@/lib/format.ts";
 import { metodeValid } from "@/lib/validasi.ts";
 import { Kartu, Pesan, Tombol } from "./ui.tsx";
+import { ambilJson } from "./api-klien.ts";
 
 type MenuKasir = {
   id: number;
@@ -29,9 +30,8 @@ export default function HalamanKasir() {
 
   const muat = useCallback(async () => {
     try {
-      const jawaban = await fetch("/api/menu");
-      const data = (await jawaban.json()) as { menu: MenuKasir[] };
-      setDaftarMenu(data.menu);
+      const data = await ambilJson<{ menu: MenuKasir[] }>(await fetch("/api/menu"));
+      setDaftarMenu(data.menu ?? []);
     } catch {
       setJenisPesan("galat");
       setPesan("Daftar menu gagal dimuat.");
@@ -46,16 +46,18 @@ export default function HalamanKasir() {
   function tambahKeKeranjang() {
     const menu = menuTersedia.find((item) => item.id === Number(pilihanMenu));
     const jumlahAngka = Number(jumlah);
-    if (!menu || !Number.isInteger(jumlahAngka) || jumlahAngka < 1) {
+    if (!menu || !Number.isInteger(jumlahAngka) || jumlahAngka < 1 || jumlahAngka > 100) {
       setJenisPesan("galat");
-      setPesan("Pilih menu dan jumlah yang valid.");
+      setPesan("Pilih menu dan jumlah antara 1 sampai 100.");
       return;
     }
 
     setKeranjang((nilai) => {
       const sudahAda = nilai.find((item) => item.menu_id === menu.id);
       if (sudahAda) {
-        return nilai.map((item) => item.menu_id === menu.id ? { ...item, jumlah: item.jumlah + jumlahAngka } : item);
+        return nilai.map((item) => item.menu_id === menu.id
+          ? { ...item, jumlah: Math.min(100, item.jumlah + jumlahAngka) }
+          : item);
       }
       return [...nilai, { menu_id: menu.id, nama: menu.nama, harga: menu.harga, jumlah: jumlahAngka }];
     });
@@ -67,7 +69,7 @@ export default function HalamanKasir() {
 
   function ubahJumlah(indeks: number, jumlahBaru: string) {
     setKeranjang((nilai) => nilai.map((item, posisi) =>
-      posisi === indeks ? { ...item, jumlah: Math.max(1, Number(jumlahBaru) || 1) } : item));
+      posisi === indeks ? { ...item, jumlah: Math.min(100, Math.max(1, Number(jumlahBaru) || 1)) } : item));
   }
 
   async function simpanTransaksi(peristiwa: FormEvent<HTMLFormElement>) {

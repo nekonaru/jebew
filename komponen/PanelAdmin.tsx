@@ -69,7 +69,7 @@ export default function PanelAdmin({
         <header className="flex items-center justify-between gap-4 border-b border-tepi bg-white px-5 py-4">
           <div>
             <h1 className="text-xl font-semibold">Panel pengelolaan</h1>
-            <p className="text-xs text-coklatMuda">Prototipe Tahap 1, zona waktu WIB</p>
+            <p className="text-xs text-coklatMuda">Zona waktu WIB</p>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/" className="text-sm font-semibold text-bata hover:underline">

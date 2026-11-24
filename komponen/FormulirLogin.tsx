@@ -58,9 +58,7 @@ export default function FormulirLogin() {
             {sedangKirim ? "Memeriksa..." : "Masuk"}
           </Tombol>
         </form>
-        <p className="mt-5 text-center text-xs text-coklatMuda">
-          Untuk demo, PIN bawaan adalah 1234. Ganti lewat variabel ADMIN_PIN.
-        </p>
+
       </div>
     </div>
   );

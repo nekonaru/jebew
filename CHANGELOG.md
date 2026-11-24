@@ -1,5 +1,28 @@
 # Riwayat Perubahan
 
+## v0.3.1
+
+Audit mendalam dan optimalisasi pada fitur yang sudah ada.
+
+### Perbaikan bug
+
+- **Transaksi preorder ganda.** Dua permintaan penyelesaian bersamaan kini menghasilkan satu penjualan. Baris preorder dikunci dan `penjualan.preorder_id` dibuat unik.
+- **Snapshot preorder.** Nama dan harga yang dipakai saat preorder diselesaikan berasal dari data pesanan, bukan harga menu terkini.
+- **Stok saat transaksi bersamaan.** Pemotongan memakai syarat stok mencukupi, sehingga kegagalan menghasilkan pesan yang jelas, bukan galat server.
+- **Kategori dan satuan.** Pilihan admin kini mencakup semua nilai yang dipakai data contoh, sehingga menu dan bahan bisa diubah lewat antarmuka.
+- **Menu baru tampil.** Daftar kategori dan filter di halaman konsumen diambil dari data sebenarnya.
+- **Muat ulang contoh.** Urutan penghapusan disesuaikan dengan relasi preorder dan penjualan.
+- **Filter laporan.** Tanggal divalidasi, dan permintaan tidak lagi dobel saat menekan Terapkan.
+- **Sesi habis.** Halaman admin mengalihkan ke login bila respons API berstatus 401.
+
+### Peningkatan
+
+- **Muat menu jauh lebih cepat.** Semua resep diambil dalam satu kueri dan menu langsung dirender dari server. Halaman tidak lagi menunggu fetch awal.
+- **Lebih ringan.** Daftar preorder dan transaksi memakai satu kueri lalu dikelompokkan di memori, bukan satu kueri per baris.
+- **Batas jumlah kasir.** Jumlah dibatasi 1 sampai 100 di antarmuka agar sesuai dengan validasi server.
+- **Tanpa label prototipe.** Catatan prototipe dan PIN demo dihapus dari antarmuka.
+- **Aksesibilitas.** Label tombol jumlah menyebut nama menu dan filter status memakai `aria-pressed`.
+
 ## v0.3.0
 
 Menu Warung Kak Ikaa dimasukkan lengkap dan tampilan konsumen disederhanakan agar lebih mudah dipakai.
