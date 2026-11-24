@@ -29,6 +29,6 @@
 ## Aturan kerja
 
 - Jalankan `npm run verifikasi` sebelum setiap commit. Perintah ini menjalankan pemeriksaan tipe, seluruh pengujian, dan build produksi.
-- Commit dan push ke `origin/feat/prototipe` setelah setiap unit kerja selesai.
+- Commit dan push ke branch kerja, lalu buat pull request ke `main`. Penggabungan dilakukan setelah CI hijau.
 - Pesan commit memakai format `tipe: deskripsi singkat` dalam Bahasa Indonesia.
 - Berkas lokal yang tidak boleh masuk git: `SECURITY_MAP.md`, `SECURITY_REVIEW.md`, `SECURITY_REPORT.md`, `rancangan.md`, dan semua berkas Dev Tools.
