@@ -1,5 +1,18 @@
 # Riwayat Perubahan
 
+## final-v1.1.1
+
+Ikon kategori pada kartu menu.
+
+### Peningkatan
+
+- **Ikon per kategori.** Setiap kartu menu kini punya ikon sesuai kategorinya: mangkuk, api, wonton, tambahan, dan gelas.
+- **Aksen responsif.** Garis pendek pada kartu memanjang saat kartu disorong, memberi umpan balik halus tanpa menggeser tata letak.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.1.0
 
 Navigasi dan keadaan kosong pada website konsumen.

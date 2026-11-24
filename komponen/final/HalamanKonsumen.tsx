@@ -15,12 +15,27 @@ type DataAwal = { menu: Menu[]; pengaturan: Record<string, string> };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
 type Hasil = { kode: string; kode_lacak: string; total: number; pesan: string; tautan: string };
 
-const AKSESEN_KATEGORI: Record<string, { teks: string; garis: string; pinggir: string }> = {
-  "Mie Jebew": { teks: "text-utama", garis: "bg-utama", pinggir: "border-t-utama" },
-  "Mie Chili Oil": { teks: "text-[#9A5608]", garis: "bg-aksen", pinggir: "border-t-aksen" },
-  "Wonton Ayam Chili Oil": { teks: "text-orange-700", garis: "bg-orange-500", pinggir: "border-t-orange-500" },
-  "Extra Topping": { teks: "text-amber-700", garis: "bg-amber-500", pinggir: "border-t-amber-500" },
-  Minuman: { teks: "text-info", garis: "bg-blue-500", pinggir: "border-t-blue-500" },
+const AKSESEN_KATEGORI: Record<string, { teks: string; garis: string; pinggir: string; ikon: string }> = {
+  "Mie Jebew": {
+    teks: "text-utama", garis: "bg-utama", pinggir: "border-t-utama",
+    ikon: "M4 12h16a8 8 0 01-16 0zM8 9c0-2 2-3 4-3s4 1 4 3",
+  },
+  "Mie Chili Oil": {
+    teks: "text-[#9A5608]", garis: "bg-aksen", pinggir: "border-t-aksen",
+    ikon: "M12 3c1 4-3 5-3 9a3 3 0 006 0c0-2-1-3-1-5 3 2 4 4 4 6a6 6 0 11-12 0c0-4 4-6 6-10z",
+  },
+  "Wonton Ayam Chili Oil": {
+    teks: "text-orange-700", garis: "bg-orange-500", pinggir: "border-t-orange-500",
+    ikon: "M4 12a8 8 0 1116 0 8 8 0 01-16 0zM8 12h8M12 8v8",
+  },
+  "Extra Topping": {
+    teks: "text-amber-700", garis: "bg-amber-500", pinggir: "border-t-amber-500",
+    ikon: "M12 5v14M5 12h14",
+  },
+  Minuman: {
+    teks: "text-info", garis: "bg-blue-500", pinggir: "border-t-blue-500",
+    ikon: "M6 8h12l-1 12H7L6 8zM9 8V5h6v3",
+  },
 };
 
 export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
@@ -293,7 +308,12 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <article key={m.id} className={`animasi-muncul group flex flex-col overflow-hidden rounded-kartu border border-t-2 border-garis bg-permukaan shadow-kartu transition-[transform,box-shadow] duration-[var(--gerak-standar)] ease-[var(--ease-halus)] hover:-translate-y-1 hover:shadow-angkat ${AKSESEN_KATEGORI[m.kategori]?.pinggir ?? "border-t-tinta-lemah"}`}
                 style={{ animationDelay: `${Math.min(indeks, 12) * 35}ms` }}>
                 <div className="flex flex-1 flex-col p-5">
-                  <span className={`mb-2 block h-0.5 w-8 rounded-full ${AKSESEN_KATEGORI[m.kategori]?.garis ?? "bg-tinta-lemah"}`} aria-hidden="true" />
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <span className={`flex h-9 w-9 items-center justify-center rounded-xl bg-latar ${AKSESEN_KATEGORI[m.kategori]?.teks ?? "text-tinta-lemah"}`} aria-hidden="true">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4"><path d={AKSESEN_KATEGORI[m.kategori]?.ikon ?? "M4 6h16"} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </span>
+                    <span className={`h-0.5 w-8 rounded-full transition-all duration-[var(--gerak-standar)] group-hover:w-14 ${AKSESEN_KATEGORI[m.kategori]?.garis ?? "bg-tinta-lemah"}`} aria-hidden="true" />
+                  </div>
                   <div className="flex items-start justify-between gap-3">
                     <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${AKSESEN_KATEGORI[m.kategori]?.teks ?? "text-tinta-lemah"}`}>{m.kategori}</p>
                     <span className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
