@@ -1,6 +1,6 @@
 # Panduan Demo Prototipe
 
-Panduan ini dipakai untuk menunjukkan alur utama Jebew dalam waktu lima menit. Semua langkah memakai data contoh yang dibuat otomatis saat aplikasi pertama dijalankan.
+Panduan ini dipakai untuk menunjukkan alur utama Jebew dalam waktu lima menit. Semua langkah memakai data contoh yang dipasang lewat `npm run siap:supabase` atau `npm run muat:contoh`.
 
 ## Persiapan
 

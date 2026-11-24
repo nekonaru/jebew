@@ -34,17 +34,24 @@ const URUTAN_KATEGORI = [
 
 const barisAwal = (): BarisPesanan => ({ menu_id: "", jumlah: "1" });
 
-export default function HalamanUtama() {
-  const [daftarMenu, setDaftarMenu] = useState<MenuPublik[]>([]);
-  const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
+export default function HalamanUtama({
+  menuAwal,
+  namaUsahaAwal,
+}: {
+  menuAwal: MenuPublik[];
+  namaUsahaAwal: string;
+}) {
+  const [daftarMenu, setDaftarMenu] = useState<MenuPublik[]>(menuAwal);
+  const [namaUsaha, setNamaUsaha] = useState(namaUsahaAwal);
   const [kategoriAktif, setKategoriAktif] = useState("Semua");
   const [cari, setCari] = useState("");
   const [pesan, setPesan] = useState("");
   const [jenisPesan, setJenisPesan] = useState<"info" | "sukses" | "galat">("info");
+  const [pesanMuat, setPesanMuat] = useState("");
   const [dialogPesan, setDialogPesan] = useState(false);
   const [dialogHasil, setDialogHasil] = useState(false);
   const [hasil, setHasil] = useState<HasilPreorder | null>(null);
-  const [sedangMuat, setSedangMuat] = useState(true);
+  const [sedangMuat, setSedangMuat] = useState(false);
   const [sedangKirim, setSedangKirim] = useState(false);
   const [baris, setBaris] = useState<BarisPesanan[]>([barisAwal()]);
   const [nama, setNama] = useState("");
@@ -59,17 +66,15 @@ export default function HalamanUtama() {
       const data = (await jawaban.json()) as { menu: MenuPublik[]; nama_usaha: string };
       setDaftarMenu(data.menu);
       setNamaUsaha(data.nama_usaha);
-      setPesan("");
+      setPesanMuat("");
     } catch {
-      setJenisPesan("galat");
-      setPesan("Menu belum bisa dimuat. Halaman akan mencoba lagi.");
+      setPesanMuat("Menu belum bisa dimuat. Halaman akan mencoba lagi.");
     } finally {
       setSedangMuat(false);
     }
   }, []);
 
   useEffect(() => {
-    void muatStatus();
     const penghitung = setInterval(() => void muatStatus(), 15000);
     return () => clearInterval(penghitung);
   }, [muatStatus]);
@@ -85,10 +90,17 @@ export default function HalamanUtama() {
     });
   }, [daftarMenu, kategoriAktif, cari]);
 
+  const daftarKategori = useMemo(() => {
+    const hadir = [...new Set(daftarMenu.map((menu) => menu.kategori))];
+    const utama = URUTAN_KATEGORI.filter((kategori) => hadir.includes(kategori));
+    const tambahan = hadir.filter((kategori) => !URUTAN_KATEGORI.includes(kategori)).sort();
+    return [...utama, ...tambahan];
+  }, [daftarMenu]);
+
   const kategoriTerpakai = useMemo(() => {
     const hadir = new Set(tersaring.map((menu) => menu.kategori));
-    return URUTAN_KATEGORI.filter((kategori) => hadir.has(kategori));
-  }, [tersaring]);
+    return daftarKategori.filter((kategori) => hadir.has(kategori));
+  }, [tersaring, daftarKategori]);
 
   const totalSementara = useMemo(() => {
     return baris.reduce((nilai, item) => {
@@ -189,7 +201,7 @@ export default function HalamanUtama() {
           <div className="sticky top-0 z-20 -mx-4 border-b border-tepi bg-kremMuda/95 px-4 py-3 backdrop-blur">
             <h2 id="judul-menu" className="sr-only">Daftar menu</h2>
             <div className="flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter kategori menu">
-              {["Semua", ...URUTAN_KATEGORI].map((kategori) => (
+              {["Semua", ...daftarKategori].map((kategori) => (
                 <button
                   key={kategori}
                   type="button"
@@ -217,10 +229,19 @@ export default function HalamanUtama() {
             />
           </div>
 
-          <p className="mt-4 text-xs text-coklatMuda">
-            {sedangMuat ? "Memuat menu..." : `${menuTersedia.length} dari ${daftarMenu.length} menu tersedia`}
-          </p>
-          <Pesan teks={pesan} jenis={jenisPesan} />
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <p className="text-xs text-coklatMuda">
+              {sedangMuat ? "Memperbarui..." : `${menuTersedia.length} dari ${daftarMenu.length} menu tersedia`}
+            </p>
+            <button
+              type="button"
+              onClick={() => void muatStatus()}
+              className="min-h-[36px] shrink-0 rounded-lg px-2 text-xs font-semibold text-bata hover:bg-krem"
+            >
+              Segarkan
+            </button>
+          </div>
+          <Pesan teks={pesanMuat} jenis="galat" />
 
           {sedangMuat ? (
             <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Memuat menu">
@@ -305,7 +326,7 @@ export default function HalamanUtama() {
       </div>
 
       <footer className="border-t border-tepi bg-white py-5 text-center text-xs text-coklatMuda">
-        {namaUsaha} - Prototipe Tahap 1
+        {namaUsaha} - Mie Jebew Chili Oil & Wonton Ayam
       </footer>
 
       <Dialog terbuka={dialogPesan} judul="Buat pre-order" padaTutup={() => setDialogPesan(false)}>
@@ -342,9 +363,9 @@ export default function HalamanUtama() {
                   <div className="mt-2 flex items-center gap-3">
                     <span className="text-xs text-coklatMuda">Jumlah</span>
                     <div className="flex items-center rounded-lg border border-tepi">
-                      <button type="button" onClick={() => ubahJumlah(indeks, -1)} aria-label="Kurangi jumlah" className="min-h-[40px] w-10 text-lg text-bata">-</button>
+                      <button type="button" onClick={() => ubahJumlah(indeks, -1)} aria-label={`Kurangi jumlah ${daftarMenu.find((pilihan) => pilihan.id === Number(item.menu_id))?.nama ?? "menu"}`} className="min-h-[40px] w-10 text-lg text-bata">-</button>
                       <span className="w-8 text-center text-sm font-semibold" aria-live="polite">{item.jumlah}</span>
-                      <button type="button" onClick={() => ubahJumlah(indeks, 1)} aria-label="Tambah jumlah" className="min-h-[40px] w-10 text-lg text-bata">+</button>
+                      <button type="button" onClick={() => ubahJumlah(indeks, 1)} aria-label={`Tambah jumlah ${daftarMenu.find((pilihan) => pilihan.id === Number(item.menu_id))?.nama ?? "menu"}`} className="min-h-[40px] w-10 text-lg text-bata">+</button>
                     </div>
                   </div>
                 </div>

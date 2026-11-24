@@ -205,7 +205,7 @@ Buka `http://localhost:3000` di browser.
 
 ### Pertama kali dibuka
 
-1. Pastikan `npm run siap:supabase` sudah dijalankan dan tiga menu contoh tampil di website
+1. Pastikan `npm run siap:supabase` sudah dijalankan dan 33 menu contoh tampil di website
 2. Buka `http://localhost:3000` untuk melihat website konsumen
 3. Perhatikan status Tersedia pada Mie Jebew Original dengan sisa delapan porsi
 4. Buka `http://localhost:3000/admin/login` dan masukkan PIN admin
@@ -349,7 +349,7 @@ npm audit --audit-level=high
 | `npm run typecheck` | Tidak ada galat tipe TypeScript |
 | `npm test` | Seluruh pengujian logika inti lulus |
 | `npm run build` | Build produksi Next.js berhasil |
-| `npm audit --audit-level=high` | Nol kerentanan sedang dan tinggi |
+| `npm audit --audit-level=high` | Nol kerentanan tinggi dan kritis |
 
 Aturan tipe TypeScript ada di `tsconfig.json` dengan mode strict. Pengujian memakai `node:test` bawaan Node.js, tanpa kerangka pengujian tambahan.
 
@@ -390,7 +390,7 @@ Ya. Data disimpan di Supabase Postgres. Kamu perlu satu project Supabase gratis 
 <details>
 <summary><b>Bagaimana cara mengembalikan data contoh setelah dicoba?</b></summary>
 
-Buka SQL Editor di panel Supabase, hapus isi tabel `item_penjualan`, `penjualan`, `item_preorder`, dan `preorder` dalam urutan itu, lalu jalankan isi `database/seed.sql` kembali. Data bahan, menu, dan resep akan kembali seperti semula.
+Cara paling aman adalah menjalankan `npm run muat:contoh`, yang menetralkan relasi preorder dan penjualan sebelum menghapus data. Bila memakai SQL Editor manual, kosongkan `item_preorder`, `item_penjualan`, `preorder.penjualan_id`, `penjualan.preorder_id`, `preorder`, lalu `penjualan`, baru jalankan isi `database/seed.sql`.
 
 </details>
 

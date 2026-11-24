@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { Kartu, Penanda } from "./ui.tsx";
+import { ambilJson } from "./api-klien.ts";
 
 type Ringkasan = {
   omzet: number;
@@ -31,15 +32,17 @@ export default function RingkasanAdmin() {
   useEffect(() => {
     const hariIni = tanggalHariIni();
     void Promise.all([
-      fetch(`/api/laporan?dari=${hariIni}&sampai=${hariIni}`).then((j) => j.json()),
-      fetch("/api/bahan").then((j) => j.json()),
-      fetch("/api/menu").then((j) => j.json()),
-      fetch("/api/preorder").then((j) => j.json()),
+      fetch(`/api/laporan?dari=${hariIni}&sampai=${hariIni}`).then(ambilJson<{ ringkasan: Ringkasan }>),
+      fetch("/api/bahan").then(ambilJson<{ bahan: Bahan[] }>),
+      fetch("/api/menu").then(ambilJson<{ menu: Menu[] }>),
+      fetch("/api/preorder").then(ambilJson<{ preorder: Preorder[] }>),
     ]).then(([dataLaporan, dataBahan, dataMenu, dataPreorder]) => {
-      setRingkasan(dataLaporan.ringkasan as Ringkasan);
-      setBahan(dataBahan.bahan as Bahan[]);
-      setMenu(dataMenu.menu as Menu[]);
-      setPreorder(dataPreorder.preorder as Preorder[]);
+      setRingkasan(dataLaporan.ringkasan);
+      setBahan(dataBahan.bahan ?? []);
+      setMenu(dataMenu.menu ?? []);
+      setPreorder(dataPreorder.preorder ?? []);
+    }).catch(() => {
+      // Galat sudah ditangani oleh ambilJson, termasuk alihkan ke halaman masuk.
     });
   }, []);
 
@@ -120,7 +123,7 @@ export default function RingkasanAdmin() {
             ))}
           </ul>
         )}
-        <p className="mt-4 text-xs text-coklatMuda">Data di atas diambil dari database lokal saat halaman dibuka.</p>
+        <p className="mt-4 text-xs text-coklatMuda">Data di atas diambil dari database Supabase saat halaman dibuka.</p>
       </Kartu>
     </div>
   );

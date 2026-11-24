@@ -32,10 +32,12 @@ try {
   await klien.connect();
   await klien.query("BEGIN");
 
-  await klien.query("DELETE FROM item_penjualan");
-  await klien.query("DELETE FROM penjualan");
   await klien.query("DELETE FROM item_preorder");
+  await klien.query("DELETE FROM item_penjualan");
+  await klien.query("UPDATE preorder SET penjualan_id = NULL");
+  await klien.query("UPDATE penjualan SET preorder_id = NULL");
   await klien.query("DELETE FROM preorder");
+  await klien.query("DELETE FROM penjualan");
   await klien.query("DELETE FROM resep");
   await klien.query("DELETE FROM menu");
   await klien.query("DELETE FROM bahan");

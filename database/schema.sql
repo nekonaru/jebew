@@ -82,6 +82,19 @@ CREATE INDEX IF NOT EXISTS indeks_item_penjualan ON item_penjualan(penjualan_id)
 CREATE INDEX IF NOT EXISTS indeks_preorder_status ON preorder(status);
 CREATE INDEX IF NOT EXISTS indeks_item_preorder ON item_preorder(preorder_id);
 
+-- Satu preorder hanya boleh menghasilkan satu penjualan. Ditambahkan setelah kedua tabel ada
+-- supaya skema bisa dipakai pada database baru maupun yang sudah berisi data.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'penjualan_preorder_unik') THEN
+    ALTER TABLE penjualan ADD CONSTRAINT penjualan_preorder_unik UNIQUE (preorder_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'penjualan_preorder_fk') THEN
+    ALTER TABLE penjualan ADD CONSTRAINT penjualan_preorder_fk
+      FOREIGN KEY (preorder_id) REFERENCES preorder(id);
+  END IF;
+END $$;
+
 -- Pertahanan tambahan. Aplikasi mengakses data hanya lewat koneksi server,
 -- jadi aturan ini tidak menggantikan pemeriksaan sesi di handler API.
 ALTER TABLE bahan ENABLE ROW LEVEL SECURITY;

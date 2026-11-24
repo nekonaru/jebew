@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { formatRupiah, formatWaktu } from "@/lib/format.ts";
 import { Kartu, Penanda, Pesan, Tombol } from "./ui.tsx";
+import { ambilJson } from "./api-klien.ts";
 
 type Barang = { nama_menu: string; harga_satuan: number; jumlah: number; subtotal: number };
 type Preorder = {
@@ -34,9 +35,8 @@ export default function HalamanPreorder() {
 
   const muat = useCallback(async () => {
     try {
-      const jawaban = await fetch("/api/preorder");
-      const data = (await jawaban.json()) as { preorder: Preorder[] };
-      setDaftar(data.preorder);
+      const data = await ambilJson<{ preorder: Preorder[] }>(await fetch("/api/preorder"));
+      setDaftar(data.preorder ?? []);
       setPesan("");
     } catch {
       setJenisPesan("galat");
@@ -80,7 +80,7 @@ export default function HalamanPreorder() {
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filter status pre-order">
         {["semua", "baru", "diproses", "selesai", "batal"].map((opsi) => (
           <Tombol key={opsi} onClick={() => setFilter(opsi)} jenis={filter === opsi ? "utama" : "sekunder"}
-            kelas="min-h-[40px] px-3">
+            nama={`filter-${opsi}`} ditekan={filter === opsi} kelas="min-h-[40px] px-3">
             {opsi[0].toUpperCase() + opsi.slice(1)}
           </Tombol>
         ))}
