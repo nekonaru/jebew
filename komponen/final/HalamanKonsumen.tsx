@@ -91,79 +91,141 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   }
 
   const tokoBuka = data.pengaturan.toko_aktif === "true";
+  const tersediaCount = data.menu.filter((m) => m.tersedia).length;
 
   return (
     <div className="min-h-screen">
       <header className="border-b border-garis bg-permukaan/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+        <div className="h-0.5 bg-gradient-to-r from-utama via-aksen to-utama" aria-hidden="true" />
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/jebew-icon.svg" alt="" width={42} height={42} />
+            <img src="/assets/jebew-icon.svg" alt="" width={40} height={40} />
             <div>
-              <p className="font-judul text-base font-semibold">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</p>
-              <p className="text-[11px] text-tinta-lemah">{data.pengaturan.tagline ?? "Mie Jebew Chili Oil"}</p>
+              <p className="font-judul text-base font-semibold tracking-tight">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</p>
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-tinta-lemah">{data.pengaturan.tagline ?? "Mie Jebew Chili Oil"}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Badge warna={tokoBuka ? "sukses" : "bahaya"}>{tokoBuka ? "Buka" : "Tutup"}</Badge>
-            <Link href="/admin" className="text-xs font-semibold text-tinta-lemah hover:text-utama">Admin</Link>
+            <Link href="/admin" className="text-xs font-semibold text-tinta-lemah transition-colors duration-[var(--gerak-cepat)] hover:text-utama">Admin</Link>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 pb-28">
-        <section className="animasi-muncul my-7 overflow-hidden rounded-kartu bg-utama px-6 py-9 text-white sm:px-10">
-          <Badge warna="peringatan" >Pre-order dibuka</Badge>
-          <h1 className="mt-4 font-judul text-3xl font-semibold leading-tight sm:text-4xl">
-            Mie hangat, pesan lebih mudah.
-          </h1>
-          <p className="mt-3 max-w-xl text-sm text-white/95">
-            Pilih menu, tentukan waktu ambil, lalu kami siapkan. Status menu mengikuti sisa bahan di dapur.
-          </p>
-          <Tombol onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
-            jenis="sekunder" kelas="mt-6 bg-white text-utama hover:bg-krem">Lihat menu</Tombol>
+        <section className="animasi-muncul relative my-7 overflow-hidden rounded-kartu border border-garis bg-permukaan px-6 py-9 sm:px-10">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-utama/5" aria-hidden="true" />
+          <div className="relative grid gap-8 md:grid-cols-[1.5fr_0.7fr] md:items-end">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Warung Kak Ikaa · Pre-order</p>
+              <h1 className="mt-4 font-judul text-3xl font-semibold leading-[1.15] tracking-tight text-tinta sm:text-[2.6rem]">
+                Mie hangat,<br />pesan lebih mudah.
+              </h1>
+              <p className="mt-4 max-w-lg text-sm leading-relaxed text-tinta-lemah">
+                Pilih menu, tentukan waktu ambil, lalu kami siapkan. Status menu mengikuti sisa bahan di dapur.
+              </p>
+              <Tombol onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
+                kelas="mt-6 gap-3 px-5">
+                Lihat menu
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </Tombol>
+            </div>
+            <div className="hidden rounded-kartu border border-garis bg-latar/70 p-5 md:block">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-tinta-lemah">Hari ini</p>
+              <p className="mt-2 font-judul text-4xl font-semibold text-utama">{tersediaCount}</p>
+              <p className="text-xs text-tinta-lemah">menu siap dipesan</p>
+              <div className="mt-4 border-t border-garis pt-3">
+                <Badge warna={tokoBuka ? "sukses" : "bahaya"}>{tokoBuka ? "Toko buka" : "Toko tutup"}</Badge>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section className="mb-8 grid gap-3 sm:grid-cols-3">
-          <KartuRingkas judul="Jam buka" isi={`${data.pengaturan.jam_buka ?? "10:00"} - ${data.pengaturan.jam_tutup ?? "21:00"}`} />
-          <KartuRingkas judul="Lacak pesanan" isi="Gunakan kode di website" aksi="/lacak" />
-          <KartuRingkas judul="Pesan cepat" isi="Lewat WhatsApp setelah isi form" />
+        <section className="mb-9 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-kartu border border-garis bg-permukaan px-5 py-4 shadow-kartu sm:px-7">
+          <InfoRingkas judul="Jam buka" isi={`${data.pengaturan.jam_buka ?? "10:00"} - ${data.pengaturan.jam_tutup ?? "21:00"}`}
+            ikon="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+          <InfoRingkas judul="Lacak pesanan" isi="Pakai kode dari website" aksi="/lacak"
+            ikon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <InfoRingkas judul="Pesan cepat" isi="Lanjut lewat WhatsApp"
+            ikon="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
         </section>
 
         <section id="menu" className="scroll-mt-4">
-          <h2 id="judul-menu" className="mb-3 text-lg font-semibold">Daftar menu</h2>
-          <div className="sticky top-0 z-20 -mx-4 border-b border-garis bg-latar/95 px-4 py-3 backdrop-blur">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Pilih dan pesan</p>
+              <h2 id="judul-menu" className="mt-1 font-judul text-2xl font-semibold tracking-tight">Menu hari ini</h2>
+            </div>
+            <span className="rounded-full border border-garis bg-permukaan px-3 py-1.5 text-xs font-semibold text-tinta-lemah">
+              {tersaring.length} menu
+            </span>
+          </div>
+
+          <div className="sticky top-0 z-20 -mx-4 border-y border-garis bg-latar/95 px-4 py-3 backdrop-blur">
             <div className="flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter kategori">
               {["Semua", ...daftarKategori].map((k) => (
                 <button key={k} type="button" aria-pressed={kategori === k} onClick={() => setKategori(k)}
-                  className={`shrink-0 rounded-full px-3 py-2 text-xs font-semibold transition ${
-                    kategori === k ? "bg-utama text-white" : "border border-garis bg-white text-tinta-lemah hover:bg-krem"
+                  className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold transition-[background-color,color,box-shadow] duration-[var(--gerak-cepat)] ${
+                    kategori === k ? "bg-utama text-white shadow-sm" : "border border-garis bg-white text-tinta-lemah hover:border-utama/40 hover:text-tinta"
                   }`}>{k}</button>
               ))}
             </div>
-            <label htmlFor="cari" className="visually-hidden">Cari menu</label>
-            <input id="cari" type="search" placeholder="Cari menu..." value={cari} onChange={(e) => setCari(e.target.value)} className="min-h-[42px] text-sm" />
+            <div className="relative">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-tinta-lemah">
+                <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <label htmlFor="cari" className="visually-hidden">Cari menu</label>
+              <input id="cari" type="search" placeholder="Cari nama menu..." value={cari} onChange={(e) => setCari(e.target.value)}
+                className="min-h-[44px] pl-10 text-sm" />
+            </div>
           </div>
 
-          <div className="daftar-panjang mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {tersaring.map((m) => (
-              <article key={m.id} className="animasi-muncul flex flex-col rounded-kartu border border-garis bg-permukaan p-5 shadow-kartu transition hover:-translate-y-0.5 hover:shadow-angkat">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-judul text-base font-semibold leading-snug">{m.nama}</h3>
-                  <Badge warna={m.tersedia ? "sukses" : "bahaya"}>{m.tersedia ? "Tersedia" : "Habis"}</Badge>
+          <div className="daftar-panjang mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {tersaring.map((m, indeks) => (
+              <article key={m.id} className="animasi-muncul group flex flex-col overflow-hidden rounded-kartu border border-garis bg-permukaan shadow-kartu transition-[transform,box-shadow,border-color] duration-[var(--gerak-standar)] ease-[var(--ease-halus)] hover:-translate-y-1 hover:border-utama/30 hover:shadow-angkat"
+                style={{ animationDelay: `${Math.min(indeks, 12) * 35}ms` }}>
+                <div className="flex flex-1 flex-col p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-tinta-lemah">{m.kategori}</p>
+                    <span className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                      m.tersedia ? "bg-sukses-terang text-sukses" : "bg-stone-100 text-stone-500"
+                    }`}>
+                      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${m.tersedia ? "bg-sukses" : "bg-stone-400"}`} />
+                      {m.tersedia ? "Tersedia" : "Habis"}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 font-judul text-[17px] font-semibold leading-snug text-tinta">{m.nama}</h3>
+                  <p className="mt-2 flex-1 text-xs leading-relaxed text-tinta-lemah">{m.deskripsi}</p>
+                  {m.varian.length > 0 && (
+                    <div className="mt-3 flex items-center gap-1.5 text-[11px] text-tinta-lemah">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+                      {m.varian.length} varian: {m.varian.map((v) => v.nama).join(", ")}
+                    </div>
+                  )}
                 </div>
-                <p className="mt-2 flex-1 text-xs leading-relaxed text-tinta-lemah">{m.deskripsi}</p>
-                {m.varian.length > 0 && (
-                  <p className="mt-2 text-[11px] text-tinta-lemah">Varian: {m.varian.map((v) => v.nama).join(", ")}</p>
-                )}
-                <div className="mt-4 flex items-end justify-between border-t border-garis pt-3">
-                  <div><p className="text-[10px] uppercase text-tinta-lemah">Harga</p><p className="font-judul text-lg font-semibold text-utama">{formatRupiah(m.harga)}</p></div>
-                  {m.tersedia && m.porsi <= 5 && <Badge warna="peringatan">Sisa {m.porsi}</Badge>}
+                <div className="flex items-center justify-between gap-3 border-t border-garis bg-latar/60 px-5 py-3.5">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-tinta-lemah">Harga</p>
+                    <p className="mt-0.5 font-judul text-xl font-semibold tracking-tight text-utama">{formatRupiah(m.harga)}</p>
+                  </div>
+                  {m.tersedia && m.porsi <= 5 ? (
+                    <span className="rounded-lg bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-700">Sisa {m.porsi}</span>
+                  ) : (
+                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-garis transition-transform duration-[var(--gerak-standar)] group-hover:translate-x-1">
+                      <path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
                 </div>
               </article>
             ))}
           </div>
-          {tersaring.length === 0 && <p className="py-10 text-center text-sm text-tinta-lemah">Menu tidak ditemukan.</p>}
+          {tersaring.length === 0 && (
+            <div className="rounded-kartu border border-dashed border-garis py-14 text-center">
+              <p className="font-judul text-lg font-semibold">Menu tidak ditemukan</p>
+              <p className="mt-1 text-sm text-tinta-lemah">Coba kata kunci atau kategori lain.</p>
+            </div>
+          )}
         </section>
       </main>
 
@@ -229,24 +291,62 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         )}
       </Dialog>
 
-      <div className="border-t border-garis bg-permukaan py-6">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="min-w-[220px] flex-1">
-              <label htmlFor="lacak">Lacak pesanan</label>
-              <input id="lacak" value={kodeLacak} onChange={(e) => setKodeLacak(e.target.value)} placeholder="Masukkan kode lacak" />
+      <div className="border-t border-garis bg-permukaan">
+        <div className="mx-auto max-w-6xl px-4 py-8">
+          <div className="flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Sudah pesan?</p>
+              <p className="mt-1 font-judul text-lg font-semibold">Cek status pesananmu</p>
             </div>
-            <Link href={`/lacak?kode=${encodeURIComponent(kodeLacak)}`} className="inline-flex min-h-[44px] items-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">Cek status</Link>
+            <div className="flex w-full flex-wrap items-end gap-3 sm:w-auto">
+              <div className="min-w-[220px] flex-1">
+                <label htmlFor="lacak">Kode lacak</label>
+                <input id="lacak" value={kodeLacak} onChange={(e) => setKodeLacak(e.target.value)} placeholder="Contoh: A1B2C3D4" />
+              </div>
+              <Link href={`/lacak?kode=${encodeURIComponent(kodeLacak)}`}
+                className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-tinta px-4 text-sm font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama">
+                Cek status
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </Link>
+            </div>
           </div>
-          <p className="mt-5 text-center text-xs text-tinta-lemah">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"} - Mie Jebew Chili Oil & Wonton Ayam</p>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-garis pt-5">
+            <div className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/jebew-icon.svg" alt="" width={24} height={24} />
+              <span className="font-judul text-sm font-semibold">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</span>
+            </div>
+            <p className="text-[11px] text-tinta-lemah">Mie Jebew Chili Oil & Wonton Ayam</p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function KartuRingkas({ judul, isi, aksi }: { judul: string; isi: string; aksi?: string }) {
-  const isiTeks = <><p className="text-[11px] uppercase tracking-wide text-tinta-lemah">{judul}</p><p className="mt-1 text-sm font-semibold">{isi}</p></>;
-  return aksi ? <Link href={aksi} className="rounded-kartu border border-garis bg-permukaan p-4 shadow-kartu hover:border-utama">{isiTeks}</Link>
-    : <div className="rounded-kartu border border-garis bg-permukaan p-4 shadow-kartu">{isiTeks}</div>;
+function InfoRingkas({
+  judul, isi, ikon, aksi,
+}: { judul: string; isi: string; ikon: string; aksi?: string }) {
+  const isiTeks = (
+    <>
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-latar text-utama">
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
+          <path d={ikon} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-tinta-lemah">{judul}</span>
+        <span className="mt-0.5 block truncate text-sm font-semibold text-tinta">{isi}</span>
+      </span>
+      {aksi && (
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="ml-auto h-4 w-4 shrink-0 text-tinta-lemah">
+          <path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </>
+  );
+  const kelas = "flex flex-1 items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-[var(--gerak-cepat)]";
+  return aksi
+    ? <Link href={aksi} className={`${kelas} hover:text-utama`}>{isiTeks}</Link>
+    : <div className={kelas}>{isiTeks}</div>;
 }

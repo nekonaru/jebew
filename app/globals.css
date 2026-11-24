@@ -36,9 +36,17 @@
 html { scroll-behavior: smooth; }
 
 body {
-  @apply bg-latar font-isi text-tinta antialiased;
+  @apply font-isi text-tinta antialiased;
   font-size: 15px;
   line-height: 1.6;
+  background-color: var(--warna-latar);
+  background-image: radial-gradient(circle at 12% -10%, rgba(224, 138, 46, 0.07), transparent 45%);
+  background-repeat: no-repeat;
+}
+
+::selection {
+  background: rgba(194, 65, 44, 0.18);
+  color: var(--warna-tinta);
 }
 
 h1, h2, h3, h4 { @apply font-judul; }
