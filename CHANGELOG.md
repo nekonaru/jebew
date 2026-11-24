@@ -1,5 +1,19 @@
 # Riwayat Perubahan
 
+## final-v1.0.9
+
+Umpan balik pesanan dan panel status hari ini.
+
+### Peningkatan
+
+- **Pemberitahuan singkat.** Saat menu masuk keranjang, muncul pemberitahuan kecil yang hilang otomatis dan terbaca pembaca layar.
+- **Panel status warna merek.** Kartu jumlah menu siap dipesan di area sambutan memakai warna utama dengan tanda Jebew sebagai latar.
+- **Kontras terjaga.** Label status pada panel tersebut memenuhi ambang kontras tanpa mengurangi identitas visual.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.0.8
 
 Penyempurnaan struktur dan warna website konsumen.

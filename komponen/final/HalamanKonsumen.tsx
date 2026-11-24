@@ -43,6 +43,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [jenis, setJenis] = useState<"galat">("galat");
   const [loading, setLoading] = useState(false);
   const [kodeLacak, setKodeLacak] = useState("");
+  const [toast, setToast] = useState("");
 
   const muat = useCallback(async () => {
     try {
@@ -84,7 +85,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     });
     setPilihVarian(null);
     setPesan("");
+    setToast(`${menu.nama} masuk keranjang`);
   }
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 2600);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   function klikMenu(menu: Menu) {
     if (!menu.tersedia) return;
@@ -198,12 +206,20 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                 </Tombol>
               </div>
             </div>
-            <div className="hidden rounded-kartu border border-garis bg-latar/70 p-5 md:block">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-tinta-lemah">Hari ini</p>
-              <p className="mt-2 font-judul text-4xl font-semibold text-utama">{tersediaCount}</p>
-              <p className="text-xs text-tinta-lemah">menu siap dipesan</p>
-              <div className="mt-4 border-t border-garis pt-3">
-                <Badge warna={tokoBuka ? "sukses" : "bahaya"}>{tokoBuka ? "Toko buka" : "Toko tutup"}</Badge>
+            <div className="relative hidden overflow-hidden rounded-kartu bg-utama p-6 text-white md:block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/jebew-mark.svg" alt="" aria-hidden="true"
+                className="pointer-events-none absolute -bottom-12 -right-10 h-44 w-44 opacity-20" />
+              <div className="relative">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white">Hari ini</p>
+                <p className="mt-2 font-judul text-4xl font-semibold leading-none">{tersediaCount}</p>
+                <p className="mt-1 text-xs text-white">menu siap dipesan</p>
+                <div className="mt-5 border-t border-white/25 pt-3">
+                  <p className="inline-flex items-center gap-2 rounded-full bg-utama-gelap px-3 py-1.5 text-[11px] font-semibold text-white">
+                    <span className={`h-1.5 w-1.5 rounded-full ${tokoBuka ? "bg-green-300" : "bg-red-200"}`} aria-hidden="true" />
+                    {tokoBuka ? "Toko buka" : "Toko tutup"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -319,6 +335,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           )}
         </section>
       </main>
+
+      {toast && (
+        <div role="status" aria-live="polite"
+          className="animasi-muncul fixed left-1/2 top-4 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-tinta px-4 py-2.5 text-xs font-semibold text-white shadow-angkat">
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-aksen-terang"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          {toast}
+        </div>
+      )}
 
       {jumlahItem > 0 && (
         <div className="animasi-muncul fixed inset-x-0 bottom-0 z-30 border-t border-garis bg-permukaan/95 px-4 py-3 backdrop-blur">
