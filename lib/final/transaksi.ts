@@ -30,7 +30,9 @@ type ResepDipakai = { menuId: number; varianId: number | null; jumlah: number; i
 
 /** Validasi stok dan susun barang. Semua menu, varian, dan resep dimuat sekali, lalu diindeks. */
 async function siapkanBarang(items: KasirInput["items"]): Promise<{ barang: Barang[]; resepDipakai: ResepDipakai[] }> {
-  const [bahan, daftarMenu] = await Promise.all([ambilBahanSemua(), ambilMenu()]);
+  // Di dalam transaksi semua kueri memakai satu koneksi, jadi dijalankan berurutan.
+  const bahan = await ambilBahanSemua();
+  const daftarMenu = await ambilMenu();
   const petaMenu = new Map(daftarMenu.map((m) => [m.id, m]));
   const barang: Barang[] = [];
   const resepDipakai: ResepDipakai[] = [];

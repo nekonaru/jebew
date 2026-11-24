@@ -80,9 +80,10 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | Fitur | Deskripsi |
 |-------|-----------|
 | **Login email dan sandi** | Kata sandi di-hash dengan scrypt, sesi ditandatangani HMAC |
-| **Dua peran** | Pemilik mengakses semua menu, Kasir hanya kasir, stok, dan pre-order |
+| **Dua peran** | Pemilik mengelola seluruh data, Kasir memakai kasir dan melihat stok serta pre-order |
+| **Sesi selalu segar** | Status dan peran pengguna diperiksa ulang dari database pada setiap permintaan |
 | **Row Level Security** | Aktif pada semua tabel sebagai pertahanan tambahan |
-| **Audit log** | Setiap perubahan menu, stok, dan transaksi tercatat dengan nama pengguna |
+| **Audit log** | Setiap perubahan menu, stok, uang, dan transaksi tercatat dengan nama pengguna |
 
 ### Stok dan pembelian
 
@@ -91,17 +92,18 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Riwayat pergerakan** | Semua stok masuk, keluar, penyesuaian, dan rusak tercatat |
 | **Pembelian** | Supplier, harga beli, dan harga rata rata diperbarui otomatis |
 | **Stock opname** | Input stok fisik, selisih, dan alasan |
-| **Peringatan stok** | Bahan menipis ditandai di dashboard |
-| **Konversi satuan** | kg ke gram, liter ke ml, lusin ke pcs |
+| **Peringatan stok** | Bahan menipis ditandai di dashboard beserta jumlah dan batasnya |
 
 ### Keuangan
 
 | Fitur | Deskripsi |
 |-------|-----------|
-| **HPP dan margin** | Dihitung otomatis dari resep dan harga bahan |
+| **HPP dan margin** | Dihitung otomatis dari resep dan harga bahan, lalu disimpan per transaksi |
 | **Pengeluaran** | Kategori gas, listrik, sewa, gaji, dan lainnya |
 | **Laporan** | Omzet, HPP, laba kotor, laba bersih, dan grafik harian |
+| **Omzet 7 hari** | Grafik batang di dashboard tanpa pustaka grafik tambahan |
 | **Ekspor CSV** | Unduh rincian transaksi untuk rentang tanggal tertentu |
+| **Cadangan JSON** | Unduh seluruh data usaha tanpa kata sandi pengguna |
 | **Tutup kasir** | Rekonsiliasi kas fisik terhadap tunai, QRIS, dan transfer |
 
 ### Penjualan dan pre-order
@@ -111,6 +113,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Kasir** | Pilih menu dan varian, diskon, metode bayar, dan catatan |
 | **Varian** | Level pedas dan topping punya harga dan resep sendiri |
 | **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai |
+| **Riwayat transaksi** | Cari berdasarkan nomor atau menu, lalu lihat dan cetak rinciannya |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
 
@@ -119,6 +122,9 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | Fitur | Deskripsi |
 |-------|-----------|
 | **Menu dan filter** | Cari menu, pilih kategori, lihat status dan sisa porsi |
+| **Panduan pesan** | Tiga langkah singkat sebelum daftar menu |
+| **Tanya jawab** | Pertanyaan umum tentang pemesanan, jam ambil, dan pelacakan |
+| **Pemberitahuan keranjang** | Konfirmasi singkat saat menu masuk keranjang |
 | **Jam operasional** | Admin bisa membuka atau menutup toko dan mengatur jam |
 | **Pembaruan berkala** | Status menyegarkan setiap 15 detik |
 
@@ -157,7 +163,7 @@ npm run dev
 Buka `http://localhost:3000` untuk website konsumen dan `http://localhost:3000/login` untuk admin.
 
 > [!IMPORTANT]
-> `npm run siap:supabase` memasang skema dan data contoh. Perintah `npm run muat:contoh` mengganti seluruh data demo, termasuk menghapus transaksi yang sudah ada.
+> `npm run siap:supabase` memasang skema dan data contoh. Perintah `npm run muat:contoh` mengganti seluruh data demo, termasuk menghapus transaksi yang sudah ada. Untuk database yang sudah berisi data, jalankan `npm run db:migrasi` agar kolom HPP per transaksi tersedia tanpa menghapus data.
 
 ### Deploy ke Vercel
 
@@ -211,7 +217,7 @@ jebew/
 │   ├── inti-final.ts          # logika murni porsi dan HPP
 │   └── wa.ts                  # pesan WhatsApp
 ├── database/                  # skema dan data contoh final
-├── scripts/                   # siap:supabase dan muat:contoh
+├── scripts/                   # siap:supabase, db:migrasi, muat:contoh, dan uji API
 ├── tests/                     # pengujian logika inti
 ├── .github/workflows/ci.yml   # CI untuk main dan final
 └── README.md
@@ -245,6 +251,15 @@ npm audit --audit-level=high
 | `npm test` | Seluruh pengujian lulus |
 | `npm run build` | Build produksi berhasil |
 | `npm audit --audit-level=high` | Nol kerentanan tinggi dan kritis |
+
+Uji seluruh endpoint dengan server berjalan:
+
+```bash
+URL_UJI=http://localhost:3000 npm run uji:api
+URL_UJI=http://localhost:3000 node scripts/uji-fitur-baru.mjs
+```
+
+Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo.
 
 ---
 

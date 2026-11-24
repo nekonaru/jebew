@@ -467,6 +467,46 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         )}
       </Dialog>
 
+      <section className="reveal border-t border-garis">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <div className="flex items-center gap-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Tanya jawab</p>
+            <span className="h-px flex-1 bg-garis" aria-hidden="true" />
+          </div>
+          <h2 className="mt-4 font-judul text-2xl font-semibold sm:text-3xl">Yang sering ditanyakan</h2>
+          <div className="mt-6 grid gap-3 md:grid-cols-2">
+            {[
+              {
+                t: "Bagaimana cara memesan?",
+                j: "Pilih menu yang mau, tekan Tambah ke pesanan, lalu isi nama dan nomor WhatsApp pada langkah terakhir.",
+              },
+              {
+                t: "Kapan pesanan bisa diambil?",
+                j: `Warung buka ${data.pengaturan.hari_buka ?? "Senin - Minggu"} pukul ${data.pengaturan.jam_buka ?? "10:00"} sampai ${data.pengaturan.jam_tutup ?? "21:00"} WIB.`,
+              },
+              {
+                t: "Boleh pesan lebih dari satu menu?",
+                j: "Boleh. Setiap menu yang ditambahkan ke keranjang bisa diubah jumlahnya sebelum pesanan dikirim.",
+              },
+              {
+                t: "Bagaimana cara cek status pesanan?",
+                j: "Simpan kode lacak yang muncul setelah pesan, lalu masukkan pada kolom Cek status pesanan di bawah.",
+              },
+            ].map((tj) => (
+              <details key={tj.t} className="group rounded-kartu border border-garis bg-permukaan p-4 shadow-kartu">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-tinta marker:hidden">
+                  {tj.t}
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0 text-utama transition-transform duration-[var(--gerak-cepat)] group-open:rotate-180">
+                    <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-tinta-lemah">{tj.j}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <div className="border-t border-garis bg-permukaan">
         <div className="mx-auto max-w-6xl px-4 py-8">
           <div className="flex flex-wrap items-end justify-between gap-5">

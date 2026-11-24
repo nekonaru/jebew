@@ -70,6 +70,22 @@ export default function HalamanPengaturan() {
       <Judul anak="Pengaturan" sub="Identitas usaha, jam operasional, pengguna, dan slot pre-order." />
       <Pesan teks={pesan} jenis={jenis} />
 
+      <Kartu kelas="mb-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">Cadangan data</h2>
+            <p className="mt-1 text-sm text-tinta-lemah">
+              Unduh salinan seluruh data usaha dalam berkas JSON. Kata sandi pengguna tidak disertakan.
+            </p>
+          </div>
+          <a href="/api/ekspor"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-utama px-4 text-sm font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama-gelap">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v3h16v-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            Unduh cadangan
+          </a>
+        </div>
+      </Kartu>
+
       <div className="grid gap-5 lg:grid-cols-2">
         <Kartu>
           <h2 className="mb-4 text-lg font-semibold">Identitas usaha</h2>

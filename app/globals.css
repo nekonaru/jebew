@@ -155,6 +155,20 @@ dialog[open]::backdrop {
   white-space: nowrap !important;
 }
 
+/* Cetak rincian transaksi hanya menampilkan isi struk. */
+@media print {
+  body * { visibility: hidden !important; }
+  #struk, #struk * { visibility: visible !important; }
+  #struk {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 16px;
+  }
+  #struk button { display: none !important; }
+}
+
 /* Pengguna yang meminta pengurangan gerak mendapat versi statis. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

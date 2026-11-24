@@ -1,5 +1,40 @@
 # Riwayat Perubahan
 
+## final-v1.2.0
+
+Audit mendalam dan pembaruan besar pada produk final.
+
+### Keamanan dan konsistensi
+
+- **Statistik dibatasi.** Data omzet, transaksi, dan pengeluaran kini hanya bisa diambil oleh pengguna yang masuk. Website konsumen tetap memakai endpoint publik tanpa data keuangan.
+- **Sesi diperiksa ulang.** Perubahan peran atau status pengguna langsung berlaku tanpa menunggu token kedaluwarsa.
+- **Resep varian terjaga.** Mengubah menu tidak lagi menghapus resep pada varian.
+- **Pembatasan laju atomik.** Batas percobaan login, pre-order, dan pelacakan tidak bisa dilewati dengan permintaan paralel.
+- **Nomor unik.** Penomoran penjualan dan pembelian memakai kunci advisory agar tidak bentrok saat transaksi bersamaan.
+- **Slot konsisten.** Membatalkan pre-order mengembalikan kuota slot yang dipakai.
+- **HPP historis.** Nilai HPP disimpan pada setiap item transaksi, sehingga laporan lama tidak berubah saat resep atau harga bahan diubah.
+- **Otorisasi seragam.** Restock dan tutup kasir hanya untuk pemilik, dan tombol yang tidak diizinkan disembunyikan dari kasir.
+- **Validasi lebih ketat.** Format tanggal, diskon, dan status toko tutup diperiksa di server.
+- **Jejak audit lengkap.** Restock, pengeluaran, dan tutup kasir ikut tercatat.
+
+### Fitur baru
+
+- **Grafik omzet tujuh hari.** Dashboard menampilkan grafik batang native tanpa pustaka tambahan.
+- **Daftar bahan menipis.** Dashboard menampilkan bahan yang perlu diisi beserta batas minimum.
+- **Riwayat transaksi.** Halaman baru untuk mencari penjualan berdasarkan nomor atau menu, melihat rincian, dan mencetak struk.
+- **Cadangan data.** Pemilik bisa mengunduh seluruh data usaha dalam berkas JSON tanpa kata sandi pengguna.
+- **Tanya jawab konsumen.** Website menampilkan pertanyaan umum tentang pemesanan, jam ambil, dan pelacakan.
+
+### Peningkatan
+
+- **Identitas merek.** Warna mengikuti lembar identitas dan font memakai Poppins serta Inter dari sistem tanpa unduhan luar jaringan.
+- **Lebih ringan.** Seluruh menu, varian, dan resep dimuat sekali per transaksi, bukan sekali per item.
+- **Migrasi aman.** Perintah `npm run db:migrasi` menambahkan kolom baru tanpa menghapus data lama.
+
+### Penggunaan
+
+Jalankan `npm run db:migrasi` sekali pada database final sebelum memakai versi ini. Tidak ada perubahan lain pada cara pakai.
+
 ## final-v1.1.1
 
 Ikon kategori pada kartu menu.

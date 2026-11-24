@@ -78,15 +78,14 @@ async function ambilSemuaVarian(): Promise<VarianTampil[]> {
 }
 
 export async function ambilMenu(): Promise<MenuTampil[]> {
-  const [menu, bahan, resep, varian] = await Promise.all([
-    query<{
-      id: number; nama: string; harga: number; deskripsi: string; kategori: string;
-      foto: string | null; aktif: boolean;
-    }>("SELECT id, nama, harga, deskripsi, kategori, foto, aktif FROM menu ORDER BY kategori, nama"),
-    ambilBahanSemua(),
-    ambilSemuaResep(),
-    ambilSemuaVarian(),
-  ]);
+  // Kueri dijalankan berurutan agar aman bila dipanggil di dalam transaksi.
+  const menu = await query<{
+    id: number; nama: string; harga: number; deskripsi: string; kategori: string;
+    foto: string | null; aktif: boolean;
+  }>("SELECT id, nama, harga, deskripsi, kategori, foto, aktif FROM menu ORDER BY kategori, nama");
+  const bahan = await ambilBahanSemua();
+  const resep = await ambilSemuaResep();
+  const varian = await ambilSemuaVarian();
 
   const resepPerMenu = new Map<number, ResepBaris[]>();
   for (const baris of resep) {

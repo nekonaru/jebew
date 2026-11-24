@@ -17,6 +17,7 @@ const NAV = [
   { href: "/admin/stok", label: "Bahan & Stok", ikon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m-8-14l8 4m-8-4v10l8 4m0-10v10" },
   { href: "/admin/menu", label: "Menu & Resep", ikon: "M4 6h16M4 12h16M4 18h10" },
   { href: "/admin/kasir", label: "Kasir", ikon: "M3 5h18v14H3zM7 9h10M7 13h6" },
+  { href: "/admin/riwayat", label: "Riwayat", ikon: "M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" },
   { href: "/admin/laporan", label: "Laporan", ikon: "M4 19V9m6 10V5m6 14v-7m4 7H2" },
   { href: "/admin/preorder", label: "Pre-order", ikon: "M6 2h9l5 5v15H6zM15 2v5h5" },
   { href: "/admin/keuangan", label: "Keuangan", ikon: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },

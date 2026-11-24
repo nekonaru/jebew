@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Judul, Kartu, Statistik } from "./ui.tsx";
+import GrafikOmzet, { type TitikOmzet } from "./GrafikOmzet.tsx";
 
 type Ringkasan = {
   omzet: number;
@@ -13,6 +14,8 @@ type Ringkasan = {
   preorderAktif: number;
   bahanTipis: number;
   menuTotal: number;
+  tren: TitikOmzet[];
+  bahanMenipis: { id: number; nama: string; satuan: string; stok: number; stok_minimum: number }[];
 };
 type Publik = { pengaturan: Record<string, string> };
 
@@ -21,6 +24,7 @@ const PINTASAN = [
   { href: "/admin/stok", label: "Kelola stok", warna: "bg-aksen" },
   { href: "/admin/menu", label: "Atur menu", warna: "bg-sukses" },
   { href: "/admin/preorder", label: "Olah pre-order", warna: "bg-info" },
+  { href: "/admin/riwayat", label: "Lihat riwayat", warna: "bg-hijau" },
 ];
 
 export default function HalamanRingkasan() {
@@ -46,6 +50,10 @@ export default function HalamanRingkasan() {
         <Statistik label="Bahan menipis" nilai={String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
       </div>
 
+      <Kartu>
+        <GrafikOmzet data={statistik?.tren ?? []} />
+      </Kartu>
+
       <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
         <Kartu>
           <h2 className="text-lg font-semibold">Aksi cepat</h2>
@@ -68,15 +76,27 @@ export default function HalamanRingkasan() {
 
         <Kartu>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Menu paling laku</h2>
-            <Link href="/admin/laporan" className="text-xs font-semibold text-utama hover:underline">Laporan</Link>
+            <h2 className="text-lg font-semibold">Bahan perlu diisi</h2>
+            <Link href="/admin/stok" className="text-xs font-semibold text-utama hover:underline">Kelola stok</Link>
           </div>
-          <p className="mt-3 text-sm text-tinta-lemah">
-            Buka halaman laporan untuk melihat menu terlaris, HPP, dan laba bersih.
-          </p>
+          {(statistik?.bahanMenipis ?? []).length === 0 ? (
+            <div className="mt-5 rounded-xl bg-latar px-4 py-6 text-center">
+              <Badge warna="sukses">Semua stok aman</Badge>
+            </div>
+          ) : (
+            <ul className="mt-4 space-y-2">
+              {statistik?.bahanMenipis.map((b) => (
+                <li key={b.id} className="flex items-center justify-between gap-3 rounded-xl border border-garis px-3 py-2.5">
+                  <span className="truncate text-sm font-medium">{b.nama}</span>
+                  <span className="shrink-0 text-xs font-semibold text-bahaya">
+                    {b.stok} / {b.stok_minimum} {b.satuan}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
           <div className="mt-4 flex flex-wrap gap-2">
-            <Badge warna="sukses">Stok terkontrol</Badge>
-            <Badge warna="info">WIB</Badge>
+            <Badge warna="info">Data WIB</Badge>
           </div>
         </Kartu>
       </div>

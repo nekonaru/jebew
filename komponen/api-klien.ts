@@ -2,6 +2,10 @@
 
 "use client";
 
+export async function ambilApi<T>(url: string): Promise<T> {
+  return ambilJson<T>(await fetch(url));
+}
+
 export async function ambilJson<T>(jawaban: Response): Promise<T> {
   if (jawaban.status === 401) {
     window.location.href = "/login";
