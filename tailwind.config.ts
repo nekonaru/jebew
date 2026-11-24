@@ -16,8 +16,8 @@ const konfigurasi: Config = {
         info: "#2563EB",
       },
       fontFamily: {
-        judul: ["Georgia", "Cambria", "Times New Roman", "serif"],
-        isi: ["Inter", "Segoe UI", "system-ui", "sans-serif"],
+        judul: ["var(--font-judul)", "Georgia", "serif"],
+        isi: ["var(--font-isi)", "Segoe UI", "system-ui", "sans-serif"],
       },
       boxShadow: {
         kartu: "0 1px 2px rgba(43,28,22,.04), 0 8px 24px rgba(43,28,22,.06)",

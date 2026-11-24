@@ -15,6 +15,14 @@ type DataAwal = { menu: Menu[]; pengaturan: Record<string, string> };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
 type Hasil = { kode: string; kode_lacak: string; total: number; pesan: string; tautan: string };
 
+const AKSESEN_KATEGORI: Record<string, { teks: string; garis: string }> = {
+  "Mie Jebew": { teks: "text-utama", garis: "bg-utama" },
+  "Mie Chili Oil": { teks: "text-[#9A5608]", garis: "bg-aksen" },
+  "Wonton Ayam Chili Oil": { teks: "text-orange-700", garis: "bg-orange-500" },
+  "Extra Topping": { teks: "text-amber-700", garis: "bg-amber-500" },
+  Minuman: { teks: "text-info", garis: "bg-blue-500" },
+};
+
 export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [data, setData] = useState<DataAwal>(awal);
   const [slot, setSlot] = useState<Slot[]>([]);
@@ -158,7 +166,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-garis bg-white text-tinta transition-colors duration-[var(--gerak-cepat)] hover:border-utama/40">
               <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M3 4h2l2.4 11.2a2 2 0 002 1.6h7.7a2 2 0 002-1.6L21 8H6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><circle cx="10" cy="20" r="1" fill="currentColor" /><circle cx="18" cy="20" r="1" fill="currentColor" /></svg>
               {jumlahItem > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-utama px-1 text-[10px] font-bold text-white">{jumlahItem}</span>
+                <span key={jumlahItem} className="animasi-pop absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-utama px-1 text-[10px] font-bold text-white">{jumlahItem}</span>
               )}
             </button>
           </div>
@@ -239,8 +247,9 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <article key={m.id} className="animasi-muncul group flex flex-col overflow-hidden rounded-kartu border border-garis bg-permukaan shadow-kartu transition-[transform,box-shadow,border-color] duration-[var(--gerak-standar)] ease-[var(--ease-halus)] hover:-translate-y-1 hover:border-utama/30 hover:shadow-angkat"
                 style={{ animationDelay: `${Math.min(indeks, 12) * 35}ms` }}>
                 <div className="flex flex-1 flex-col p-5">
+                  <span className={`mb-2 block h-0.5 w-8 rounded-full ${AKSESEN_KATEGORI[m.kategori]?.garis ?? "bg-tinta-lemah"}`} aria-hidden="true" />
                   <div className="flex items-start justify-between gap-3">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-tinta-lemah">{m.kategori}</p>
+                    <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${AKSESEN_KATEGORI[m.kategori]?.teks ?? "text-tinta-lemah"}`}>{m.kategori}</p>
                     <span className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
                       m.tersedia ? "bg-sukses-terang text-sukses" : "bg-stone-100 text-stone-500"
                     }`}>
@@ -279,7 +288,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       </main>
 
       {jumlahItem > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-garis bg-permukaan/95 px-4 py-3 backdrop-blur">
+        <div className="animasi-muncul fixed inset-x-0 bottom-0 z-30 border-t border-garis bg-permukaan/95 px-4 py-3 backdrop-blur">
           <div className="mx-auto flex max-w-4xl items-center gap-3">
             <button type="button" onClick={() => setDialogKeranjang(true)}
               className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-garis px-3 py-2 text-left">

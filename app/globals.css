@@ -93,6 +93,12 @@ button:active:not(:disabled) { transition-duration: var(--gerak-cepat); }
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
 }
+@keyframes pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animasi-pop { animation: pop 260ms var(--ease-masuk) both; }
 
 .animasi-muncul { animation: muncul var(--gerak-lambat) var(--ease-masuk) both; }
 .animasi-geser { animation: geser var(--gerak-standar) var(--ease-masuk) both; }

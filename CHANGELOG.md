@@ -1,5 +1,20 @@
 # Riwayat Perubahan
 
+## final-v1.0.6
+
+Penyempurnaan tipografi dan detail visual website konsumen.
+
+### Peningkatan
+
+- **Tipografi profesional.** Judul memakai Playfair Display dan isi memakai Plus Jakarta Sans. Keduanya di-host bersama aplikasi sehingga tidak bergantung pada jaringan saat dipakai.
+- **Aksen kategori.** Tiap kategori menu punya warna pembeda yang konsisten pada garis kecil dan label, sehingga daftar lebih mudah dipindai.
+- **Umpan balik keranjang.** Lencana jumlah keranjang berdenyut halus saat bertambah dan bilah keranjang muncul dengan transisi lembut.
+- **Kontras terjaga.** Seluruh warna label kategori memenuhi ambang kontras 4,5 banding 1.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.0.5
 
 Alur pemesanan diubah menjadi keranjang.
