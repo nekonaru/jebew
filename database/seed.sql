@@ -4,6 +4,7 @@ INSERT INTO pengaturan (kunci, nilai) VALUES
   ('nama_usaha', 'Warung Kak Ikaa'),
   ('tagline', 'Mie Jebew Chili Oil & Wonton Ayam'),
   ('whatsapp_admin', '6282173282591'),
+  ('hari_buka', 'Senin - Minggu'),
   ('jam_buka', '10:00'),
   ('jam_tutup', '21:00'),
   ('toko_aktif', 'true')

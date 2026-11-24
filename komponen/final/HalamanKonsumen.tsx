@@ -90,6 +90,12 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     finally { setLoading(false); }
   }
 
+  function bukaPemesanan(menuId?: number) {
+    setBaris(menuId ? [{ menu_id: String(menuId), varian_id: "", jumlah: "1" }] : [barisAwal()]);
+    setPesan("");
+    setDialog(true);
+  }
+
   const tokoBuka = data.pengaturan.toko_aktif === "true";
   const tersediaCount = data.menu.filter((m) => m.tersedia).length;
 
@@ -108,14 +114,27 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <p className="mt-0.5 text-[10px] text-tinta-lemah">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <Badge warna={tokoBuka ? "sukses" : "bahaya"}>{tokoBuka ? "Buka" : "Tutup"}</Badge>
-            <Link href="/admin" className="text-xs font-semibold text-tinta-lemah transition-colors duration-[var(--gerak-cepat)] hover:text-utama">Admin</Link>
+          <div className="group relative flex items-center">
+            <button type="button" aria-describedby="info-jam-buka"
+              className="flex items-center gap-1.5 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aksen">
+              <span className={`h-2 w-2 rounded-full ${tokoBuka ? "bg-sukses" : "bg-bahaya"}`} aria-hidden="true" />
+              <span className="text-xs font-semibold text-tinta">{tokoBuka ? "Buka" : "Tutup"}</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 text-tinta-lemah">
+                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
+            <div id="info-jam-buka" role="tooltip"
+              className="pointer-events-none absolute right-0 top-full z-30 mt-2 w-56 rounded-xl border border-garis bg-permukaan p-3 text-left shadow-angkat opacity-0 translate-y-1 transition-[opacity,transform] duration-[var(--gerak-cepat)] group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-utama">Jam operasional</p>
+              <p className="mt-1 text-sm font-semibold text-tinta">{data.pengaturan.hari_buka ?? "Senin - Minggu"}</p>
+              <p className="text-sm text-tinta-lemah">{data.pengaturan.jam_buka ?? "10:00"} - {data.pengaturan.jam_tutup ?? "21:00"} WIB</p>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-28">
+      <main className="mx-auto max-w-6xl px-4 pb-14">
         <section className="animasi-muncul relative my-7 overflow-hidden rounded-kartu border border-garis bg-permukaan px-6 py-9 sm:px-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/jebew-mark.svg" alt="" aria-hidden="true"
@@ -130,11 +149,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <p className="animasi-muncul mt-4 max-w-lg text-sm leading-relaxed text-tinta-lemah" style={{ animationDelay: "120ms" }}>
                 Pilih menu, tentukan waktu ambil, lalu kami siapkan. Status menu mengikuti sisa bahan di dapur.
               </p>
-              <div className="animasi-muncul" style={{ animationDelay: "180ms" }}>
+              <div className="animasi-muncul mt-6 flex flex-wrap gap-3" style={{ animationDelay: "180ms" }}>
                 <Tombol onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
-                  kelas="mt-6 gap-3 px-5">
+                  jenis="sekunder" kelas="gap-3 px-5">
                   Lihat menu
                   <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </Tombol>
+                <Tombol onClick={() => bukaPemesanan()} nonaktif={!tokoBuka} kelas="gap-3 px-5">
+                  Buat pre-order
                 </Tombol>
               </div>
             </div>
@@ -164,9 +186,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Pilih dan pesan</p>
               <h2 id="judul-menu" className="mt-1 font-judul text-2xl font-semibold tracking-tight">Menu hari ini</h2>
             </div>
-            <span className="rounded-full border border-garis bg-permukaan px-3 py-1.5 text-xs font-semibold text-tinta-lemah">
-              {tersaring.length} menu
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="hidden rounded-full border border-garis bg-permukaan px-3 py-1.5 text-xs font-semibold text-tinta-lemah sm:inline">
+                {tersaring.length} menu
+              </span>
+              <Tombol onClick={() => bukaPemesanan()} nonaktif={!tokoBuka} kelas="min-h-[40px] px-3 text-xs">
+                Pesan sekarang
+              </Tombol>
+            </div>
           </div>
 
           <div className="sticky top-0 z-20 -mx-4 border-y border-garis bg-latar/95 px-4 py-3 backdrop-blur">
@@ -216,13 +243,20 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                     <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-tinta-lemah">Harga</p>
                     <p className="mt-0.5 font-judul text-xl font-semibold tracking-tight text-utama">{formatRupiah(m.harga)}</p>
                   </div>
-                  {m.tersedia && m.porsi <= 5 ? (
-                    <span className="rounded-lg bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-700">Sisa {m.porsi}</span>
-                  ) : (
-                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-garis transition-transform duration-[var(--gerak-standar)] group-hover:translate-x-1">
-                      <path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {m.tersedia && m.porsi <= 5 && (
+                      <span className="rounded-lg bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700">Sisa {m.porsi}</span>
+                    )}
+                    {m.tersedia ? (
+                      <button type="button" onClick={() => bukaPemesanan(m.id)}
+                        className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-utama px-3 text-xs font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama-gelap">
+                        Pesan
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      </button>
+                    ) : (
+                      <span className="text-xs font-semibold text-stone-500">Habis</span>
+                    )}
+                  </div>
                 </div>
               </article>
             ))}
@@ -236,10 +270,6 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         </section>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-garis bg-permukaan/95 p-3 backdrop-blur">
-        <Tombol onClick={() => { setPesan(""); setDialog(true); }} nonaktif={!tokoBuka} kelas="mx-auto w-full max-w-2xl">Buat pre-order</Tombol>
-      </div>
-
       <Dialog terbuka={dialog} judul="Buat pre-order" padaTutup={() => setDialog(false)} lebar="42rem">
         <form onSubmit={kirim} className="space-y-5">
           <fieldset>
@@ -249,8 +279,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               return (
                 <div key={i} className="mb-3 rounded-xl border border-garis p-3">
                   <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
-                    <div><label className="visually-hidden">Menu</label><select required value={b.menu_id} onChange={(e) => setBaris((l) => l.map((x, j) => j === i ? { ...x, menu_id: e.target.value, varian_id: "" } : x))}><option value="">Pilih menu</option>{data.menu.filter((m) => m.tersedia).map((m) => <option key={m.id} value={m.id}>{m.nama}</option>)}</select></div>
-                    <div><label className="visually-hidden">Varian</label><select value={b.varian_id} onChange={(e) => setBaris((l) => l.map((x, j) => j === i ? { ...x, varian_id: e.target.value } : x))} disabled={!menu?.varian.length}><option value="">Tanpa varian</option>{menu?.varian.map((v) => <option key={v.id} value={v.id}>{v.nama}</option>)}</select></div>
+                    <div>
+                      <label htmlFor={`pilih-menu-${i}`} className="visually-hidden">Menu</label>
+                      <select id={`pilih-menu-${i}`} required value={b.menu_id} onChange={(e) => setBaris((l) => l.map((x, j) => j === i ? { ...x, menu_id: e.target.value, varian_id: "" } : x))}><option value="">Pilih menu</option>{data.menu.filter((m) => m.tersedia).map((m) => <option key={m.id} value={m.id}>{m.nama}</option>)}</select>
+                    </div>
+                    <div>
+                      <label htmlFor={`pilih-varian-${i}`} className="visually-hidden">Varian</label>
+                      <select id={`pilih-varian-${i}`} value={b.varian_id} onChange={(e) => setBaris((l) => l.map((x, j) => j === i ? { ...x, varian_id: e.target.value } : x))} disabled={!menu?.varian.length}><option value="">Tanpa varian</option>{menu?.varian.map((v) => <option key={v.id} value={v.id}>{v.nama}</option>)}</select>
+                    </div>
                     <Tombol jenis="hapus" onClick={() => setBaris((l) => (l.length === 1 ? l : l.filter((_, j) => j !== i)))} kelas="px-2">-</Tombol>
                   </div>
                   <div className="mt-2 flex items-center gap-3">

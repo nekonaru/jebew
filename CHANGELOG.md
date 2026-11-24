@@ -1,5 +1,21 @@
 # Riwayat Perubahan
 
+## final-v1.0.4
+
+Perbaikan tata letak website konsumen dan fungsi pemesanan.
+
+### Perbaikan bug
+
+- **Tombol admin dihilangkan.** Konsumen tidak lagi melihat tautan dashboard dari website publik.
+- **Tombol pre-order dipindahkan.** Tidak lagi mengambang di bawah layar. Sekarang tersedia di area sambutan dan di samping judul Menu hari ini.
+- **Info jam operasional.** Status Buka atau Tutup bisa disorong untuk melihat hari dan jam buka, termasuk lewat keyboard.
+- **Pilih menu berfungsi.** Setiap kartu menu punya tombol Pesan yang membuka form dengan menu tersebut sudah terpilih.
+- **Label formulir.** Select pada form pre-order kini punya label yang terbaca pembaca layar.
+
+### Peningkatan
+
+- Pengaturan hari buka ditambahkan ke panel admin dan data contoh.
+
 ## final-v1.0.3
 
 Identitas Mie Jebew diperkuat dan tautan kedua versi ditambahkan ke README.

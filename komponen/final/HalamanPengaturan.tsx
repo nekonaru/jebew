@@ -77,6 +77,10 @@ export default function HalamanPengaturan() {
             <div><label htmlFor="s-nama">Nama usaha</label><input id="s-nama" value={pengaturan.nama_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, nama_usaha: e.target.value })} /></div>
             <div><label htmlFor="s-tagline">Tagline</label><input id="s-tagline" value={pengaturan.tagline ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, tagline: e.target.value })} /></div>
             <div><label htmlFor="s-wa">WhatsApp admin</label><input id="s-wa" value={pengaturan.whatsapp_admin ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, whatsapp_admin: e.target.value })} /></div>
+            <div>
+              <label htmlFor="s-hari">Hari buka</label>
+              <input id="s-hari" value={pengaturan.hari_buka ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, hari_buka: e.target.value })} placeholder="Senin - Minggu" />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div><label htmlFor="s-buka">Jam buka</label><input id="s-buka" value={pengaturan.jam_buka ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, jam_buka: e.target.value })} /></div>
               <div><label htmlFor="s-tutup">Jam tutup</label><input id="s-tutup" value={pengaturan.jam_tutup ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, jam_tutup: e.target.value })} /></div>
