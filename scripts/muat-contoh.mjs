@@ -27,7 +27,7 @@ const klien = new pg.Client({ connectionString: url, ssl: lokal ? undefined : { 
 const URUTAN_HAPUS = [
   "item_penjualan", "item_preorder", "item_pembelian", "item_opname", "item_varian",
   "log_audit", "tutup_kasir", "pengeluaran", "pergerakan_stok",
-  "preorder", "penjualan", "pembelian", "stok_opname", "resep", "varian",
+  "penjualan", "preorder", "pembelian", "stok_opname", "resep", "varian",
   "menu", "bahan", "slot_waktu", "supplier", "konversi_satuan",
   "kategori_pengeluaran", "pengguna", "pengaturan", "pembatasan_laju",
 ];

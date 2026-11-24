@@ -21,14 +21,18 @@ export async function POST(permintaan: Request) {
       return NextResponse.json({ pesan: "Asal permintaan tidak valid" }, { status: 403 });
     }
     const badan = skemaLogin.parse(await permintaan.json());
-    const kunci = `login:${permintaan.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() ?? "lokal"}`;
-    const diizinkan = await izinLaju(kunci, 5, 10 * 60 * 1000);
-    if (!diizinkan) {
-      return NextResponse.json({ pesan: "Terlalu banyak percobaan. Coba lagi beberapa menit." }, { status: 429 });
-    }
+    const email = badan.email.toLowerCase();
+    const alamat = permintaan.headers.get("x-real-ip")
+      ?? permintaan.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim()
+      ?? "lokal";
+    const kunci = `login:${alamat}:${email}`;
 
-    const pengguna = await verifikasiLogin(badan.email.toLowerCase(), badan.kata_sandi);
+    const pengguna = await verifikasiLogin(email, badan.kata_sandi);
     if (!pengguna) {
+      // Hanya percobaan gagal yang dihitung, supaya login sukses tidak mengunci alamat bersama.
+      if (!(await izinLaju(kunci, 5, 10 * 60 * 1000))) {
+        return NextResponse.json({ pesan: "Terlalu banyak percobaan. Coba lagi beberapa menit." }, { status: 429 });
+      }
       return NextResponse.json({ pesan: "Email atau kata sandi salah" }, { status: 401 });
     }
 

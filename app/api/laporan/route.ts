@@ -3,13 +3,13 @@ import { z } from "zod";
 import { galat } from "@/lib/api-final.ts";
 import { ambilLaporan, keCsv } from "@/lib/final/laporan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
-import { tanggalHariIni } from "@/lib/format.ts";
+import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
 const skema = z.object({
-  dari: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  sampai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  dari: z.string().refine(tanggalValid, "Tanggal tidak valid"),
+  sampai: z.string().refine(tanggalValid, "Tanggal tidak valid"),
 }).strict().refine((v) => v.dari <= v.sampai, { message: "Tanggal awal harus sebelum tanggal akhir" });
 
 export async function GET(req: Request) {

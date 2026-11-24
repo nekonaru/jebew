@@ -12,7 +12,7 @@ export async function GET() {
     if (!(await penggunaSaatIni())) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    const [penjualan, pengeluaran, preorder, bahan, menu, tren, menipis] = await Promise.all([
+    const [penjualan, pengeluaran, preorder, bahan, menu, tren, menipis, terlaris] = await Promise.all([
       querySatu<{ omzet: number; jumlah: number }>(
         "SELECT COALESCE(SUM(total),0) AS omzet, COUNT(*) AS jumlah FROM penjualan WHERE dibuat_pada::date = $1::date",
         [tanggalHariIni()],
@@ -43,6 +43,14 @@ export async function GET() {
         `SELECT id, nama, satuan, stok, stok_minimum FROM bahan
          WHERE aktif = TRUE AND stok <= stok_minimum ORDER BY stok ASC LIMIT 6`,
       ),
+      query<{ nama: string; varian: string; jumlah: number; omzet: number }>(
+        `SELECT i.nama_menu AS nama, i.nama_varian AS varian,
+                SUM(i.jumlah) AS jumlah, SUM(i.subtotal) AS omzet
+         FROM item_penjualan i JOIN penjualan p ON p.id = i.penjualan_id
+         WHERE p.dibuat_pada::date BETWEEN ($1::date - INTERVAL '6 days') AND $1::date
+         GROUP BY i.nama_menu, i.nama_varian ORDER BY jumlah DESC LIMIT 5`,
+        [tanggalHariIni()],
+      ),
     ]);
     return NextResponse.json({
       omzet: Number(penjualan?.omzet ?? 0),
@@ -59,6 +67,10 @@ export async function GET() {
       bahanMenipis: menipis.map((b) => ({
         id: b.id, nama: b.nama, satuan: b.satuan,
         stok: Number(b.stok), stok_minimum: Number(b.stok_minimum),
+      })),
+      terlaris: terlaris.map((t) => ({
+        nama: t.nama, varian: t.varian,
+        jumlah: Number(t.jumlah), omzet: Number(t.omzet),
       })),
     });
   } catch (kesalahan) {

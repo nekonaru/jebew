@@ -45,6 +45,13 @@ export function tanggalHariIni(): string {
   }).format(new Date());
 }
 
+/** Tanggal kalender yang benar, bukan sekadar pola YYYY-MM-DD. */
+export function tanggalValid(nilai: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(nilai)) return false;
+  const tanggal = new Date(`${nilai}T00:00:00Z`);
+  return !Number.isNaN(tanggal.getTime()) && tanggal.toISOString().slice(0, 10) === nilai;
+}
+
 /** Label tanggal yang ramah dibaca, misalnya "23 November 2026". */
 export function formatTanggalPanjang(teks: string): string {
   const tanggal = new Date(teks + "T00:00:00+07:00");

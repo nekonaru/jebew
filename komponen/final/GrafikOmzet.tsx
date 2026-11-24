@@ -1,6 +1,6 @@
 "use client";
 
-import { formatAngka, formatRupiah } from "@/lib/format.ts";
+import { formatRupiah } from "@/lib/format.ts";
 
 export type TitikOmzet = { tanggal: string; omzet: number; transaksi: number };
 
@@ -31,12 +31,14 @@ export default function GrafikOmzet({ data }: { data: TitikOmzet[] }) {
           return (
             <div key={d.tanggal} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
               <span className="text-[10px] font-semibold text-tinta-lemah">
-                {d.omzet > 0 ? formatAngka(Math.round(d.omzet / 1000)) + "rb" : "-"}
+                {d.omzet > 0 ? `${(d.omzet / 1000).toFixed(1).replace(/\.0$/, "")}rb` : "-"}
               </span>
               <div
+                role="img"
+                tabIndex={0}
+                aria-label={`${d.tanggal}: ${formatRupiah(d.omzet)}, ${d.transaksi} transaksi`}
                 className="w-full max-w-12 rounded-t-lg bg-gradient-to-t from-utama to-utama-terang transition-[height] duration-500 ease-[var(--ease-halus)]"
                 style={{ height: `${persen}%` }}
-                title={`${d.tanggal}: ${formatRupiah(d.omzet)}, ${d.transaksi} transaksi`}
               />
               <span className="text-[10px] font-medium text-tinta-lemah">{hari}/{bulan}</span>
             </div>

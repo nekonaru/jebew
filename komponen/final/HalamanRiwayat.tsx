@@ -30,8 +30,10 @@ export default function HalamanRiwayat() {
   const [hasil, setHasil] = useState<Hasil | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [pesan, setPesan] = useState("");
+  const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
 
   const muat = useCallback(async () => {
+    setPesan("");
     try {
       const p = new URLSearchParams({ dari, sampai, cari, halaman: String(halaman) });
       setHasil(await ambilApi<Hasil>(`/api/riwayat?${p}`));
@@ -42,7 +44,14 @@ export default function HalamanRiwayat() {
 
   useEffect(() => { void muat(); }, [muat]);
 
+  useEffect(() => {
+    void ambilApi<{ pengaturan: Record<string, string> }>("/api/dashboard")
+      .then((d) => setNamaUsaha(d.pengaturan.nama_usaha ?? "Warung Kak Ikaa"))
+      .catch(() => {});
+  }, []);
+
   async function bukaDetail(id: number) {
+    setPesan("");
     try {
       const r = await ambilApi<{ detail: Detail }>(`/api/riwayat?id=${id}`);
       setDetail(r.detail);
@@ -126,7 +135,7 @@ export default function HalamanRiwayat() {
             <div className="flex items-start justify-between gap-3 border-b border-garis pb-3">
               <div>
                 <p className="font-judul text-lg font-semibold">Mie Jebew</p>
-                <p className="text-xs text-tinta-lemah">Warung Kak Ikaa</p>
+                <p className="text-xs text-tinta-lemah">{namaUsaha}</p>
               </div>
               <Badge warna={detail.sumber === "preorder" ? "info" : "sukses"}>{detail.sumber}</Badge>
             </div>

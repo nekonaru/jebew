@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  batasiDiskon, cekStokCukup, hitungHpp, hitungPorsi, margin, ringkasKeuangan, totalDenganDiskon,
+  batasiDiskon, cekStokCukup, hitungHpp, hitungPorsi, hppBaris, margin, ringkasKeuangan, totalDenganDiskon,
   type InfoBahan, type ItemResep,
 } from "../lib/inti-final.ts";
-import { formatRupiah, tanggalHariIni } from "../lib/format.ts";
+import { formatRupiah, tanggalHariIni, tanggalValid } from "../lib/format.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "../lib/wa.ts";
 
 const bahan: InfoBahan[] = [
@@ -63,6 +63,12 @@ test("diskon tidak membuat total negatif", () => {
   assert.equal(totalDenganDiskon(20000, 25000), 0);
 });
 
+test("hpp baris dikalikan jumlah porsi", () => {
+  assert.equal(hppBaris(5000, 5), 25000);
+  assert.equal(hppBaris(5000, 1), 5000);
+  assert.equal(hppBaris(-1, 5), 0);
+});
+
 test("diskon dibatasi sampai subtotal", () => {
   assert.equal(batasiDiskon(20000, 25000), 20000);
   assert.equal(batasiDiskon(20000, -500), 0);
@@ -79,6 +85,12 @@ test("ringkasan keuangan menghitung laba", () => {
   assert.equal(hasil.labaKotor, 17000);
   assert.equal(hasil.labaBersih, 14000);
   assert.equal(hasil.perMetode.qris, 10000);
+});
+
+test("tanggal kalender divalidasi ketat", () => {
+  assert.equal(tanggalValid("2026-11-25"), true);
+  assert.equal(tanggalValid("2026-02-31"), false);
+  assert.equal(tanggalValid("xxxx-xx-xx"), false);
 });
 
 test("format rupiah dan tanggal", () => {

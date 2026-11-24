@@ -3,6 +3,7 @@ import { z } from "zod";
 import { aman, galat } from "@/lib/api-final.ts";
 import { ambilItemOpname, ambilOpname, simpanOpname } from "@/lib/final/stok.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
+import { tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,7 @@ export async function GET(req: Request) {
 }
 
 const skema = z.object({
-  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((v) => !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime()), "Tanggal tidak valid"),
+  tanggal: z.string().refine(tanggalValid, "Tanggal tidak valid"),
   catatan: z.string().trim().max(300),
   items: z.array(z.object({
     bahan_id: z.number().int().positive(),

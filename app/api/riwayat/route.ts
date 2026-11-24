@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { aman, galat } from "@/lib/api-final.ts";
 import { query, querySatu } from "@/lib/database.ts";
-import { tanggalHariIni } from "@/lib/format.ts";
+import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
 function tanggalAman(nilai: string | null, cadangan: string): string {
   const teks = nilai ?? "";
-  return /^\d{4}-\d{2}-\d{2}$/.test(teks) ? teks : cadangan;
+  return tanggalValid(teks) ? teks : cadangan;
 }
 
 function mundur(hari: number): string {

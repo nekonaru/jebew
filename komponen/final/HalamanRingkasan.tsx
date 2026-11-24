@@ -16,6 +16,7 @@ type Ringkasan = {
   menuTotal: number;
   tren: TitikOmzet[];
   bahanMenipis: { id: number; nama: string; satuan: string; stok: number; stok_minimum: number }[];
+  terlaris: { nama: string; varian: string; jumlah: number; omzet: number }[];
 };
 type Publik = { pengaturan: Record<string, string> };
 
@@ -100,6 +101,33 @@ export default function HalamanRingkasan() {
           </div>
         </Kartu>
       </div>
+
+      <Kartu>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-semibold">Menu paling laku</h2>
+            <p className="mt-1 text-xs text-tinta-lemah">Tujuh hari terakhir, berdasarkan jumlah porsi terjual.</p>
+          </div>
+          <Link href="/admin/riwayat" className="text-xs font-semibold text-utama hover:underline">Lihat riwayat</Link>
+        </div>
+        {(statistik?.terlaris ?? []).length === 0 ? (
+          <p className="mt-5 rounded-xl bg-latar px-4 py-6 text-center text-sm text-tinta-lemah">Belum ada penjualan pada rentang ini.</p>
+        ) : (
+          <ol className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            {statistik?.terlaris.map((m, i) => (
+              <li key={`${m.nama}-${m.varian}`} className="rounded-xl border border-garis p-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-latar text-[11px] font-bold text-utama">{i + 1}</span>
+                  <p className="truncate text-sm font-semibold">{m.nama}</p>
+                </div>
+                {m.varian && <p className="mt-1 truncate text-[11px] text-tinta-lemah">{m.varian}</p>}
+                <p className="mt-3 font-judul text-lg font-semibold">{m.jumlah} porsi</p>
+                <p className="text-[11px] text-tinta-lemah">{formatRupiah(m.omzet)}</p>
+              </li>
+            ))}
+          </ol>
+        )}
+      </Kartu>
     </div>
   );
 }

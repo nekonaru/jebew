@@ -79,6 +79,11 @@ export function totalDenganDiskon(subtotal: number, diskon: number): number {
   return Math.max(0, subtotal - Math.max(0, diskon));
 }
 
+/** HPP satu baris transaksi adalah HPP per porsi dikali jumlah porsi. */
+export function hppBaris(hppPerPorsi: number, jumlah: number): number {
+  return Math.max(0, hppPerPorsi) * Math.max(0, jumlah);
+}
+
 /** Diskon tidak boleh melebihi subtotal agar ringkasan keuangan tetap masuk akal. */
 export function batasiDiskon(subtotal: number, diskon: number): number {
   return Math.min(Math.max(0, diskon), Math.max(0, subtotal));

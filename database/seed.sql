@@ -172,3 +172,26 @@ SELECT setval(pg_get_serial_sequence('menu', 'id'), (SELECT MAX(id) FROM menu));
 SELECT setval(pg_get_serial_sequence('varian', 'id'), (SELECT MAX(id) FROM varian));
 SELECT setval(pg_get_serial_sequence('pembelian', 'id'), (SELECT MAX(id) FROM pembelian));
 SELECT setval(pg_get_serial_sequence('pengeluaran', 'id'), (SELECT MAX(id) FROM pengeluaran));
+
+-- Samakan semua sequence identity dengan data yang sudah ada supaya data baru
+-- tidak menabrak id dari seed. Berlaku juga untuk tabel yang kosong.
+DO $$
+DECLARE nama_tabel TEXT;
+BEGIN
+  FOREACH nama_tabel IN ARRAY ARRAY[
+    'pengaturan','pembatasan_laju','pengguna','log_audit','supplier','konversi_satuan',
+    'bahan','pergerakan_stok','pembelian','item_pembelian','stok_opname','item_opname',
+    'menu','resep','varian','item_varian','slot_waktu','preorder','item_preorder',
+    'penjualan','item_penjualan','kategori_pengeluaran','pengeluaran','tutup_kasir'
+  ] LOOP
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = nama_tabel AND column_name = 'id' AND is_identity = 'YES'
+    ) THEN
+      EXECUTE format(
+        'SELECT setval(pg_get_serial_sequence(%L, %L), GREATEST(COALESCE(MAX(id), 0), 1), true) FROM %I',
+        nama_tabel, 'id', nama_tabel
+      );
+    END IF;
+  END LOOP;
+END $$;

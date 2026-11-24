@@ -8,7 +8,7 @@ import { Badge, Kartu, Pesan, Tombol } from "./ui.tsx";
 
 type Hasil = {
   kode: string; kode_lacak: string; nama_pelanggan: string; waktu_ambil: string;
-  status: string; catatan: string; dibuat_pada: string;
+  status: string; dibuat_pada: string;
   items: { nama_menu: string; nama_varian: string; jumlah: number; subtotal: number }[];
   total: number;
 };

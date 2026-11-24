@@ -5,8 +5,10 @@ import { ambilPengaturan, simpanPengaturan } from "@/lib/final/pengaturan.ts";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { penolakan } = await aman(req, "masuk");
+    if (penolakan) return penolakan;
     return NextResponse.json(await ambilPengaturan());
   } catch (e) { return galat(e) as NextResponse; }
 }

@@ -57,11 +57,11 @@ export default function HalamanLaporan() {
         <Kartu>
           <h2 className="text-lg font-semibold">Tren omzet harian</h2>
           {data?.harian.length ? (
-            <div className="mt-5 flex h-40 items-end gap-2">
+            <div className="mt-5 flex h-40 items-end gap-2" role="img" aria-label="Grafik omzet harian pada rentang yang dipilih">
               {data.harian.map((h) => (
                 <div key={h.tanggal} className="flex flex-1 flex-col items-center gap-2">
-                  <div className="flex w-full flex-1 items-end">
-                    <div className="w-full rounded-t-lg bg-utama transition-all duration-500" style={{ height: `${Math.max(6, (h.omzet / maks) * 100)}%` }} title={formatRupiah(h.omzet)} />
+                  <div className="flex w-full flex-1 items-end" role="img" tabIndex={0} aria-label={`${h.tanggal}, omzet ${formatRupiah(h.omzet)}`}>
+                    <div className="w-full rounded-t-lg bg-utama transition-all duration-500" style={{ height: `${Math.max(6, (h.omzet / maks) * 100)}%` }} />
                   </div>
                   <span className="text-[10px] text-tinta-lemah">{h.tanggal.slice(5)}</span>
                 </div>

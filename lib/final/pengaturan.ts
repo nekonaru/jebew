@@ -33,6 +33,7 @@ export type PenggunaInput = {
 };
 
 export async function simpanPengguna(input: PenggunaInput, id?: number): Promise<void> {
+  const email = input.email.trim().toLowerCase();
   await denganTransaksi(async () => {
     if (id !== undefined) {
       const ada = await querySatu("SELECT id FROM pengguna WHERE id = $1", [id]);
@@ -40,12 +41,12 @@ export async function simpanPengguna(input: PenggunaInput, id?: number): Promise
       if (input.kata_sandi) {
         await jalankan(
           "UPDATE pengguna SET email=$1, nama=$2, kata_sandi=$3, peran=$4, aktif=$5 WHERE id=$6",
-          [input.email, input.nama, hashKataSandi(input.kata_sandi), input.peran, input.aktif, id],
+          [email, input.nama, hashKataSandi(input.kata_sandi), input.peran, input.aktif, id],
         );
       } else {
         await jalankan(
           "UPDATE pengguna SET email=$1, nama=$2, peran=$3, aktif=$4 WHERE id=$5",
-          [input.email, input.nama, input.peran, input.aktif, id],
+          [email, input.nama, input.peran, input.aktif, id],
         );
       }
       return;
@@ -53,7 +54,7 @@ export async function simpanPengguna(input: PenggunaInput, id?: number): Promise
     if (!input.kata_sandi) throw new GalatBisnis("Kata sandi wajib diisi");
     await jalankan(
       "INSERT INTO pengguna (email, nama, kata_sandi, peran, aktif) VALUES ($1,$2,$3,$4,$5)",
-      [input.email, input.nama, hashKataSandi(input.kata_sandi), input.peran, input.aktif],
+      [email, input.nama, hashKataSandi(input.kata_sandi), input.peran, input.aktif],
     );
   });
 }

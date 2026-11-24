@@ -221,15 +221,15 @@ export async function ambilPreorder() {
 export async function lacakPreorder(kode: string) {
   const hasil = await querySatu<{
     kode: string; kode_lacak: string; nama_pelanggan: string; waktu_ambil: string;
-    status: string; catatan: string; dibuat_pada: string;
+    status: string; dibuat_pada: string;
   }>(
-    `SELECT kode, kode_lacak, nama_pelanggan, waktu_ambil, status, catatan, dibuat_pada
-     FROM preorder WHERE kode_lacak = $1 OR kode = $1`,
+    `SELECT kode, kode_lacak, nama_pelanggan, waktu_ambil, status, dibuat_pada
+     FROM preorder WHERE kode_lacak = $1`,
     [kode.trim().toUpperCase()],
   );
   if (!hasil) return null;
   const items = await query<{ nama_menu: string; nama_varian: string; jumlah: number; subtotal: number }>(
-    "SELECT nama_menu, nama_varian, jumlah, subtotal FROM item_preorder WHERE preorder_id = (SELECT id FROM preorder WHERE kode_lacak = $1 OR kode = $1)",
+    "SELECT nama_menu, nama_varian, jumlah, subtotal FROM item_preorder WHERE preorder_id = (SELECT id FROM preorder WHERE kode_lacak = $1)",
     [kode.trim().toUpperCase()],
   );
   return { ...hasil, items, total: items.reduce((n, i) => n + i.subtotal, 0) };
@@ -288,6 +288,9 @@ export async function ubahStatusPreorder(
     );
     if (!ada) throw new GalatBisnis("Preorder tidak ditemukan");
     if (ada.status === "selesai") throw new GalatBisnis("Preorder selesai tidak bisa diubah");
+    if (ada.status === "batal" && status !== "batal") {
+      throw new GalatBisnis("Preorder batal tidak bisa diaktifkan kembali");
+    }
     if (status === "batal" && ada.status !== "batal" && ada.slot_id) {
       await jalankan(
         "UPDATE slot_waktu SET terisi = GREATEST(0, terisi - 1) WHERE id = $1", [ada.slot_id],

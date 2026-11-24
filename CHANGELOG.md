@@ -1,5 +1,39 @@
 # Riwayat Perubahan
 
+## final-v1.3.0
+
+Audit putaran kedua dan pengembangan lanjutan.
+
+### Perbaikan kritis
+
+- **HPP laporan tepat.** HPP per porsi kini dikalikan jumlah porsi, sehingga laba kotor dan laba bersih tidak lagi terlalu tinggi.
+- **Sequence data benar.** Seluruh sequence identity diselaraskan dengan data yang ada, jadi supplier, kategori, dan data lain bisa ditambahkan setelah data contoh dimuat.
+- **Muat ulang data diperbaiki.** Urutan penghapusan mengikuti kunci asing sehingga data contoh bisa dikembalikan kapan saja.
+- **Tanggal kalender ketat.** Tanggal seperti 31 Februari ditolak dengan respons 400, bukan 500.
+- **Email pengguna seragam.** Email disimpan dalam huruf kecil sehingga pemilik dan kasir bisa masuk dengan kombinasi huruf apa pun.
+- **Bahan bersejarah aman.** Bahan yang sudah dipakai transaksi dinonaktifkan, bukan dihapus, agar riwayat tetap utuh.
+- **Slot tidak bisa dihidupkan ulang.** Preorder batal tidak bisa dikembalikan ke diproses karena kuota sudah dilepas.
+- **Pelacakan lebih sempit.** Hanya kode lacak yang diterima dan catatan internal tidak dikirim ke publik.
+- **Cadangan lengkap.** Seluruh tabel induk dan turunan ikut diekspor, versi diambil dari paket, dan batas 500 baris dihapus.
+- **Pengaturan terlindungi.** Endpoint pengaturan hanya bisa diakses setelah masuk.
+
+### Fitur baru
+
+- **Master data.** Halaman baru untuk menambah, mengubah, dan menonaktifkan supplier serta mengelola kategori pengeluaran.
+- **Konversi satuan.** Kalkulator kg ke gram, liter ke ml, dan lusin ke pcs memakai data dari database.
+- **Menu paling laku.** Dashboard menampilkan lima menu terlaris tujuh hari terakhir beserta omzetnya.
+- **Struk mengikuti pengaturan.** Nama usaha pada cetakan rincian transaksi diambil dari pengaturan, bukan teks tetap.
+
+### Peningkatan
+
+- **Pembatasan laju adil.** Hanya percobaan login gagal yang dihitung dan kuncinya memakai alamat dari platform serta email.
+- **Aksesibilitas.** Grafik memberi label pembaca layar, tombol jumlah keranjang punya nama dan ukuran sentuh yang cukup.
+- **Pemberitahuan bersih.** Pesan galat pada riwayat hilang setelah permintaan berikutnya berhasil.
+
+### Penggunaan
+
+Jalankan `npm run db:migrasi` sekali pada database final. Untuk mengembalikan data demo ke keadaan awal, jalankan `npm run muat:contoh`.
+
 ## final-v1.2.1
 
 Kestabilan penyegaran data publik.

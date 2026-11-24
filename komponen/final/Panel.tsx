@@ -21,6 +21,7 @@ const NAV = [
   { href: "/admin/laporan", label: "Laporan", ikon: "M4 19V9m6 10V5m6 14v-7m4 7H2" },
   { href: "/admin/preorder", label: "Pre-order", ikon: "M6 2h9l5 5v15H6zM15 2v5h5" },
   { href: "/admin/keuangan", label: "Keuangan", ikon: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" },
+  { href: "/admin/master", label: "Master data", ikon: "M4 7h16M4 12h16M4 17h10" },
   { href: "/admin/pengaturan", label: "Pengaturan", ikon: "M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 00-1.7-1L14.5 3h-4l-.3 2.5a7 7 0 00-1.7 1l-2.4-1-2 3.5L6.1 11a7 7 0 000 2l-2 1.5 2 3.5 2.4-1a7 7 0 001.7 1l.3 2h4l.3-2a7 7 0 001.7-1l2.4 1 2-3.5-2-1.5c.1-.3.1-.7.1-1z" },
 ];
 
@@ -36,7 +37,8 @@ export default function Panel({
     router.refresh();
   }
 
-  const item = NAV.filter((n) => n.href !== "/admin/pengaturan" || peran === "pemilik");
+  const hanyaPemilik = ["/admin/master", "/admin/pengaturan"];
+  const item = NAV.filter((n) => !hanyaPemilik.includes(n.href) || peran === "pemilik");
 
   return (
     <KonteksPeran.Provider value={peran}>

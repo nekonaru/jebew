@@ -154,11 +154,13 @@ export default function HalamanKasir() {
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => setKeranjang((l) => l.map((x) => x.kunci === b.kunci ? { ...x, jumlah: Math.max(1, x.jumlah - 1) } : x))}
-                          className="h-8 w-8 rounded-lg border border-garis">-</button>
-                        <span className="w-6 text-center text-sm font-semibold">{b.jumlah}</span>
-                        <button onClick={() => setKeranjang((l) => l.map((x) => x.kunci === b.kunci ? { ...x, jumlah: Math.min(100, x.jumlah + 1) } : x))}
-                          className="h-8 w-8 rounded-lg border border-garis">+</button>
+                        <button type="button" aria-label={`Kurangi ${b.menu.nama}`}
+                          onClick={() => setKeranjang((l) => l.map((x) => x.kunci === b.kunci ? { ...x, jumlah: Math.max(1, x.jumlah - 1) } : x))}
+                          className="h-11 w-11 rounded-lg border border-garis text-base font-semibold">-</button>
+                        <span className="w-6 text-center text-sm font-semibold" aria-live="polite">{b.jumlah}</span>
+                        <button type="button" aria-label={`Tambah ${b.menu.nama}`}
+                          onClick={() => setKeranjang((l) => l.map((x) => x.kunci === b.kunci ? { ...x, jumlah: Math.min(100, x.jumlah + 1) } : x))}
+                          className="h-11 w-11 rounded-lg border border-garis text-base font-semibold">+</button>
                       </div>
                       <span className="text-sm font-semibold">{formatRupiah((b.menu.harga + tambahan) * b.jumlah)}</span>
                     </div>

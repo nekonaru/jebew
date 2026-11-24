@@ -74,6 +74,17 @@ export async function hapusBahan(id: number): Promise<void> {
     if (Number(dipakai?.jumlah ?? 0) > 0) {
       throw new GalatBisnis("Bahan masih dipakai resep. Ubah resepnya dulu.");
     }
+    const riwayat = await querySatu<{ jumlah: number }>(
+      `SELECT (SELECT COUNT(*) FROM pergerakan_stok WHERE bahan_id=$1)
+            + (SELECT COUNT(*) FROM item_pembelian WHERE bahan_id=$1)
+            + (SELECT COUNT(*) FROM item_opname WHERE bahan_id=$1) AS jumlah`,
+      [id],
+    );
+    if (Number(riwayat?.jumlah ?? 0) > 0) {
+      // Riwayat harus tetap utuh, jadi bahan dinonaktifkan, bukan dihapus.
+      await jalankan("UPDATE bahan SET aktif = FALSE WHERE id = $1", [id]);
+      return;
+    }
     await jalankan("DELETE FROM bahan WHERE id = $1", [id]);
   });
 }

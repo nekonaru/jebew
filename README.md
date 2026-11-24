@@ -83,7 +83,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Dua peran** | Pemilik mengelola seluruh data, Kasir memakai kasir dan melihat stok serta pre-order |
 | **Sesi selalu segar** | Status dan peran pengguna diperiksa ulang dari database pada setiap permintaan |
 | **Row Level Security** | Aktif pada semua tabel sebagai pertahanan tambahan |
-| **Audit log** | Setiap perubahan menu, stok, uang, dan transaksi tercatat dengan nama pengguna |
+| **Audit log** | Setiap perubahan menu, stok, uang, master data, dan transaksi tercatat dengan nama pengguna |
 
 ### Stok dan pembelian
 
@@ -93,6 +93,8 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Pembelian** | Supplier, harga beli, dan harga rata rata diperbarui otomatis |
 | **Stock opname** | Input stok fisik, selisih, dan alasan |
 | **Peringatan stok** | Bahan menipis ditandai di dashboard beserta jumlah dan batasnya |
+| **Master data** | Kelola supplier dan kategori pengeluaran lewat satu halaman |
+| **Konversi satuan** | Hitung kg ke gram, liter ke ml, dan lusin ke pcs |
 
 ### Keuangan
 
@@ -102,8 +104,9 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Pengeluaran** | Kategori gas, listrik, sewa, gaji, dan lainnya |
 | **Laporan** | Omzet, HPP, laba kotor, laba bersih, dan grafik harian |
 | **Omzet 7 hari** | Grafik batang di dashboard tanpa pustaka grafik tambahan |
+| **Menu paling laku** | Lima menu terlaris tujuh hari terakhir beserta omzetnya |
 | **Ekspor CSV** | Unduh rincian transaksi untuk rentang tanggal tertentu |
-| **Cadangan JSON** | Unduh seluruh data usaha tanpa kata sandi pengguna |
+| **Cadangan JSON** | Unduh seluruh data induk dan turunan tanpa kata sandi pengguna |
 | **Tutup kasir** | Rekonsiliasi kas fisik terhadap tunai, QRIS, dan transfer |
 
 ### Penjualan dan pre-order
@@ -257,6 +260,7 @@ Uji seluruh endpoint dengan server berjalan:
 ```bash
 URL_UJI=http://localhost:3000 npm run uji:api
 URL_UJI=http://localhost:3000 node scripts/uji-fitur-baru.mjs
+URL_UJI=http://localhost:3000 node scripts/uji-putaran-2.mjs
 ```
 
 Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo.
