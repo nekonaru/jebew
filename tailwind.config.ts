@@ -11,7 +11,7 @@ const konfigurasi: Config = {
         permukaan: "#FFFFFF",
         tinta: { DEFAULT: "#2B1C16", lemah: "#7A6659" },
         garis: "#E8DED3",
-        sukses: { DEFAULT: "#2E7D52", terang: "#E6F4EC" },
+        sukses: { DEFAULT: "#24613F", terang: "#E6F4EC" },
         bahaya: "#B42318",
         info: "#2563EB",
       },

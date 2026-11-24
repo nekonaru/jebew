@@ -99,7 +99,7 @@ export default function HalamanMenu() {
         <input id="cari-menu" type="search" placeholder="Cari menu..." value={cari} onChange={(e) => setCari(e.target.value)} />
       </div>
 
-      <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <ul className="daftar-panjang grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {tampil.map((m) => (
           <li key={m.id}>
             <Kartu>

@@ -29,7 +29,7 @@ const URUTAN_HAPUS = [
   "log_audit", "tutup_kasir", "pengeluaran", "pergerakan_stok",
   "preorder", "penjualan", "pembelian", "stok_opname", "resep", "varian",
   "menu", "bahan", "slot_waktu", "supplier", "konversi_satuan",
-  "kategori_pengeluaran", "pengguna", "pengaturan",
+  "kategori_pengeluaran", "pengguna", "pengaturan", "pembatasan_laju",
 ];
 
 try {

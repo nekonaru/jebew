@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat, izinLaju } from "@/lib/api-final.ts";
 import { ambilPreorder, selesaikanPreorder, simpanPreorder, ubahStatusPreorder } from "@/lib/final/transaksi.ts";
 import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
@@ -32,6 +32,10 @@ export async function POST(req: Request) {
   try {
     const { penolakan } = await aman(req, "publik");
     if (penolakan) return penolakan;
+    const kunci = `preorder:${req.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() ?? "lokal"}`;
+    if (!(await izinLaju(kunci, 5, 60 * 1000))) {
+      return NextResponse.json({ pesan: "Terlalu banyak pre-order. Coba lagi sebentar." }, { status: 429 });
+    }
     const badan = skema.parse(await req.json());
     const hasil = await simpanPreorder(badan);
     const pengaturan = await ambilPengaturan();

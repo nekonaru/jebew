@@ -52,7 +52,9 @@ export default function HalamanRingkasan() {
                 className="group flex items-center gap-3 rounded-xl border border-garis p-4 transition hover:-translate-y-0.5 hover:shadow-kartu">
                 <span className={`h-9 w-1.5 rounded-full ${p.warna}`} />
                 <span className="text-sm font-semibold">{p.label}</span>
-                <span className="ml-auto text-tinta-lemah transition group-hover:translate-x-1">→</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="ml-auto h-4 w-4 text-tinta-lemah transition-transform duration-[var(--gerak-standar)] group-hover:translate-x-1">
+                  <path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </Link>
             ))}
           </div>

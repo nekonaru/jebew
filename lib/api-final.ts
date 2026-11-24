@@ -2,6 +2,7 @@
 
 import { ZodError } from "zod";
 import { GalatBisnis } from "./final/galat.ts";
+import { jalankan, querySatu } from "./database.ts";
 import { penggunaSaatIni, type PenggunaSesi } from "./auth.ts";
 
 const BATAS_UKURAN = 128 * 1024;
@@ -27,6 +28,25 @@ export function asalValid(permintaan: Request): boolean {
   } catch {
     return false;
   }
+}
+
+/** Pembatasan laju yang disimpan di database, sehingga berlaku lintas instance serverless. */
+export async function izinLaju(kunci: string, batas: number, jendelaMs: number): Promise<boolean> {
+  const sekarang = Date.now();
+  const baris = await querySatu<{ jumlah: number; reset_pada: number }>(
+    "SELECT jumlah, reset_pada FROM pembatasan_laju WHERE kunci = $1", [kunci],
+  );
+  if (!baris || Number(baris.reset_pada) <= sekarang) {
+    await jalankan(
+      `INSERT INTO pembatasan_laju (kunci, jumlah, reset_pada) VALUES ($1, 1, $2)
+       ON CONFLICT (kunci) DO UPDATE SET jumlah = 1, reset_pada = EXCLUDED.reset_pada`,
+      [kunci, sekarang + jendelaMs],
+    );
+    return true;
+  }
+  if (Number(baris.jumlah) >= batas) return false;
+  await jalankan("UPDATE pembatasan_laju SET jumlah = jumlah + 1 WHERE kunci = $1", [kunci]);
+  return true;
 }
 
 export async function aman(

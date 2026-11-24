@@ -1,5 +1,21 @@
 # Riwayat Perubahan
 
+## final-v1.0.1
+
+Penyempurnaan desain, keamanan, dan kecepatan pada versi final.
+
+### Peningkatan
+
+- **Desain lebih rapi.** Token warna, ruang, dan gerak tersusun dalam satu tempat. Kontras teks memenuhi 4,5 banding 1, dan hierarki judul diperbaiki.
+- **Animasi halus.** Transisi 120 sampai 320 ms memakai `transform` dan `opacity` saja, dengan `@starting-style` untuk dialog dan pengurangan gerak penuh.
+- **Lebih ringan.** Daftar panjang memakai `content-visibility`, animasi tidak menyentuh properti tata letak, dan tidak ada pustaka animasi tambahan.
+- **Keamanan diperkuat.** Pembatasan laju login dan pre-order kini tersimpan di database sehingga tetap bekerja lintas instance serverless. Header HSTS, COOP, dan kebijakan cross-domain ditambahkan di produksi.
+- **Audit bersih.** Lighthouse mencatat 100 untuk aksesibilitas, praktik terbaik, dan SEO pada halaman konsumen maupun login.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai. Jalankan `npm run siap:supabase` sekali untuk menambah tabel pembatasan laju.
+
 ## final-v1.0.0
 
 Produk jadi Tahap 2 untuk Warung Kak Ikaa. Dikembangkan pada cabang `final` dan berdampingan dengan prototipe `v0.3.1` pada cabang `main`.

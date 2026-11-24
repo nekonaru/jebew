@@ -117,7 +117,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           <h1 className="mt-4 font-judul text-3xl font-semibold leading-tight sm:text-4xl">
             Mie hangat, pesan lebih mudah.
           </h1>
-          <p className="mt-3 max-w-xl text-sm text-white/80">
+          <p className="mt-3 max-w-xl text-sm text-white/95">
             Pilih menu, tentukan waktu ambil, lalu kami siapkan. Status menu mengikuti sisa bahan di dapur.
           </p>
           <Tombol onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
@@ -131,6 +131,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         </section>
 
         <section id="menu" className="scroll-mt-4">
+          <h2 id="judul-menu" className="mb-3 text-lg font-semibold">Daftar menu</h2>
           <div className="sticky top-0 z-20 -mx-4 border-b border-garis bg-latar/95 px-4 py-3 backdrop-blur">
             <div className="flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter kategori">
               {["Semua", ...daftarKategori].map((k) => (
@@ -144,7 +145,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             <input id="cari" type="search" placeholder="Cari menu..." value={cari} onChange={(e) => setCari(e.target.value)} className="min-h-[42px] text-sm" />
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="daftar-panjang mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tersaring.map((m) => (
               <article key={m.id} className="animasi-muncul flex flex-col rounded-kartu border border-garis bg-permukaan p-5 shadow-kartu transition hover:-translate-y-0.5 hover:shadow-angkat">
                 <div className="flex items-start justify-between gap-2">

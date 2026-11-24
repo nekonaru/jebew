@@ -25,7 +25,7 @@ export function Tombol({
   return (
     <button
       type={tipe} name={nama} aria-pressed={ditekan} disabled={nonaktif} onClick={onClick}
-      className={`inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${gaya} ${kelas}`}
+      className={`inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-[background-color,color,box-shadow,transform] duration-[var(--gerak-cepat)] ease-[var(--ease-halus)] disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none ${gaya} ${kelas}`}
     >
       {children}
     </button>

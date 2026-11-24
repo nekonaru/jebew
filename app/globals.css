@@ -4,10 +4,33 @@
 
 :root {
   color-scheme: light;
-  --utama: #C2412C;
-  --aksen: #E08A2E;
-  --latar: #FBF7F2;
-  --tinta: #2B1C16;
+
+  /* Warna semantik */
+  --warna-latar: #FBF7F2;
+  --warna-permukaan: #FFFFFF;
+  --warna-tinta: #2B1C16;
+  --warna-tinta-lemah: #7A6659;
+  --warna-garis: #E8DED3;
+  --warna-utama: #C2412C;
+  --warna-utama-gelap: #9E3322;
+  --warna-aksen: #E08A2E;
+  --warna-sukses: #24613F;
+
+  /* Gerak */
+  --gerak-cepat: 120ms;
+  --gerak-standar: 220ms;
+  --gerak-lambat: 320ms;
+  --ease-masuk: cubic-bezier(0.2, 0, 0, 1);
+  --ease-keluar: cubic-bezier(0.3, 0, 1, 1);
+  --ease-halus: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Ruang */
+  --ruang-1: 4px;
+  --ruang-2: 8px;
+  --ruang-3: 12px;
+  --ruang-4: 16px;
+  --ruang-6: 24px;
+  --ruang-8: 32px;
 }
 
 html { scroll-behavior: smooth; }
@@ -20,29 +43,78 @@ body {
 
 h1, h2, h3, h4 { @apply font-judul; }
 
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid var(--aksen);
+/* Fokus: satu cincin konsisten di semua kontrol interaktif. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--warna-aksen);
   outline-offset: 2px;
+  border-radius: 8px;
 }
 
 label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-tinta-lemah; }
 
 input, select, textarea {
-  @apply min-h-[46px] w-full rounded-xl border border-garis bg-white px-3.5 py-2 text-sm text-tinta;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  @apply w-full rounded-xl border border-garis bg-white px-3.5 py-2 text-sm text-tinta;
+  min-height: 46px;
+  transition: border-color var(--gerak-cepat) var(--ease-halus),
+              box-shadow var(--gerak-cepat) var(--ease-halus);
 }
 input:focus, select:focus, textarea:focus {
-  @apply border-aksen;
-  box-shadow: 0 0 0 3px rgba(224,138,46,.14);
+  border-color: var(--warna-aksen);
+  box-shadow: 0 0 0 3px rgba(224, 138, 46, 0.14);
   outline: none;
 }
-textarea { @apply min-h-[90px] resize-y; }
+textarea { @apply resize-y; min-height: 90px; }
 
-dialog::backdrop { background: rgba(43,28,22,.5); backdrop-filter: blur(3px); }
-dialog { @apply w-[min(100%-2rem,36rem)] rounded-kartu border border-garis bg-white p-0 text-tinta shadow-angkat; }
+/* Tekan: balasan segera tanpa menggeser tata letak. */
+button { -webkit-tap-highlight-color: transparent; }
+button:active:not(:disabled) { transform: scale(0.985); }
+button:active:not(:disabled) { transition-duration: var(--gerak-cepat); }
+
+/* Kartu daftar panjang: hemat kerja render. */
+.daftar-panjang > * { content-visibility: auto; contain-intrinsic-size: auto 140px; }
+
+@keyframes muncul {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes geser {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes denyut {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.animasi-muncul { animation: muncul var(--gerak-lambat) var(--ease-masuk) both; }
+.animasi-geser { animation: geser var(--gerak-standar) var(--ease-masuk) both; }
+.kerangka { animation: denyut 1.4s ease-in-out infinite; }
+
+/* Dialog memakai fitur CSS native untuk masuk dari display:none. */
+dialog::backdrop {
+  background: rgba(43, 28, 22, 0.5);
+  backdrop-filter: blur(3px);
+}
+dialog {
+  @apply w-[min(100%-2rem,36rem)] rounded-kartu border border-garis bg-permukaan p-0 text-tinta shadow-angkat;
+}
 dialog:not([open]) { display: none; }
-dialog[open] { animation: masuk .22s ease-out; }
-dialog[open]::backdrop { animation: masuk .22s ease-out; }
+dialog[open] {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--gerak-standar) var(--ease-masuk),
+              transform var(--gerak-standar) var(--ease-masuk),
+              display var(--gerak-standar) allow-discrete;
+  @starting-style {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+dialog[open]::backdrop {
+  transition: opacity var(--gerak-standar) var(--ease-masuk),
+              display var(--gerak-standar) allow-discrete;
+  @starting-style { opacity: 0; }
+}
 
 .visually-hidden {
   position: absolute !important;
@@ -56,7 +128,13 @@ dialog[open]::backdrop { animation: masuk .22s ease-out; }
   white-space: nowrap !important;
 }
 
+/* Pengguna yang meminta pengurangan gerak mendapat versi statis. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  dialog[open] { opacity: 1; transform: none; }
 }
