@@ -4,10 +4,12 @@ Panduan ini dipakai untuk menunjukkan alur utama Jebew dalam waktu lima menit. S
 
 ## Persiapan
 
-1. Jalankan `npm ci` lalu `npm run dev`
-2. Buka `http://localhost:3000` di browser
-3. Buka tab lain ke `http://localhost:3000/admin/login` dan masukkan PIN `1234`
-4. Pastikan kedua tab terbuka berdampingan supaya perubahan status mudah dilihat
+1. Pastikan project Supabase sudah aktif dan `DATABASE_URL` terisi di `.env.local`
+2. Jalankan `npm run siap:supabase` sekali untuk memasang tabel dan data contoh
+3. Jalankan `npm ci` lalu `npm run dev`
+4. Buka `http://localhost:3000` di browser
+5. Buka tab lain ke `http://localhost:3000/admin/login` dan masukkan PIN yang kamu atur
+6. Pastikan kedua tab terbuka berdampingan supaya perubahan status mudah dilihat
 
 ## Skenario lima menit
 
@@ -48,7 +50,8 @@ Demo dianggap berhasil bila kelima hal ini terlihat:
 - Belum ada autentikasi penuh dan pembagian peran. Dashboard hanya dilindungi satu PIN.
 - Pembayaran online, QRIS, dan notifikasi WhatsApp otomatis belum dibuat. Pre-order memakai tautan wa.me.
 - Belum ada riwayat pergerakan stok, HPP, laba rugi, stock opname, atau ekspor laporan.
-- Database masih lokal per komputer. Pemakaian multi-cabang dan multi-usaha belum didukung.
+- Database memakai satu project Supabase. Pemakaian multi-cabang dan multi-usaha belum didukung.
 - Status menu diperbarui dengan permintaan berkala setiap 15 detik, bukan realtime.
 - Belum ada pengujian antarmuka otomatis. Pengujian yang ada mencakup logika inti dan alur data lewat API.
-- Deploy ke Vercel belum diuji karena database lokal tidak persisten di lingkungan serverless. Ini menjadi pekerjaan Tahap 2.
+- Demo memerlukan koneksi internet dan project Supabase yang aktif.
+- Deploy ke Vercel mengikuti langkah di README. Pastikan seluruh variabel lingkungan produksi terisi sebelum aplikasi diakses publik.

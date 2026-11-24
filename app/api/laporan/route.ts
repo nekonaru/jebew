@@ -14,7 +14,7 @@ export async function GET(permintaan: Request) {
     const hariIni = tanggalHariIni();
     const dari = parameter.get("dari") ?? hariIni;
     const sampai = parameter.get("sampai") ?? hariIni;
-    return NextResponse.json(ambilLaporan(dari, sampai));
+    return NextResponse.json(await ambilLaporan(dari, sampai));
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);
   }

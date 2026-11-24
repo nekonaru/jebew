@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function LayoutPanel({ children }: { children: React.ReactNode }) {
   if (!(await sudahMasuk())) redirect("/admin/login");
-  const pengaturan = ambilPengaturan();
+  const pengaturan = await ambilPengaturan();
 
   return <PanelAdmin namaUsaha={pengaturan.nama_usaha}>{children}</PanelAdmin>;
 }

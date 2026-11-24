@@ -1,71 +1,92 @@
-// Koneksi database SQLite lokal. Skema dan data contoh dijalankan sekali saat pertama dipakai.
-// Koneksi sengaja dibuka secara malas agar proses build yang paralel tidak saling mengunci berkas.
+// Koneksi Postgres Supabase. Semua akses data terjadi di server, tidak pernah dari browser.
+// Transaksi memakai AsyncLocalStorage sehingga setiap kueri di dalam callback otomatis
+// memakai koneksi yang sama, tanpa mengubah tanda tangan fungsi di lib/operasi.ts.
 
-import { DatabaseSync } from "node:sqlite";
-import { mkdirSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { AsyncLocalStorage } from "node:async_hooks";
+import pg from "pg";
 
-let koneksiTersimpan: DatabaseSync | null = null;
+const { Pool } = pg;
 
-function bukaDatabase(): DatabaseSync {
-  if (koneksiTersimpan) return koneksiTersimpan;
+// Samakan bentuk nilai tanggal dan bilangan besar supaya lapisan tampilan menerima teks dan angka, bukan objek Date.
+pg.types.setTypeParser(1114, (nilai: string) => nilai.split(".")[0]);
+pg.types.setTypeParser(1184, (nilai: string) => nilai.split(".")[0]);
+pg.types.setTypeParser(20, (nilai: string) => Number(nilai));
 
-  const lokasiBerkas =
-    process.env.JEBEW_DB ?? path.join(process.cwd(), "data", "jebew.db");
-  const folderDatabase = path.join(process.cwd(), "database");
+type Pelaksana = Pick<pg.PoolClient, "query">;
 
-  mkdirSync(path.dirname(lokasiBerkas), { recursive: true });
+const konteksTransaksi = new AsyncLocalStorage<Pelaksana>();
 
-  const koneksi = new DatabaseSync(lokasiBerkas);
-  koneksi.exec("PRAGMA busy_timeout = 10000");
-  koneksi.exec("PRAGMA foreign_keys = ON");
-  try {
-    koneksi.exec("PRAGMA journal_mode = WAL");
-  } catch {
-    // WAL bukan keharusan. Mode default tetap berfungsi untuk prototipe.
+let kumpulan: pg.Pool | null = null;
+
+function dapatkanKumpulan(): pg.Pool {
+  if (kumpulan) return kumpulan;
+
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error("DATABASE_URL belum diatur. Isi dari panel Supabase, bagian Database, Connection string.");
   }
 
-  koneksi.exec(readFileSync(path.join(folderDatabase, "schema.sql"), "utf8"));
+  const lokal = /localhost|127\.0\.0\.1/.test(url);
+  kumpulan = new Pool({
+    connectionString: url,
+    max: 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+    ssl: lokal ? undefined : { rejectUnauthorized: false },
+  });
 
-  koneksi.exec("BEGIN IMMEDIATE");
-  try {
-    const hasil = koneksi.prepare("SELECT COUNT(*) AS jumlah FROM bahan").get() as {
-      jumlah: number;
-    };
-    if (hasil.jumlah === 0) {
-      koneksi.exec(readFileSync(path.join(folderDatabase, "seed.sql"), "utf8"));
-    }
-    koneksi.exec("COMMIT");
-  } catch (kesalahan) {
-    koneksi.exec("ROLLBACK");
-    throw kesalahan;
-  }
-
-  koneksiTersimpan = koneksi;
-  return koneksi;
+  return kumpulan;
 }
 
-/**
- * Proxy membuat seluruh pemanggilan `database.*` tetap bekerja, tetapi berkas database
- * hanya dibuka ketika metode pertama benar-benar dipanggil.
- */
-export const database: DatabaseSync = new Proxy({} as DatabaseSync, {
-  get(_sasaran, sifat) {
-    const koneksi = bukaDatabase();
-    const nilai = Reflect.get(koneksi, sifat);
-    return typeof nilai === "function" ? nilai.bind(koneksi) : nilai;
-  },
-});
+async function jalankanKueri(teks: string, nilai: unknown[] = []): Promise<pg.QueryResult> {
+  const pelaksana = konteksTransaksi.getStore() ?? dapatkanKumpulan();
+  return pelaksana.query(teks, nilai);
+}
 
-/** Menjalankan satu unit kerja atomik. Bila ada kesalahan, semua perubahan dibatalkan. */
-export function denganTransaksi<T>(kerja: () => T): T {
-  database.exec("BEGIN IMMEDIATE");
+/** Ambil banyak baris. Parameter memakai penanda $1, $2, dan seterusnya. */
+export async function query<T = Record<string, unknown>>(
+  teks: string,
+  nilai: unknown[] = [],
+): Promise<T[]> {
+  const hasil = await jalankanKueri(teks, nilai);
+  return hasil.rows as T[];
+}
+
+/** Ambil satu baris pertama, atau undefined bila tidak ada. */
+export async function querySatu<T = Record<string, unknown>>(
+  teks: string,
+  nilai: unknown[] = [],
+): Promise<T | undefined> {
+  const baris = await query<T>(teks, nilai);
+  return baris[0];
+}
+
+/** Jalankan perintah dan kembalikan jumlah baris yang terpengaruh. */
+export async function jalankan(teks: string, nilai: unknown[] = []): Promise<number> {
+  const hasil = await jalankanKueri(teks, nilai);
+  return hasil.rowCount ?? 0;
+}
+
+/** Satu unit kerja atomik. Kueri di dalam callback memakai koneksi dan transaksi yang sama. */
+export async function denganTransaksi<T>(kerja: () => Promise<T>): Promise<T> {
+  const klien = await dapatkanKumpulan().connect();
   try {
-    const hasil = kerja();
-    database.exec("COMMIT");
+    await klien.query("BEGIN");
+    const hasil = await konteksTransaksi.run(klien, kerja);
+    await klien.query("COMMIT");
     return hasil;
   } catch (kesalahan) {
-    database.exec("ROLLBACK");
+    await klien.query("ROLLBACK");
     throw kesalahan;
+  } finally {
+    klien.release();
+  }
+}
+
+/** Tutup pool saat proses berhenti. Dipakai oleh skrip pengujian bila diperlukan. */
+export async function tutupKoneksi(): Promise<void> {
+  if (kumpulan) {
+    await kumpulan.end();
+    kumpulan = null;
   }
 }
