@@ -2,6 +2,7 @@
 // Kueri memakai penanda $1, $2, dan seterusnya sesuai driver Postgres.
 
 import { randomBytes } from "node:crypto";
+import { unstable_cache } from "next/cache";
 import { denganTransaksi, jalankan, query, querySatu } from "./database.ts";
 import {
   cekStokCukup,
@@ -565,3 +566,16 @@ export async function ambilPengaturan(): Promise<{ nama_usaha: string; whatsapp_
     whatsapp_admin: peta.get("whatsapp_admin") ?? process.env.WHATSAPP_ADMIN ?? "6281234567890",
   };
 }
+
+/**
+ * Data publik untuk website. Cache 10 detik di platform membuat permintaan berikutnya
+ * langsung dijawab tanpa menghubungi database lagi, sementara status tetap segar.
+ */
+export const ambilStatusPublik = unstable_cache(
+  async () => {
+    const [menu, pengaturan] = await Promise.all([ambilMenuPublik(), ambilPengaturan()]);
+    return { menu, nama_usaha: pengaturan.nama_usaha };
+  },
+  ["status-publik"],
+  { revalidate: 10 },
+);

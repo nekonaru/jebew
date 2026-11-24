@@ -74,7 +74,7 @@ Inti sistem ada pada resep. Setiap menu menyimpan daftar bahan dan jumlah per sa
 |-------|-----------|
 | **Status menu** | Badge Tersedia atau Habis dihitung dari sisa stok dan resep |
 | **Sisa porsi** | Tampilkan sisa porsi bila jumlahnya lima atau kurang |
-| **Pembaruan otomatis** | Status menu disegarkan setiap 15 detik tanpa memuat ulang halaman |
+| **Pembaruan otomatis** | Status menu disegarkan setiap 15 detik dari cache 10 detik, tanpa memuat ulang halaman |
 | **Pre-order** | Pilih beberapa menu, isi nama, WhatsApp, waktu ambil, dan catatan |
 | **Pesan WhatsApp siap kirim** | Tautan wa.me dibuka dengan rincian pesanan dan total yang sudah terformat |
 | **Pesanan ditolak bila habis** | Menu yang habis tidak bisa dipilih dan permintaan ditolak di server |
