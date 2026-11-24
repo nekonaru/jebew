@@ -1,5 +1,19 @@
 # Riwayat Perubahan
 
+## final-v1.2.1
+
+Kestabilan penyegaran data publik.
+
+### Perbaikan
+
+- **Cache lebih tahan gangguan.** Endpoint publik mencoba ulang sekali bila koneksi database sempat terputus saat cache diperbarui.
+- **Kueri lebih sedikit.** Data publik tidak lagi mengambil data bahan yang tidak dipakai.
+- **Penyegaran lebih jarang.** Cache status toko diperbarui setiap 30 detik untuk mengurangi beban database.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.2.0
 
 Audit mendalam dan pembaruan besar pada produk final.
