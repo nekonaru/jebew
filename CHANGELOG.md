@@ -1,5 +1,20 @@
 # Riwayat Perubahan
 
+## final-v1.0.3
+
+Identitas Mie Jebew diperkuat dan tautan kedua versi ditambahkan ke README.
+
+### Peningkatan
+
+- **Tautan demo.** README menampilkan tautan langsung ke prototipe dan produk jadi, beserta akun masuk masing-masing.
+- **Identitas merek.** Header memakai wordmark Mie Jebew dengan sub-label Chili Oil dan Wonton. Judul halaman, panel admin, dan footer memakai penamaan yang konsisten.
+- **Tanda tangan visual.** Tanda Jebew muncul sebagai latar halus pada area sambutan.
+- **Animasi bertahap.** Elemen sambutan muncul berurutan, dan bagian tertentu memakai animasi gulir native dengan perlindungan untuk browser lama.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.0.2
 
 Penyempurnaan visual pada website konsumen.
