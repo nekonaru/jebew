@@ -1,5 +1,20 @@
 # Riwayat Perubahan
 
+## final-v1.0.2
+
+Penyempurnaan visual pada website konsumen.
+
+### Peningkatan
+
+- **Hero editorial.** Area sambutan memakai tata letak dua kolom dengan kartu ringkasan status hari ini, bukan blok warna polos.
+- **Bilah informasi.** Jam buka, lacak pesanan, dan pesan cepat disatukan dalam satu bilah dengan ikon dan pemisah yang rapi.
+- **Kartu menu.** Kategori, status, deskripsi, varian, dan harga punya hierarki yang jelas. Harga ditempatkan pada bilah bawah kartu.
+- **Detail kecil.** Garis aksen di header, ikon pencarian, keterangan bagian, keadaan kosong yang informatif, dan footer yang lebih tertata.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.0.1
 
 Penyempurnaan desain, keamanan, dan kecepatan pada versi final.
