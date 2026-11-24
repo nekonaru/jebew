@@ -1,16 +1,10 @@
-import HalamanUtama from "@/komponen/HalamanUtama.tsx";
-import { ambilStatusPublik } from "@/lib/operasi.ts";
+import HalamanKonsumen from "@/komponen/final/HalamanKonsumen.tsx";
+import { ambilMenuPublik } from "@/lib/final/menu.ts";
+import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 
 export const dynamic = "force-dynamic";
 
-/** Menu diambil di server agar halaman pertama tampil tanpa menunggu fetch klien. */
 export default async function HalamanAwal() {
-  const status = await ambilStatusPublik();
-
-  return (
-    <HalamanUtama
-      menuAwal={status.menu}
-      namaUsahaAwal={status.nama_usaha}
-    />
-  );
+  const [menu, pengaturan] = await Promise.all([ambilMenuPublik(), ambilPengaturan()]);
+  return <HalamanKonsumen awal={{ menu, pengaturan }} />;
 }

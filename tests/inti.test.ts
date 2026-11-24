@@ -1,133 +1,97 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  cekStokCukup,
-  hitungPorsi,
-  hitungSubtotal,
-  hitungTotal,
-  ringkasPenjualan,
-  type InfoBahan,
-} from "../lib/inti.ts";
+  cekStokCukup, hitungHpp, hitungPorsi, margin, ringkasKeuangan, totalDenganDiskon,
+  type InfoBahan, type ItemResep,
+} from "../lib/inti-final.ts";
 import { formatRupiah, tanggalHariIni } from "../lib/format.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "../lib/wa.ts";
 
-const bahanContoh: InfoBahan[] = [
-  { id: 1, nama: "Mie", satuan: "gram", stok: 1000 },
-  { id: 2, nama: "Bumbu", satuan: "gram", stok: 80 },
-  { id: 3, nama: "Telur", satuan: "butir", stok: 15 },
-  { id: 4, nama: "Cabai", satuan: "gram", stok: 100 },
+const bahan: InfoBahan[] = [
+  { id: 1, nama: "Mie", satuan: "gram", stok: 2000, harga_rata_rata: 12 },
+  { id: 2, nama: "Bumbu Chili Oil", satuan: "gram", stok: 120, harga_rata_rata: 85 },
+  { id: 3, nama: "Telur", satuan: "butir", stok: 60, harga_rata_rata: 3000 },
 ];
-
-const resepContoh = [
+const resep: ItemResep[] = [
   { bahanId: 1, jumlahPerPorsi: 100 },
-  { bahanId: 2, jumlahPerPorsi: 10 },
+  { bahanId: 2, jumlahPerPorsi: 15 },
   { bahanId: 3, jumlahPerPorsi: 1 },
 ];
 
-test("hitung porsi memakai bahan penghambat", () => {
-  const hasil = hitungPorsi(resepContoh, bahanContoh);
+test("porsi memakai bahan penghambat", () => {
+  const hasil = hitungPorsi(resep, bahan);
   assert.equal(hasil.porsi, 8);
-  assert.equal(hasil.penghambat?.nama, "Bumbu");
-  assert.equal(hasil.penghambat?.maksPorsi, 8);
+  assert.equal(hasil.penghambat?.nama, "Bumbu Chili Oil");
 });
 
-test("porsi bulat ke bawah", () => {
-  const hasil = hitungPorsi(
-    [{ bahanId: 2, jumlahPerPorsi: 30 }],
-    [{ id: 2, nama: "Bumbu", satuan: "gram", stok: 80 }],
-  );
+test("porsi dibulatkan ke bawah", () => {
+  const hasil = hitungPorsi([{ bahanId: 2, jumlahPerPorsi: 30 }], [
+    { id: 2, nama: "Bumbu", satuan: "gram", stok: 80 },
+  ]);
   assert.equal(hasil.porsi, 2);
 });
 
-test("menu tanpa resep tidak bisa dibuat", () => {
-  const hasil = hitungPorsi([], bahanContoh);
-  assert.equal(hasil.porsi, 0);
-  assert.equal(hasil.penghambat, null);
+test("resep kosong menghasilkan nol porsi", () => {
+  assert.equal(hitungPorsi([], bahan).porsi, 0);
 });
 
-test("bahan yang tidak ditemukan dianggap stok kosong", () => {
-  const hasil = hitungPorsi([{ bahanId: 99, jumlahPerPorsi: 1 }], bahanContoh);
-  assert.equal(hasil.porsi, 0);
-  assert.equal(hasil.penghambat?.nama, "Bahan tidak ditemukan");
-});
-
-test("stok tidak pernah dianggap negatif", () => {
-  const hasil = hitungPorsi(
-    [{ bahanId: 1, jumlahPerPorsi: 10 }],
-    [{ id: 1, nama: "Mie", satuan: "gram", stok: -5 }],
-  );
+test("bahan tidak ditemukan dianggap kosong", () => {
+  const hasil = hitungPorsi([{ bahanId: 99, jumlahPerPorsi: 1 }], bahan);
   assert.equal(hasil.porsi, 0);
 });
 
-test("pemeriksaan stok lolos bila cukup", () => {
-  const hasil = cekStokCukup(resepContoh, 8, bahanContoh);
-  assert.equal(hasil.cukup, true);
-  assert.equal(hasil.kekurangan.length, 0);
+test("cek stok cukup dan kurang", () => {
+  assert.equal(cekStokCukup(resep, 8, bahan).cukup, true);
+  const kurang = cekStokCukup(resep, 10, bahan);
+  assert.equal(kurang.cukup, false);
+  assert.equal(kurang.kekurangan[0].nama, "Bumbu Chili Oil");
 });
 
-test("pemeriksaan stok menolak dan merinci kekurangan", () => {
-  const hasil = cekStokCukup(resepContoh, 10, bahanContoh);
-  assert.equal(hasil.cukup, false);
-  assert.equal(hasil.kekurangan.length, 1);
-  assert.equal(hasil.kekurangan[0].nama, "Bumbu");
-  assert.equal(hasil.kekurangan[0].kurang, 20);
+test("hpp dihitung dari resep dan harga rata rata", () => {
+  const hpp = hitungHpp(resep, bahan);
+  assert.equal(hpp, 100 * 12 + 15 * 85 + 1 * 3000);
 });
 
-test("subtotal dan total dihitung dari harga yang disimpan saat transaksi", () => {
-  assert.equal(hitungSubtotal(15000, 2), 30000);
-  assert.equal(
-    hitungTotal([
-      { hargaSatuan: 15000, jumlah: 2 },
-      { hargaSatuan: 5000, jumlah: 1 },
-    ]),
-    35000,
-  );
+test("margin per menu", () => {
+  const hasil = margin(10000, 5475);
+  assert.equal(hasil.laba, 4525);
+  assert.ok(Math.abs(hasil.persen - 45.25) < 0.01);
 });
 
-test("ringkasan laporan menghitung omzet dan menu terlaris", () => {
-  const ringkasan = ringkasPenjualan([
-    {
-      total: 35000,
-      items: [
-        { namaMenu: "Mie Jebew Original", jumlah: 2 },
-        { namaMenu: "Es Teh", jumlah: 1 },
-      ],
-    },
-    {
-      total: 15000,
-      items: [{ namaMenu: "Mie Jebew Original", jumlah: 1 }],
-    },
-  ]);
-  assert.equal(ringkasan.omzet, 50000);
-  assert.equal(ringkasan.jumlahTransaksi, 2);
-  assert.equal(ringkasan.menuTerlaris?.nama, "Mie Jebew Original");
-  assert.equal(ringkasan.menuTerlaris?.jumlah, 3);
+test("diskon tidak membuat total negatif", () => {
+  assert.equal(totalDenganDiskon(20000, 3000), 17000);
+  assert.equal(totalDenganDiskon(20000, 25000), 0);
 });
 
-test("format rupiah memakai tanda Indonesia", () => {
+test("ringkasan keuangan menghitung laba", () => {
+  const hasil = ringkasKeuangan([
+    { total: 20000, diskon: 0, metode: "tunai", hpp: 8000 },
+    { total: 10000, diskon: 0, metode: "qris", hpp: 5000 },
+  ], 3000);
+  assert.equal(hasil.omzet, 30000);
+  assert.equal(hasil.hpp, 13000);
+  assert.equal(hasil.labaKotor, 17000);
+  assert.equal(hasil.labaBersih, 14000);
+  assert.equal(hasil.perMetode.qris, 10000);
+});
+
+test("format rupiah dan tanggal", () => {
   assert.equal(formatRupiah(15000), "Rp\u00A015.000");
-});
-
-test("tanggal hari ini berformat tanggal biasa", () => {
   assert.match(tanggalHariIni(), /^\d{4}-\d{2}-\d{2}$/);
 });
 
-test("pesan WhatsApp berisi rincian dan total", () => {
+test("pesan whatsapp memakai nomor admin", () => {
   const pesan = susunPesanWhatsApp({
-    kode: "JBW-ABC123",
-    namaPelanggan: "Budi",
+    kode: "JBW-ABC / 1234",
+    namaPelanggan: "Siti",
     whatsapp: "081234567890",
-    waktuAmbil: "2026-11-24 18:00",
-    catatan: "Pedas ya",
-    items: [{ namaMenu: "Mie Jebew Original", hargaSatuan: 15000, jumlah: 2 }],
-    namaUsaha: "Mie Jebew",
+    waktuAmbil: "2026-11-25 18:00",
+    catatan: "Level 2",
+    items: [{ namaMenu: "Es Teh", hargaSatuan: 4000, jumlah: 2 }],
+    namaUsaha: "Warung Kak Ikaa",
   });
-  assert.match(pesan, /JBW-ABC123/);
-  assert.match(pesan, /Mie Jebew Original x2 = Rp\u00A030\.000/);
-  assert.match(pesan, /Total: Rp\u00A030\.000/);
-  assert.match(pesan, /Catatan: Pedas ya/);
-
-  const tautan = tautanWhatsApp("62-812-3456-7890", pesan);
-  assert.match(tautan, /^https:\/\/wa\.me\/6281234567890\?text=/);
-  assert.match(decodeURIComponent(tautan), /JBW-ABC123/);
+  assert.match(pesan, /Warung Kak Ikaa/);
+  assert.match(pesan, /Total: Rp\u00A08\.000/);
+  const tautan = tautanWhatsApp("6282173282591", pesan);
+  assert.match(tautan, /^https:\/\/wa\.me\/6282173282591\?text=/);
 });

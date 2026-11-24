@@ -1,42 +1,34 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { sudahMasuk, tanggapiGalat } from "@/lib/akses";
-import { ambilLaporan } from "@/lib/operasi";
-import { tanggalHariIni } from "@/lib/format";
+import { galat } from "@/lib/api-final.ts";
+import { ambilLaporan, keCsv } from "@/lib/final/laporan.ts";
+import { penggunaSaatIni } from "@/lib/auth.ts";
+import { tanggalHariIni } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
-const skemaRentang = z
-  .object({
-    dari: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    sampai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  })
-  .strict()
-  .superRefine((nilai, konteks) => {
-    const awal = new Date(`${nilai.dari}T00:00:00Z`);
-    const akhir = new Date(`${nilai.sampai}T00:00:00Z`);
-    if (Number.isNaN(awal.getTime()) || Number.isNaN(akhir.getTime())) {
-      konteks.addIssue({ code: z.ZodIssueCode.custom, message: "Tanggal tidak valid" });
-      return;
-    }
-    if (awal > akhir) {
-      konteks.addIssue({ code: z.ZodIssueCode.custom, message: "Tanggal awal harus sebelum tanggal akhir" });
-    }
-  });
+const skema = z.object({
+  dari: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  sampai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+}).strict().refine((v) => v.dari <= v.sampai, { message: "Tanggal awal harus sebelum tanggal akhir" });
 
-export async function GET(permintaan: Request) {
+export async function GET(req: Request) {
   try {
-    if (!(await sudahMasuk())) {
-      return NextResponse.json({ pesan: "Silakan masuk ke dashboard admin" }, { status: 401 });
+    if (!(await penggunaSaatIni())) {
+      return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    const parameter = new URL(permintaan.url).searchParams;
-    const hariIni = tanggalHariIni();
-    const rentang = skemaRentang.parse({
-      dari: parameter.get("dari") ?? hariIni,
-      sampai: parameter.get("sampai") ?? hariIni,
-    });
-    return NextResponse.json(await ambilLaporan(rentang.dari, rentang.sampai));
-  } catch (kesalahan) {
-    return tanggapiGalat(kesalahan);
-  }
+    const p = new URL(req.url).searchParams;
+    const hari = tanggalHariIni();
+    const rentang = skema.parse({ dari: p.get("dari") ?? hari, sampai: p.get("sampai") ?? hari });
+    const laporan = await ambilLaporan(rentang.dari, rentang.sampai);
+    if (p.get("format") === "csv") {
+      return new Response(keCsv(laporan), {
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="laporan-${rentang.dari}-${rentang.sampai}.csv"`,
+        },
+      });
+    }
+    return NextResponse.json(laporan);
+  } catch (e) { return galat(e) as NextResponse; }
 }

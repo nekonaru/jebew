@@ -1,78 +1,71 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  alamatKlien,
-  izinPreorder,
-  pastikanAman,
-  sudahMasuk,
-  tanggapiGalat,
-} from "@/lib/akses";
-import { ambilPengaturan, ambilPreorder, simpanPreorder, ubahStatusPreorder } from "@/lib/operasi";
-import { skemaPreorder, skemaStatusPreorder } from "@/lib/validasi";
-import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa";
+import { aman, galat } from "@/lib/api-final.ts";
+import { ambilPreorder, selesaikanPreorder, simpanPreorder, ubahStatusPreorder } from "@/lib/final/transaksi.ts";
+import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
+import { penggunaSaatIni } from "@/lib/auth.ts";
+import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa.ts";
 
 export const runtime = "nodejs";
 
-const skemaUbahStatus = z
-  .object({ id: z.number().int().positive(), status: skemaStatusPreorder.shape.status })
-  .strict();
+const item = z.object({ menu_id: z.number().int().positive(), varian_id: z.number().int().positive().nullable(), jumlah: z.number().int().positive().max(100) }).strict();
 
 export async function GET() {
-  if (!(await sudahMasuk())) {
-    return NextResponse.json({ pesan: "Silakan masuk ke dashboard admin" }, { status: 401 });
-  }
-  return NextResponse.json({ preorder: await ambilPreorder() });
+  try {
+    if (!(await penggunaSaatIni())) {
+      return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
+    }
+    return NextResponse.json({ preorder: await ambilPreorder() });
+  } catch (e) { return galat(e) as NextResponse; }
 }
 
-export async function POST(permintaan: Request) {
+const skema = z.object({
+  items: z.array(item).min(1).max(30),
+  nama_pelanggan: z.string().trim().min(1).max(100),
+  whatsapp: z.string().trim().regex(/^[0-9+\-() ]{8,20}$/),
+  waktu_ambil: z.string().trim().min(4).max(100),
+  slot_id: z.number().int().positive().nullable(),
+  catatan: z.string().trim().max(300),
+}).strict();
+
+export async function POST(req: Request) {
   try {
-    const penolakan = await pastikanAman(permintaan, false);
+    const { penolakan } = await aman(req, "publik");
     if (penolakan) return penolakan;
-    if (!izinPreorder(alamatKlien(permintaan))) {
-      return NextResponse.json(
-        { pesan: "Terlalu banyak pre-order dalam waktu singkat. Coba lagi sebentar." },
-        { status: 429 },
-      );
-    }
-    const badan = skemaPreorder.parse(await permintaan.json());
+    const badan = skema.parse(await req.json());
     const hasil = await simpanPreorder(badan);
     const pengaturan = await ambilPengaturan();
     const pesan = susunPesanWhatsApp({
-      kode: hasil.kode,
+      kode: `${hasil.kode} / ${hasil.kode_lacak}`,
       namaPelanggan: badan.nama_pelanggan,
       whatsapp: badan.whatsapp,
       waktuAmbil: badan.waktu_ambil,
       catatan: badan.catatan,
-      items: hasil.items.map((item) => ({
-        namaMenu: item.nama_menu,
-        hargaSatuan: item.harga_satuan,
-        jumlah: item.jumlah,
+      items: hasil.items.map((i) => ({
+        namaMenu: i.nama_varian ? `${i.nama_menu} (${i.nama_varian})` : i.nama_menu,
+        hargaSatuan: i.harga_satuan,
+        jumlah: i.jumlah,
       })),
-      namaUsaha: pengaturan.nama_usaha,
+      namaUsaha: pengaturan.nama_usaha ?? "Warung Kak Ikaa",
     });
-
-    return NextResponse.json(
-      {
-        kode: hasil.kode,
-        total: hasil.total,
-        pesan,
-        tautan: tautanWhatsApp(pengaturan.whatsapp_admin, pesan),
-      },
-      { status: 201 },
-    );
-  } catch (kesalahan) {
-    return tanggapiGalat(kesalahan);
-  }
+    return NextResponse.json({
+      ...hasil,
+      pesan,
+      tautan: tautanWhatsApp(pengaturan.whatsapp_admin ?? "6282173282591", pesan),
+    }, { status: 201 });
+  } catch (e) { return galat(e) as NextResponse; }
 }
 
-export async function PUT(permintaan: Request) {
+export async function PUT(req: Request) {
   try {
-    const penolakan = await pastikanAman(permintaan, true);
+    const { penolakan, pengguna } = await aman(req, "masuk");
     if (penolakan) return penolakan;
-    const badan = skemaUbahStatus.parse(await permintaan.json());
-    await ubahStatusPreorder(badan.id, badan.status);
+    const badan = z.object({
+      id: z.number().int().positive(),
+      status: z.enum(["diproses", "selesai", "batal"]),
+    }).strict().parse(await req.json());
+    if (badan.status === "selesai") await selesaikanPreorder(badan.id, pengguna);
+    else await ubahStatusPreorder(badan.id, badan.status, pengguna);
     return NextResponse.json({ berhasil: true });
-  } catch (kesalahan) {
-    return tanggapiGalat(kesalahan);
-  }
+  } catch (e) { return galat(e) as NextResponse; }
 }

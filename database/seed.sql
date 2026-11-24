@@ -1,34 +1,68 @@
--- Data contoh Warung Kak Ikaa: Mie Jebew Chili Oil & Wonton Ayam Chili Oil.
--- Dijalankan oleh scripts/siap-supabase.mjs atau scripts/muat-contoh.mjs.
+-- Data awal Jebew Final. Dijalankan sekali oleh scripts/siap-supabase.mjs.
 
-INSERT INTO bahan (id, nama, satuan, stok, stok_minimum) VALUES
-  (1, 'Mie', 'gram', 2000, 300),
-  (2, 'Bumbu Chili Oil', 'gram', 120, 30),
-  (3, 'Telur', 'butir', 60, 15),
-  (4, 'Beef', 'gram', 1000, 200),
-  (5, 'Bakso Kecil', 'pcs', 80, 20),
-  (6, 'Bakso Besar', 'pcs', 60, 15),
-  (7, 'Sosis Jumbo', 'pcs', 50, 12),
-  (8, 'Wonton Ayam', 'pcs', 80, 20),
-  (9, 'Dumpling Ayam', 'pcs', 60, 15),
-  (10, 'Dumpling Keju', 'pcs', 2, 5),
-  (11, 'Ayam Katsu', 'pcs', 40, 10),
-  (12, 'Otak-Otak', 'pcs', 20, 8),
-  (13, 'Pentol', 'pcs', 60, 15),
-  (14, 'Bakso Mozarella', 'pcs', 25, 8),
-  (15, 'Teh', 'gram', 200, 50),
-  (16, 'Lemon', 'pcs', 40, 10),
-  (17, 'Nutrisari', 'gram', 200, 50),
-  (18, 'Kopi', 'gram', 150, 40),
-  (19, 'Air Mineral', 'botol', 40, 10),
-  (20, 'Pop Ice', 'gram', 200, 50),
-  (21, 'Susu', 'ml', 2000, 400),
-  (22, 'Gula', 'gram', 1000, 200),
-  (23, 'Air', 'ml', 5000, 1000)
+INSERT INTO pengaturan (kunci, nilai) VALUES
+  ('nama_usaha', 'Warung Kak Ikaa'),
+  ('tagline', 'Mie Jebew Chili Oil & Wonton Ayam'),
+  ('whatsapp_admin', '6282173282591'),
+  ('jam_buka', '10:00'),
+  ('jam_tutup', '21:00'),
+  ('toko_aktif', 'true')
+ON CONFLICT (kunci) DO NOTHING;
+
+INSERT INTO pengguna (id, email, nama, kata_sandi, peran, aktif) VALUES
+  (1, 'pemilik@jebew.test', 'Kak Ika', '29a88f8874ac11d6c7bb458adf086bde:1bad92cedd267e9748ffbe55443168279c262514e9eb1a48f70776af18b2c0c160a511ad83971ba5878646b13e7f34443fd6ff01684c09de673a758c28bb2059', 'pemilik', TRUE),
+  (2, 'kasir@jebew.test', 'Kasir Warung', '80f5214e124be5440d83acbba4c66f9d:b9aeb1326c6cf9e726a7ebc7bab99f214a06c9470f225e4da3c589aceaad129fb8c5f48f3d811dec119596fc40761574bef05be55344f25d0a3baa0e964b13cb', 'kasir', TRUE)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO kategori_pengeluaran (id, nama) VALUES
+  (1, 'Bahan baku'),
+  (2, 'Gas'),
+  (3, 'Listrik'),
+  (4, 'Sewa'),
+  (5, 'Gaji'),
+  (6, 'Lainnya')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO supplier (id, nama, kontak, aktif) VALUES
+  (1, 'Supplier Mie Segar', '081200000001', TRUE),
+  (2, 'Toko Bumbu Jaya', '081200000002', TRUE),
+  (3, 'Pasar Ayam Sentral', '081200000003', TRUE)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO konversi_satuan (dari_satuan, ke_satuan, faktor) VALUES
+  ('kg', 'gram', 1000),
+  ('liter', 'ml', 1000),
+  ('lusin', 'pcs', 12)
+ON CONFLICT (dari_satuan, ke_satuan) DO NOTHING;
+
+INSERT INTO bahan (id, nama, satuan, stok, stok_minimum, harga_rata_rata, aktif) VALUES
+  (1, 'Mie', 'gram', 2000, 300, 12, TRUE),
+  (2, 'Bumbu Chili Oil', 'gram', 120, 30, 85, TRUE),
+  (3, 'Telur', 'butir', 60, 15, 3000, TRUE),
+  (4, 'Beef', 'gram', 1000, 200, 95, TRUE),
+  (5, 'Bakso Kecil', 'pcs', 80, 20, 1500, TRUE),
+  (6, 'Bakso Besar', 'pcs', 60, 15, 4000, TRUE),
+  (7, 'Sosis Jumbo', 'pcs', 50, 12, 6000, TRUE),
+  (8, 'Wonton Ayam', 'pcs', 80, 20, 2500, TRUE),
+  (9, 'Dumpling Ayam', 'pcs', 60, 15, 2500, TRUE),
+  (10, 'Dumpling Keju', 'pcs', 2, 5, 3000, TRUE),
+  (11, 'Ayam Katsu', 'pcs', 40, 10, 12000, TRUE),
+  (12, 'Otak-Otak', 'pcs', 20, 8, 2000, TRUE),
+  (13, 'Pentol', 'pcs', 60, 15, 1000, TRUE),
+  (14, 'Bakso Mozarella', 'pcs', 25, 8, 9000, TRUE),
+  (15, 'Teh', 'gram', 200, 50, 60, TRUE),
+  (16, 'Lemon', 'pcs', 40, 10, 2000, TRUE),
+  (17, 'Nutrisari', 'gram', 200, 50, 70, TRUE),
+  (18, 'Kopi', 'gram', 150, 40, 110, TRUE),
+  (19, 'Air Mineral', 'botol', 40, 10, 4000, TRUE),
+  (20, 'Pop Ice', 'gram', 200, 50, 80, TRUE),
+  (21, 'Susu', 'ml', 2000, 400, 15, TRUE),
+  (22, 'Gula', 'gram', 1000, 200, 15, TRUE),
+  (23, 'Air', 'ml', 5000, 1000, 1, TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO menu (id, nama, harga, deskripsi, kategori, foto, aktif) VALUES
-  (1, 'Mie Jebew Original', 10000, 'Mie Jebew dengan bumbu chili oil khas. Level pedas 0 sampai 3.', 'Mie Jebew', NULL, TRUE),
+  (1, 'Mie Jebew Original', 10000, 'Mie Jebew dengan bumbu chili oil khas.', 'Mie Jebew', NULL, TRUE),
   (2, 'Mie Jebew Beef', 12000, 'Mie Jebew dengan tambahan beef.', 'Mie Jebew', NULL, TRUE),
   (3, 'Mie Jebew + Bakso Kecil', 13000, 'Mie Jebew dengan tiga bakso kecil.', 'Mie Jebew', NULL, TRUE),
   (4, 'Mie Jebew + Bakso Besar', 15000, 'Mie Jebew dengan satu bakso besar.', 'Mie Jebew', NULL, TRUE),
@@ -99,10 +133,41 @@ INSERT INTO resep (menu_id, bahan_id, jumlah_per_porsi) VALUES
   (33, 20, 15), (33, 21, 150), (33, 23, 100)
 ON CONFLICT (menu_id, bahan_id) DO NOTHING;
 
-INSERT INTO pengaturan (kunci, nilai) VALUES
-  ('nama_usaha', 'Warung Kak Ikaa'),
-  ('whatsapp_admin', '6281234567890')
-ON CONFLICT (kunci) DO NOTHING;
+-- Level pedas sebagai varian terstruktur pada menu Mie Jebew.
+INSERT INTO varian (id, menu_id, nama, harga_tambahan, aktif) VALUES
+  (1, 1, 'Level 0', 0, TRUE),
+  (2, 1, 'Level 1', 0, TRUE),
+  (3, 1, 'Level 2', 0, TRUE),
+  (4, 1, 'Level 3', 0, TRUE)
+ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO pembelian (id, nomor, supplier_id, total, tanggal, catatan, pengguna_id) VALUES
+  (1, 'PB-0001', 1, 24000, (now() AT TIME ZONE 'Asia/Jakarta') - INTERVAL '3 days', 'Pembelian mie bulan ini', 1),
+  (2, 'PB-0002', 2, 170000, (now() AT TIME ZONE 'Asia/Jakarta') - INTERVAL '2 days', 'Bumbu dan teh', 1)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO item_pembelian (pembelian_id, bahan_id, jumlah, harga_satuan, subtotal) VALUES
+  (1, 1, 2000, 12, 24000),
+  (2, 2, 1000, 85, 85000),
+  (2, 15, 500, 60, 30000),
+  (2, 22, 1000, 15, 15000)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO pergerakan_stok (bahan_id, jenis, jumlah, stok_sebelum, stok_sesudah, referensi, catatan, pengguna_id) VALUES
+  (1, 'masuk', 2000, 0, 2000, 'PB-0001', 'Pembelian mie', 1),
+  (2, 'masuk', 1000, 0, 1000, 'PB-0002', 'Pembelian bumbu', 1),
+  (2, 'keluar', 880, 1000, 120, 'PENJUALAN', 'Pemakaian periode sebelumnya', 1),
+  (1, 'masuk', 2000, 0, 2000, 'PB-0001', 'Stok awal', 1)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO pengeluaran (id, kategori_id, nama, jumlah, tanggal, catatan, pengguna_id) VALUES
+  (1, 3, 'Listrik bulan ini', 150000, (now() AT TIME ZONE 'Asia/Jakarta') - INTERVAL '5 days', 'Tagihan listrik', 1),
+  (2, 2, 'Gas melon', 100000, (now() AT TIME ZONE 'Asia/Jakarta') - INTERVAL '4 days', 'Isi gas', 1)
+ON CONFLICT (id) DO NOTHING;
+
+SELECT setval(pg_get_serial_sequence('pengguna', 'id'), (SELECT MAX(id) FROM pengguna));
 SELECT setval(pg_get_serial_sequence('bahan', 'id'), (SELECT MAX(id) FROM bahan));
 SELECT setval(pg_get_serial_sequence('menu', 'id'), (SELECT MAX(id) FROM menu));
+SELECT setval(pg_get_serial_sequence('varian', 'id'), (SELECT MAX(id) FROM varian));
+SELECT setval(pg_get_serial_sequence('pembelian', 'id'), (SELECT MAX(id) FROM pembelian));
+SELECT setval(pg_get_serial_sequence('pengeluaran', 'id'), (SELECT MAX(id) FROM pengeluaran));

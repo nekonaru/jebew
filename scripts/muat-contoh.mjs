@@ -1,6 +1,5 @@
-// Mengganti seluruh data contoh di Supabase dengan isi database/seed.sql.
-// Dipakai setelah mengubah menu atau bahan, karena seed biasa hanya jalan saat tabel kosong.
-// PERINGATAN: menghapus semua transaksi dan pre-order yang ada.
+// Mengganti seluruh data dengan isi database/seed.sql.
+// PERINGATAN: menghapus semua transaksi, pre-order, dan aktivitas demo.
 
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -23,30 +22,24 @@ if (!url) {
 }
 
 const lokal = /localhost|127\.0\.0\.1/.test(url);
-const klien = new pg.Client({
-  connectionString: url,
-  ssl: lokal ? undefined : { rejectUnauthorized: false },
-});
+const klien = new pg.Client({ connectionString: url, ssl: lokal ? undefined : { rejectUnauthorized: false } });
+
+const URUTAN_HAPUS = [
+  "item_penjualan", "item_preorder", "item_pembelian", "item_opname", "item_varian",
+  "log_audit", "tutup_kasir", "pengeluaran", "pergerakan_stok",
+  "preorder", "penjualan", "pembelian", "stok_opname", "resep", "varian",
+  "menu", "bahan", "slot_waktu", "supplier", "konversi_satuan",
+  "kategori_pengeluaran", "pengguna", "pengaturan",
+];
 
 try {
   await klien.connect();
   await klien.query("BEGIN");
-
-  await klien.query("DELETE FROM item_preorder");
-  await klien.query("DELETE FROM item_penjualan");
-  await klien.query("UPDATE preorder SET penjualan_id = NULL");
-  await klien.query("UPDATE penjualan SET preorder_id = NULL");
-  await klien.query("DELETE FROM preorder");
-  await klien.query("DELETE FROM penjualan");
-  await klien.query("DELETE FROM resep");
-  await klien.query("DELETE FROM menu");
-  await klien.query("DELETE FROM bahan");
-  await klien.query("DELETE FROM pengaturan");
-
-  const contoh = readFileSync(path.join(process.cwd(), "database", "seed.sql"), "utf8");
-  await klien.query(contoh);
+  for (const tabel of URUTAN_HAPUS) {
+    await klien.query(`DELETE FROM ${tabel}`);
+  }
+  await klien.query(readFileSync(path.join(process.cwd(), "database", "seed.sql"), "utf8"));
   await klien.query("COMMIT");
-
   console.log("Data contoh berhasil dimuat ulang.");
 } catch (kesalahan) {
   await klien.query("ROLLBACK");

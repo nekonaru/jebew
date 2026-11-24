@@ -1,5 +1,30 @@
 # Riwayat Perubahan
 
+## final-v1.0.0
+
+Produk jadi Tahap 2 untuk Warung Kak Ikaa. Dikembangkan pada cabang `final` dan berdampingan dengan prototipe `v0.3.1` pada cabang `main`.
+
+### Fitur baru
+
+- **Login dan peran.** Autentikasi email dan kata sandi dengan hash scrypt, sesi bertanda tangan, serta peran Pemilik dan Kasir.
+- **Audit log.** Setiap perubahan menu, stok, dan transaksi tercatat dengan nama pengguna dan waktu.
+- **Stok lengkap.** Riwayat pergerakan, pembelian dari supplier, harga rata rata, stock opname, dan konversi satuan.
+- **Keuangan.** HPP per menu, margin, pengeluaran berkategori, laporan laba kotor dan bersih, grafik tren, ekspor CSV, dan tutup kasir.
+- **Varian menu.** Level pedas dan topping dengan harga serta resep sendiri.
+- **Pre-order penuh.** Slot waktu dengan kuota, kode lacak, halaman pelacakan, dan pesan WhatsApp terformat ke nomor warung.
+- **Pengaturan usaha.** Identitas toko, jam operasional, status buka tutup, kelola pengguna, dan kelola slot.
+- **Tampilan profesional.** Sistem desain baru dengan tipografi, warna, komponen, dan animasi halus yang konsisten.
+
+### Peningkatan
+
+- Kueri database dikelompokkan agar halaman cepat, dengan cache 10 detik untuk data publik.
+- Semua perubahan stok memakai transaksi dan pembaruan bersyarat untuk mencegah stok negatif.
+- Dokumentasi, skema, dan data contoh disusun ulang untuk versi final.
+
+### Penggunaan
+
+Hubungkan cabang `final` ke project Vercel tersendiri dengan Supabase final. Jalankan `npm run siap:supabase`, isi environment variables, lalu buka website konsumen dan dashboard admin.
+
 ## v0.3.1
 
 Audit mendalam dan optimalisasi pada fitur yang sudah ada.

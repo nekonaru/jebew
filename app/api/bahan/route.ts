@@ -1,93 +1,57 @@
 import { NextResponse } from "next/server";
-import {
-  pastikanAman,
-  sudahMasuk,
-  tanggapiGalat,
-} from "@/lib/akses";
-import {
-  ambilBahan,
-  hapusBahan,
-  restockBahan,
-  simpanBahan,
-  ubahStokBahan,
-} from "@/lib/operasi";
-import { skemaBahan, skemaPenyesuaianStok, skemaRestock } from "@/lib/validasi";
 import { z } from "zod";
+import { aman, galat } from "@/lib/api-final.ts";
+import { penggunaSaatIni } from "@/lib/auth.ts";
+import { ambilBahan, hapusBahan, simpanBahan } from "@/lib/final/stok.ts";
 
 export const runtime = "nodejs";
 
-const skemaHapus = z.object({ id: z.number().int().positive() }).strict();
-const skemaUbah = z
-  .object({ id: z.number().int().positive(), data: skemaBahan })
-  .strict();
-const skemaRestockBahan = z
-  .object({ id: z.number().int().positive(), tambahan: skemaRestock.shape.tambahan })
-  .strict();
-const skemaStokBahan = z
-  .object({ id: z.number().int().positive(), data: skemaPenyesuaianStok })
-  .strict();
-
-async function izin(permintaan: Request): Promise<Response | null> {
-  return pastikanAman(permintaan, true);
-}
-
-function ditolak(): NextResponse {
-  return NextResponse.json({ pesan: "Silakan masuk ke dashboard admin" }, { status: 401 });
-}
+const skema = z.object({
+  nama: z.string().trim().min(1).max(100),
+  satuan: z.string().trim().min(1).max(20),
+  stok: z.number().finite().min(0).max(1000000),
+  stok_minimum: z.number().finite().min(0).max(1000000),
+  harga_rata_rata: z.number().int().min(0).max(100000000),
+  aktif: z.boolean(),
+}).strict();
 
 export async function GET() {
-  if (!(await sudahMasuk())) return ditolak();
-  return NextResponse.json({ bahan: await ambilBahan() });
-}
-
-export async function POST(permintaan: Request) {
   try {
-    const penolakan = await izin(permintaan);
-    if (penolakan) return penolakan;
-    const badan = skemaBahan.parse(await permintaan.json());
-    return NextResponse.json({ id: await simpanBahan(badan) }, { status: 201 });
-  } catch (kesalahan) {
-    return tanggapiGalat(kesalahan);
-  }
-}
-
-export async function PUT(permintaan: Request) {
-  try {
-    const penolakan = await izin(permintaan);
-    if (penolakan) return penolakan;
-    const badan = skemaUbah.parse(await permintaan.json());
-    return NextResponse.json({ id: await simpanBahan(badan.data, badan.id) });
-  } catch (kesalahan) {
-    return tanggapiGalat(kesalahan);
-  }
-}
-
-export async function PATCH(permintaan: Request) {
-  try {
-    const penolakan = await izin(permintaan);
-    if (penolakan) return penolakan;
-    const badan = await permintaan.json();
-    if ("tambahan" in badan) {
-      const data = skemaRestockBahan.parse(badan);
-      await restockBahan(data.id, data.tambahan);
-    } else {
-      const data = skemaStokBahan.parse(badan);
-      await ubahStokBahan(data.id, data.data.stok);
+    if (!(await penggunaSaatIni())) {
+      return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    return NextResponse.json({ berhasil: true });
-  } catch (kesalahan) {
-    return tanggapiGalat(kesalahan);
-  }
+    return NextResponse.json({ bahan: await ambilBahan() });
+  } catch (e) { return galat(e) as NextResponse; }
 }
 
-export async function DELETE(permintaan: Request) {
+export async function POST(req: Request) {
   try {
-    const penolakan = await izin(permintaan);
+    const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    const badan = skemaHapus.parse(await permintaan.json());
-    await hapusBahan(badan.id);
+    const id = await simpanBahan(skema.parse(await req.json()));
+    await import("@/lib/audit.ts").then((m) => m.catatAudit(pengguna, "tambah", "bahan", `id ${id}`));
+    return NextResponse.json({ id }, { status: 201 });
+  } catch (e) { return galat(e) as NextResponse; }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const { penolakan, pengguna } = await aman(req, "pemilik");
+    if (penolakan) return penolakan;
+    const badan = z.object({ id: z.number().int().positive(), data: skema }).strict().parse(await req.json());
+    await simpanBahan(badan.data, badan.id);
+    await import("@/lib/audit.ts").then((m) => m.catatAudit(pengguna, "ubah", "bahan", `id ${badan.id}`));
     return NextResponse.json({ berhasil: true });
-  } catch (kesalahan) {
-    return tanggapiGalat(kesalahan);
-  }
+  } catch (e) { return galat(e) as NextResponse; }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { penolakan, pengguna } = await aman(req, "pemilik");
+    if (penolakan) return penolakan;
+    const badan = z.object({ id: z.number().int().positive() }).strict().parse(await req.json());
+    await hapusBahan(badan.id);
+    await import("@/lib/audit.ts").then((m) => m.catatAudit(pengguna, "hapus", "bahan", `id ${badan.id}`));
+    return NextResponse.json({ berhasil: true });
+  } catch (e) { return galat(e) as NextResponse; }
 }

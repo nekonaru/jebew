@@ -19,9 +19,11 @@
 ## Catatan proyek
 
 - Proyek ini adalah tugas PBL Inovasi dan Kewirausahaan. Seluruh kode, komentar, dokumen, metadata, pesan commit, catatan rilis, dan antarmuka memakai **Bahasa Indonesia**. Ini adalah pengecualian eksplisit dari aturan dwibahasa Dev Tools yang ditetapkan pemilik proyek.
-- Ruang lingkup yang dikerjakan hanya **Tahap 1 (Prototipe)**. Tahap 2 (Produk Jadi) tidak dikerjakan tanpa persetujuan tertulis dari pemilik proyek.
+- Cabang `main` adalah **Tahap 1 (Prototipe)** dan sudah beku di `v0.3.1`. Jangan mengubahnya.
+- Cabang `final` adalah **Tahap 2 (Produk Jadi)**. Keduanya sengaja dipertahankan untuk keperluan demo berdampingan.
+- Deploy: Vercel project lama memantau `main`. Vercel project baru memantau `final`. Supabase juga terpisah untuk tiap versi.
 - Database memakai Supabase Postgres. Koneksi hanya dari kode server lewat `DATABASE_URL`. Skema dan data contoh ada di folder `database/` dan dipasang lewat `npm run siap:supabase`.
-- Deploy target adalah Vercel. Variabel produksi wajib diisi: `DATABASE_URL`, `ADMIN_PIN`, `RAHASIA_SESI`. Nilai bawaan PIN dan kunci sesi hanya berlaku saat pengembangan lokal.
+- Deploy target adalah Vercel. Variabel produksi wajib diisi: `DATABASE_URL`, `RAHASIA_SESI`, `WHATSAPP_ADMIN`. Versi final memakai login email dan kata sandi, bukan PIN.
 - Warna identitas berasal dari lembar identitas logo yang disediakan pemilik proyek: merah bata `#D8432B`, oranye `#F29A2E`, krem `#FFF1D6`, coklat tua `#3A2218`, hijau `#2E9E5B`.
 - Tipografi yang dimaksud: Poppins Medium untuk judul dan Inter Regular untuk isi. Font diambil dari sistem bila tersedia agar aplikasi tetap jalan tanpa unduhan luar jaringan.
 - Zona waktu yang dipakai adalah WIB (`Asia/Jakarta`).

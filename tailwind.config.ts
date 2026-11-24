@@ -1,29 +1,44 @@
 import type { Config } from "tailwindcss";
 
 const konfigurasi: Config = {
-  content: [
-    "./app/**/*.{ts,tsx}",
-    "./komponen/**/*.{ts,tsx}",
-  ],
+  content: ["./app/**/*.{ts,tsx}", "./komponen/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        bata: "#D8432B",
-        bataGelap: "#B93320",
-        oranye: "#F29A2E",
-        krem: "#FFF1D6",
-        kremMuda: "#FFF9EE",
-        coklat: "#3A2218",
-        coklatMuda: "#7A5A44",
-        sukses: "#2E9E5B",
-        tepi: "#E8D5AE",
+        utama: { DEFAULT: "#C2412C", gelap: "#9E3322", terang: "#E15A42" },
+        aksen: { DEFAULT: "#E08A2E", terang: "#F3AE5C" },
+        latar: "#FBF7F2",
+        permukaan: "#FFFFFF",
+        tinta: { DEFAULT: "#2B1C16", lemah: "#7A6659" },
+        garis: "#E8DED3",
+        sukses: { DEFAULT: "#2E7D52", terang: "#E6F4EC" },
+        bahaya: "#B42318",
+        info: "#2563EB",
       },
       fontFamily: {
-        judul: ["Poppins", "ui-sans-serif", "system-ui", "sans-serif"],
-        isi: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        judul: ["Georgia", "Cambria", "Times New Roman", "serif"],
+        isi: ["Inter", "Segoe UI", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        kartu: "0 8px 24px rgba(58, 34, 24, 0.07)",
+        kartu: "0 1px 2px rgba(43,28,22,.04), 0 8px 24px rgba(43,28,22,.06)",
+        angkat: "0 12px 32px rgba(43,28,22,.12)",
+      },
+      borderRadius: {
+        kartu: "16px",
+      },
+      keyframes: {
+        masuk: {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        geser: {
+          from: { opacity: "0", transform: "translateX(10px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+      },
+      animation: {
+        masuk: "masuk .35s ease-out both",
+        geser: "geser .25s ease-out both",
       },
     },
   },

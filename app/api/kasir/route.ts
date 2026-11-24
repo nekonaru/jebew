@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
-import { pastikanAman, tanggapiGalat } from "@/lib/akses";
-import { catatPenjualan } from "@/lib/operasi";
-import { skemaKasir } from "@/lib/validasi";
+import { z } from "zod";
+import { aman, galat } from "@/lib/api-final.ts";
+import { catatPenjualan } from "@/lib/final/transaksi.ts";
 
 export const runtime = "nodejs";
 
-export async function POST(permintaan: Request) {
+const skema = z.object({
+  items: z.array(z.object({
+    menu_id: z.number().int().positive(),
+    varian_id: z.number().int().positive().nullable(),
+    jumlah: z.number().int().positive().max(100),
+  })).min(1).max(30),
+  diskon: z.number().int().min(0).max(100000000),
+  metode: z.enum(["tunai", "qris", "transfer"]),
+  catatan: z.string().trim().max(200),
+}).strict();
+
+export async function POST(req: Request) {
   try {
-    const penolakan = await pastikanAman(permintaan, true);
+    const { penolakan, pengguna } = await aman(req, "masuk");
     if (penolakan) return penolakan;
-    const badan = skemaKasir.parse(await permintaan.json());
-    const hasil = await catatPenjualan(badan);
+    const hasil = await catatPenjualan(skema.parse(await req.json()), pengguna);
     return NextResponse.json(hasil, { status: 201 });
-  } catch (kesalahan) {
-    return tanggapiGalat(kesalahan);
-  }
+  } catch (e) { return galat(e) as NextResponse; }
 }

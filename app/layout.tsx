@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Warung Kak Ikaa | Pre-order Mie Jebew Chili Oil",
-  description:
-    "Pilih menu Mie Jebew Chili Oil dan Wonton Ayam, lalu kirim pre-order langsung ke WhatsApp Warung Kak Ikaa.",
+  title: "Warung Kak Ikaa | Mie Jebew Chili Oil",
+  description: "Sistem stok, kasir, laporan, dan pre-order Warung Kak Ikaa.",
   icons: { icon: "/assets/jebew-icon.svg" },
 };
 
