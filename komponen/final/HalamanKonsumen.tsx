@@ -11,31 +11,28 @@ type Menu = {
   porsi: number; tersedia: boolean; varian: { id: number; nama: string; harga_tambahan: number }[];
 };
 type Slot = { id: number; tanggal: string; jam: string; kuota: number; dipakai: number };
-type DataAwal = {
-  menu: Menu[];
-  pengaturan: Record<string, string>;
-};
-type Baris = { menu_id: string; varian_id: string; jumlah: string };
+type DataAwal = { menu: Menu[]; pengaturan: Record<string, string> };
+type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
 type Hasil = { kode: string; kode_lacak: string; total: number; pesan: string; tautan: string };
-
-const barisAwal = (): Baris => ({ menu_id: "", varian_id: "", jumlah: "1" });
 
 export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [data, setData] = useState<DataAwal>(awal);
   const [slot, setSlot] = useState<Slot[]>([]);
   const [kategori, setKategori] = useState("Semua");
   const [cari, setCari] = useState("");
-  const [dialog, setDialog] = useState(false);
+  const [keranjang, setKeranjang] = useState<KeranjangItem[]>([]);
+  const [pilihVarian, setPilihVarian] = useState<Menu | null>(null);
+  const [dialogKeranjang, setDialogKeranjang] = useState(false);
+  const [dialogCheckout, setDialogCheckout] = useState(false);
   const [hasilDialog, setHasilDialog] = useState(false);
   const [hasil, setHasil] = useState<Hasil | null>(null);
-  const [baris, setBaris] = useState<Baris[]>([barisAwal()]);
   const [nama, setNama] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [slotId, setSlotId] = useState("");
   const [waktu, setWaktu] = useState("");
   const [catatan, setCatatan] = useState("");
   const [pesan, setPesan] = useState("");
-  const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("galat");
+  const [jenis, setJenis] = useState<"galat">("galat");
   const [loading, setLoading] = useState(false);
   const [kodeLacak, setKodeLacak] = useState("");
 
@@ -61,11 +58,41 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     return cocokKat && cocokCari;
   }), [data.menu, kategori, cari]);
 
-  const total = baris.reduce((nilai, b) => {
-    const menu = data.menu.find((m) => m.id === Number(b.menu_id));
-    const tambahan = menu?.varian.find((v) => v.id === Number(b.varian_id))?.harga_tambahan ?? 0;
-    return nilai + ((menu?.harga ?? 0) + tambahan) * (Number(b.jumlah) || 0);
-  }, 0);
+  const detailKeranjang = useMemo(() => keranjang.map((item) => {
+    const menu = data.menu.find((m) => m.id === item.menuId);
+    const varian = menu?.varian.find((v) => v.id === item.varianId);
+    const harga = (menu?.harga ?? 0) + (varian?.harga_tambahan ?? 0);
+    return { ...item, menu, varian, harga, subtotal: harga * item.jumlah };
+  }), [keranjang, data.menu]);
+  const totalKeranjang = detailKeranjang.reduce((n, i) => n + i.subtotal, 0);
+  const jumlahItem = keranjang.reduce((n, i) => n + i.jumlah, 0);
+
+  function tambah(menu: Menu, varianId: number | null = null) {
+    if (!menu.tersedia) return;
+    setKeranjang((lama) => {
+      const ada = lama.find((i) => i.menuId === menu.id && i.varianId === varianId);
+      if (ada) return lama.map((i) => i === ada ? { ...i, jumlah: Math.min(100, i.jumlah + 1) } : i);
+      return [...lama, { menuId: menu.id, varianId, jumlah: 1 }];
+    });
+    setPilihVarian(null);
+    setPesan("");
+  }
+
+  function klikMenu(menu: Menu) {
+    if (!menu.tersedia) return;
+    if (menu.varian.length > 0) setPilihVarian(menu);
+    else tambah(menu);
+  }
+
+  function ubahJumlah(indeks: number, selisih: number) {
+    setKeranjang((lama) => lama.map((item, i) => i === indeks
+      ? { ...item, jumlah: Math.min(100, Math.max(1, item.jumlah + selisih)) } : item));
+  }
+
+  function bukaCheckout() {
+    if (keranjang.length === 0) return;
+    setPesan(""); setDialogKeranjang(false); setDialogCheckout(true);
+  }
 
   async function kirim(e: FormEvent) {
     e.preventDefault();
@@ -75,7 +102,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       const respons = await fetch("/api/preorder", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: baris.map((b) => ({ menu_id: Number(b.menu_id), varian_id: b.varian_id ? Number(b.varian_id) : null, jumlah: Number(b.jumlah) })),
+          items: keranjang.map((i) => ({ menu_id: i.menuId, varian_id: i.varianId, jumlah: i.jumlah })),
           nama_pelanggan: nama, whatsapp,
           waktu_ambil: slotDipilih ? `${slotDipilih.tanggal} ${slotDipilih.jam}` : waktu,
           slot_id: slotId ? Number(slotId) : null,
@@ -83,17 +110,11 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         }),
       });
       const dataHasil = await ambilJson<Hasil>(respons);
-      setHasil(dataHasil); setDialog(false); setHasilDialog(true);
-      setBaris([barisAwal()]); setNama(""); setWhatsapp(""); setSlotId(""); setWaktu(""); setCatatan("");
+      setHasil(dataHasil); setDialogCheckout(false); setHasilDialog(true);
+      setKeranjang([]); setNama(""); setWhatsapp(""); setSlotId(""); setWaktu(""); setCatatan("");
       void muat();
-    } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal mengirim pre-order"); }
+    } catch (err) { setPesan(err instanceof Error ? err.message : "Gagal mengirim pre-order"); }
     finally { setLoading(false); }
-  }
-
-  function bukaPemesanan(menuId?: number) {
-    setBaris(menuId ? [{ menu_id: String(menuId), varian_id: "", jumlah: "1" }] : [barisAwal()]);
-    setPesan("");
-    setDialog(true);
   }
 
   const tokoBuka = data.pengaturan.toko_aktif === "true";
@@ -114,27 +135,37 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <p className="mt-0.5 text-[10px] text-tinta-lemah">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</p>
             </div>
           </div>
-          <div className="group relative flex items-center">
-            <button type="button" aria-describedby="info-jam-buka"
-              className="flex items-center gap-1.5 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aksen">
-              <span className={`h-2 w-2 rounded-full ${tokoBuka ? "bg-sukses" : "bg-bahaya"}`} aria-hidden="true" />
-              <span className="text-xs font-semibold text-tinta">{tokoBuka ? "Buka" : "Tutup"}</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 text-tinta-lemah">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
-                <path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
-            <div id="info-jam-buka" role="tooltip"
-              className="pointer-events-none absolute right-0 top-full z-30 mt-2 w-56 rounded-xl border border-garis bg-permukaan p-3 text-left shadow-angkat opacity-0 translate-y-1 transition-[opacity,transform] duration-[var(--gerak-cepat)] group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-utama">Jam operasional</p>
-              <p className="mt-1 text-sm font-semibold text-tinta">{data.pengaturan.hari_buka ?? "Senin - Minggu"}</p>
-              <p className="text-sm text-tinta-lemah">{data.pengaturan.jam_buka ?? "10:00"} - {data.pengaturan.jam_tutup ?? "21:00"} WIB</p>
+          <div className="flex items-center gap-3">
+            <div className="group relative flex items-center">
+              <button type="button" aria-describedby="info-jam-buka"
+                className="flex items-center gap-1.5 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aksen">
+                <span className={`h-2 w-2 rounded-full ${tokoBuka ? "bg-sukses" : "bg-bahaya"}`} aria-hidden="true" />
+                <span className="text-xs font-semibold text-tinta">{tokoBuka ? "Buka" : "Tutup"}</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 text-tinta-lemah">
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+              <div id="info-jam-buka" role="tooltip"
+                className="pointer-events-none absolute right-0 top-full z-30 mt-2 w-56 rounded-xl border border-garis bg-permukaan p-3 text-left shadow-angkat opacity-0 translate-y-1 transition-[opacity,transform] duration-[var(--gerak-cepat)] group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-utama">Jam operasional</p>
+                <p className="mt-1 text-sm font-semibold text-tinta">{data.pengaturan.hari_buka ?? "Senin - Minggu"}</p>
+                <p className="text-sm text-tinta-lemah">{data.pengaturan.jam_buka ?? "10:00"} - {data.pengaturan.jam_tutup ?? "21:00"} WIB</p>
+              </div>
             </div>
+            <button type="button" onClick={() => setDialogKeranjang(true)}
+              aria-label={`Lihat keranjang, ${jumlahItem} item`}
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-garis bg-white text-tinta transition-colors duration-[var(--gerak-cepat)] hover:border-utama/40">
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M3 4h2l2.4 11.2a2 2 0 002 1.6h7.7a2 2 0 002-1.6L21 8H6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><circle cx="10" cy="20" r="1" fill="currentColor" /><circle cx="18" cy="20" r="1" fill="currentColor" /></svg>
+              {jumlahItem > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-utama px-1 text-[10px] font-bold text-white">{jumlahItem}</span>
+              )}
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-14">
+      <main className="mx-auto max-w-6xl px-4 pb-16">
         <section className="animasi-muncul relative my-7 overflow-hidden rounded-kartu border border-garis bg-permukaan px-6 py-9 sm:px-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/jebew-mark.svg" alt="" aria-hidden="true"
@@ -147,16 +178,12 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                 Mie hangat,<br /><span className="text-utama">pesan lebih mudah.</span>
               </h1>
               <p className="animasi-muncul mt-4 max-w-lg text-sm leading-relaxed text-tinta-lemah" style={{ animationDelay: "120ms" }}>
-                Pilih menu, tentukan waktu ambil, lalu kami siapkan. Status menu mengikuti sisa bahan di dapur.
+                Klik menu yang kamu mau, lalu isi data di akhir. Status menu mengikuti sisa bahan di dapur.
               </p>
-              <div className="animasi-muncul mt-6 flex flex-wrap gap-3" style={{ animationDelay: "180ms" }}>
-                <Tombol onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
-                  jenis="sekunder" kelas="gap-3 px-5">
-                  Lihat menu
+              <div className="animasi-muncul mt-6" style={{ animationDelay: "180ms" }}>
+                <Tombol onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })} kelas="gap-3 px-5">
+                  Mulai pesan
                   <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </Tombol>
-                <Tombol onClick={() => bukaPemesanan()} nonaktif={!tokoBuka} kelas="gap-3 px-5">
-                  Buat pre-order
                 </Tombol>
               </div>
             </div>
@@ -176,24 +203,17 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             ikon="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
           <InfoRingkas judul="Lacak pesanan" isi="Pakai kode dari website" aksi="/lacak"
             ikon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          <InfoRingkas judul="Pesan cepat" isi="Lanjut lewat WhatsApp"
+          <InfoRingkas judul="Pesan cepat" isi="Klik menu, isi data di akhir"
             ikon="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
         </section>
 
         <section id="menu" className="scroll-mt-4">
           <div className="reveal mb-4 flex items-end justify-between gap-3">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Pilih dan pesan</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Klik untuk menambah</p>
               <h2 id="judul-menu" className="mt-1 font-judul text-2xl font-semibold tracking-tight">Menu hari ini</h2>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="hidden rounded-full border border-garis bg-permukaan px-3 py-1.5 text-xs font-semibold text-tinta-lemah sm:inline">
-                {tersaring.length} menu
-              </span>
-              <Tombol onClick={() => bukaPemesanan()} nonaktif={!tokoBuka} kelas="min-h-[40px] px-3 text-xs">
-                Pesan sekarang
-              </Tombol>
-            </div>
+            <span className="rounded-full border border-garis bg-permukaan px-3 py-1.5 text-xs font-semibold text-tinta-lemah">{tersaring.length} menu</span>
           </div>
 
           <div className="sticky top-0 z-20 -mx-4 border-y border-garis bg-latar/95 px-4 py-3 backdrop-blur">
@@ -210,8 +230,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                 <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
               <label htmlFor="cari" className="visually-hidden">Cari menu</label>
-              <input id="cari" type="search" placeholder="Cari nama menu..." value={cari} onChange={(e) => setCari(e.target.value)}
-                className="min-h-[44px] pl-10 text-sm" />
+              <input id="cari" type="search" placeholder="Cari nama menu..." value={cari} onChange={(e) => setCari(e.target.value)} className="min-h-[44px] pl-10 text-sm" />
             </div>
           </div>
 
@@ -232,31 +251,20 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                   <h3 className="mt-2 font-judul text-[17px] font-semibold leading-snug text-tinta">{m.nama}</h3>
                   <p className="mt-2 flex-1 text-xs leading-relaxed text-tinta-lemah">{m.deskripsi}</p>
                   {m.varian.length > 0 && (
-                    <div className="mt-3 flex items-center gap-1.5 text-[11px] text-tinta-lemah">
+                    <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-lg bg-latar px-2.5 py-1 text-[11px] font-semibold text-tinta-lemah">
                       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-                      {m.varian.length} varian: {m.varian.map((v) => v.nama).join(", ")}
-                    </div>
+                      {m.varian.length} varian
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t border-garis bg-latar/60 px-5 py-3.5">
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-tinta-lemah">Harga</p>
-                    <p className="mt-0.5 font-judul text-xl font-semibold tracking-tight text-utama">{formatRupiah(m.harga)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {m.tersedia && m.porsi <= 5 && (
-                      <span className="rounded-lg bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700">Sisa {m.porsi}</span>
-                    )}
-                    {m.tersedia ? (
-                      <button type="button" onClick={() => bukaPemesanan(m.id)}
-                        className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-utama px-3 text-xs font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama-gelap">
-                        Pesan
-                        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      </button>
-                    ) : (
-                      <span className="text-xs font-semibold text-stone-500">Habis</span>
-                    )}
-                  </div>
+                  <p className="font-judul text-xl font-semibold tracking-tight text-utama">{formatRupiah(m.harga)}</p>
+                  <button type="button" onClick={() => klikMenu(m)} disabled={!m.tersedia || !tokoBuka}
+                    aria-label={`Tambah ${m.nama} ke keranjang`}
+                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-utama px-3 text-xs font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama-gelap disabled:bg-stone-300">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+                    Tambah
+                  </button>
                 </div>
               </article>
             ))}
@@ -270,44 +278,82 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         </section>
       </main>
 
-      <Dialog terbuka={dialog} judul="Buat pre-order" padaTutup={() => setDialog(false)} lebar="42rem">
-        <form onSubmit={kirim} className="space-y-5">
-          <fieldset>
-            <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-tinta-lemah">Pesanan</legend>
-            {baris.map((b, i) => {
-              const menu = data.menu.find((m) => m.id === Number(b.menu_id));
-              return (
-                <div key={i} className="mb-3 rounded-xl border border-garis p-3">
-                  <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
-                    <div>
-                      <label htmlFor={`pilih-menu-${i}`} className="visually-hidden">Menu</label>
-                      <select id={`pilih-menu-${i}`} required value={b.menu_id} onChange={(e) => setBaris((l) => l.map((x, j) => j === i ? { ...x, menu_id: e.target.value, varian_id: "" } : x))}><option value="">Pilih menu</option>{data.menu.filter((m) => m.tersedia).map((m) => <option key={m.id} value={m.id}>{m.nama}</option>)}</select>
-                    </div>
-                    <div>
-                      <label htmlFor={`pilih-varian-${i}`} className="visually-hidden">Varian</label>
-                      <select id={`pilih-varian-${i}`} value={b.varian_id} onChange={(e) => setBaris((l) => l.map((x, j) => j === i ? { ...x, varian_id: e.target.value } : x))} disabled={!menu?.varian.length}><option value="">Tanpa varian</option>{menu?.varian.map((v) => <option key={v.id} value={v.id}>{v.nama}</option>)}</select>
-                    </div>
-                    <Tombol jenis="hapus" onClick={() => setBaris((l) => (l.length === 1 ? l : l.filter((_, j) => j !== i)))} kelas="px-2">-</Tombol>
-                  </div>
-                  <div className="mt-2 flex items-center gap-3">
-                    <span className="text-xs text-tinta-lemah">Jumlah</span>
-                    <div className="flex items-center rounded-lg border border-garis">
-                      <button type="button" onClick={() => setBaris((l) => l.map((x, j) => j === i ? { ...x, jumlah: String(Math.max(1, Number(x.jumlah) - 1)) } : x))} className="h-9 w-9">-</button>
-                      <span className="w-7 text-center text-sm font-semibold">{b.jumlah}</span>
-                      <button type="button" onClick={() => setBaris((l) => l.map((x, j) => j === i ? { ...x, jumlah: String(Math.min(100, Number(x.jumlah) + 1)) } : x))} className="h-9 w-9">+</button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            <Tombol jenis="kosong" onClick={() => setBaris((l) => [...l, barisAwal()])}>+ Tambah menu lain</Tombol>
-          </fieldset>
+      {jumlahItem > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-garis bg-permukaan/95 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-4xl items-center gap-3">
+            <button type="button" onClick={() => setDialogKeranjang(true)}
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-garis px-3 py-2 text-left">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-utama text-xs font-bold text-white">{jumlahItem}</span>
+              <span className="min-w-0">
+                <span className="block text-[10px] font-bold uppercase tracking-wide text-tinta-lemah">Keranjang kamu</span>
+                <span className="block truncate text-sm font-semibold text-tinta">{formatRupiah(totalKeranjang)}</span>
+              </span>
+            </button>
+            <Tombol onClick={bukaCheckout} kelas="shrink-0 px-5">Isi data pesanan</Tombol>
+          </div>
+        </div>
+      )}
 
+      <Dialog terbuka={Boolean(pilihVarian)} judul={`Pilih varian ${pilihVarian?.nama ?? ""}`} padaTutup={() => setPilihVarian(null)}>
+        {pilihVarian && (
+          <div className="space-y-2">
+            <p className="text-sm text-tinta-lemah">Pilih satu varian untuk ditambahkan ke keranjang.</p>
+            {pilihVarian.varian.map((v) => (
+              <button key={v.id} type="button" onClick={() => tambah(pilihVarian, v.id)}
+                className="flex w-full items-center justify-between rounded-xl border border-garis px-4 py-3 text-left transition-colors duration-[var(--gerak-cepat)] hover:border-utama hover:bg-latar">
+                <span className="text-sm font-semibold">{v.nama}</span>
+                <span className="text-sm font-semibold text-utama">{v.harga_tambahan ? `+${formatRupiah(v.harga_tambahan)}` : "Gratis"}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </Dialog>
+
+      <Dialog terbuka={dialogKeranjang} judul="Keranjang pesanan" padaTutup={() => setDialogKeranjang(false)}>
+        {detailKeranjang.length === 0 ? (
+          <p className="py-8 text-center text-sm text-tinta-lemah">Keranjang masih kosong. Klik menu untuk menambah.</p>
+        ) : (
+          <div className="space-y-4">
+            <ul className="space-y-3">
+              {detailKeranjang.map((item, i) => (
+                <li key={`${item.menuId}-${item.varianId}`} className="rounded-xl border border-garis p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold">{item.menu?.nama}</p>
+                      {item.varian && <p className="text-xs text-tinta-lemah">{item.varian.nama}</p>}
+                    </div>
+                    <button type="button" onClick={() => setKeranjang((l) => l.filter((_, j) => j !== i))}
+                      className="text-xs font-semibold text-bahaya hover:underline">Hapus</button>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <button type="button" aria-label="Kurangi jumlah" onClick={() => ubahJumlah(i, -1)} className="h-11 w-11 rounded-lg border border-garis">-</button>
+                      <span className="w-6 text-center text-sm font-semibold">{item.jumlah}</span>
+                      <button type="button" aria-label="Tambah jumlah" onClick={() => ubahJumlah(i, 1)} className="h-11 w-11 rounded-lg border border-garis">+</button>
+                    </div>
+                    <span className="text-sm font-semibold">{formatRupiah(item.subtotal)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center justify-between border-t border-garis pt-3">
+              <span className="font-semibold">Total</span>
+              <span className="font-judul text-xl font-semibold text-utama">{formatRupiah(totalKeranjang)}</span>
+            </div>
+            <Tombol onClick={bukaCheckout} kelas="w-full">Isi data pesanan</Tombol>
+          </div>
+        )}
+      </Dialog>
+
+      <Dialog terbuka={dialogCheckout} judul="Data pemesanan" padaTutup={() => setDialogCheckout(false)} lebar="42rem">
+        <form onSubmit={kirim} className="space-y-5">
+          <div className="rounded-xl bg-latar px-4 py-3 text-sm">
+            <div className="flex justify-between"><span>{jumlahItem} item pesanan</span><span className="font-semibold">{formatRupiah(totalKeranjang)}</span></div>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div><label htmlFor="p-nama">Nama kamu</label><input id="p-nama" required value={nama} onChange={(e) => setNama(e.target.value)} /></div>
-            <div><label htmlFor="p-wa">WhatsApp</label><input id="p-wa" inputMode="tel" required value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="08..." /></div>
+            <div><label htmlFor="p-wa">Nomor WhatsApp</label><input id="p-wa" inputMode="tel" required value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="08..." /></div>
           </div>
-
           <div>
             <label htmlFor="p-slot">Waktu ambil</label>
             <select id="p-slot" value={slotId} onChange={(e) => setSlotId(e.target.value)}>
@@ -316,11 +362,9 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             </select>
             {!slotId && <div className="mt-2"><label htmlFor="p-waktu">Atau isi waktu manual</label><input id="p-waktu" value={waktu} onChange={(e) => setWaktu(e.target.value)} placeholder="2026-11-25 18:00" /></div>}
           </div>
-
-          <div><label htmlFor="p-catatan">Catatan (misal: level pedas 2)</label><textarea id="p-catatan" value={catatan} onChange={(e) => setCatatan(e.target.value)} /></div>
+          <div><label htmlFor="p-catatan">Catatan, misalnya level pedas 2</label><textarea id="p-catatan" value={catatan} onChange={(e) => setCatatan(e.target.value)} /></div>
           <Pesan teks={pesan} jenis={jenis} />
-          <div className="flex items-center justify-between rounded-xl bg-latar px-4 py-3"><span className="text-sm text-tinta-lemah">Total</span><span className="font-judul text-lg font-semibold text-utama">{formatRupiah(total)}</span></div>
-          <Tombol tipe="submit" nonaktif={loading} kelas="w-full">{loading ? "Mengirim..." : `Kirim pre-order - ${formatRupiah(total)}`}</Tombol>
+          <Tombol tipe="submit" nonaktif={loading} kelas="w-full">{loading ? "Mengirim..." : `Kirim pre-order - ${formatRupiah(totalKeranjang)}`}</Tombol>
         </form>
       </Dialog>
 
@@ -346,8 +390,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                 <label htmlFor="lacak">Kode lacak</label>
                 <input id="lacak" value={kodeLacak} onChange={(e) => setKodeLacak(e.target.value)} placeholder="Contoh: A1B2C3D4" />
               </div>
-              <Link href={`/lacak?kode=${encodeURIComponent(kodeLacak)}`}
-                className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-tinta px-4 text-sm font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama">
+              <Link href={`/lacak?kode=${encodeURIComponent(kodeLacak)}`} className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-tinta px-4 text-sm font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama">
                 Cek status
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </Link>

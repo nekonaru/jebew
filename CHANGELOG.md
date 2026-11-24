@@ -1,5 +1,22 @@
 # Riwayat Perubahan
 
+## final-v1.0.5
+
+Alur pemesanan diubah menjadi keranjang.
+
+### Peningkatan
+
+- **Klik untuk menambah.** Setiap kartu menu punya tombol Tambah. Menu dengan varian membuka pilihan varian singkat sebelum masuk keranjang.
+- **Keranjang pesanan.** Ikon keranjang di header menampilkan jumlah item. Bilah ringkas muncul hanya bila ada pesanan dan berisi total serta tombol Isi data pesanan.
+- **Data diisi di akhir.** Form nama, WhatsApp, waktu ambil, dan catatan hanya muncul setelah pelanggan selesai memilih menu.
+- **Keranjang bisa diubah.** Jumlah tiap item bisa dinaikkan, diturunkan, atau dihapus sebelum dikirim.
+- **Tampilan lebih rapi.** Tombol aksi tidak lagi mengambang permanen, kartu punya satu target klik yang jelas, dan hierarchy teks diperbaiki.
+
+### Perbaikan bug
+
+- Target sentuh tombol Tambah dan tombol jumlah keranjang memenuhi ukuran minimum.
+- Label tombol kartu tidak lagi menimbulkan ketidaksesuaian nama aksesibel.
+
 ## final-v1.0.4
 
 Perbaikan tata letak website konsumen dan fungsi pemesanan.
