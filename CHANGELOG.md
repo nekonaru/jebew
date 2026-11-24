@@ -1,5 +1,19 @@
 # Riwayat Perubahan
 
+## final-v1.1.0
+
+Navigasi dan keadaan kosong pada website konsumen.
+
+### Peningkatan
+
+- **Header menempel.** Identitas usaha tetap terlihat saat halaman digulir, dengan bilah filter yang berhenti tepat di bawahnya.
+- **Jarak gulir tepat.** Tombol Mulai pesan membawa pembaca ke judul menu tanpa tertutup header.
+- **Keadaan kosong berguna.** Bila pencarian tidak menemukan menu, muncul tanda Jebew dan tombol untuk menampilkan semua menu kembali.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.0.9
 
 Umpan balik pesanan dan panel status hari ini.

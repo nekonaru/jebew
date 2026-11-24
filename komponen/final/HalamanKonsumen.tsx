@@ -138,7 +138,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-garis bg-permukaan/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-garis bg-permukaan/95 backdrop-blur">
         <div className="h-0.5 bg-gradient-to-r from-utama via-aksen to-utama" aria-hidden="true" />
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5">
           <div className="flex items-center gap-3">
@@ -256,7 +256,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           </ol>
         </section>
 
-        <section id="menu" className="scroll-mt-4">
+        <section id="menu" className="scroll-mt-28">
           <div className="reveal mb-4 flex items-end justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Klik untuk menambah</p>
@@ -265,7 +265,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             <span className="rounded-full border border-garis bg-permukaan px-3 py-1.5 text-xs font-semibold text-tinta-lemah">{tersaring.length} menu</span>
           </div>
 
-          <div className="sticky top-0 z-20 -mx-4 border-y border-garis bg-latar/95 px-4 py-3 backdrop-blur">
+          <div className="sticky top-[86px] z-20 -mx-4 border-y border-garis bg-latar/95 px-4 py-3 shadow-[0_6px_16px_rgba(43,28,22,0.04)] backdrop-blur">
             <div className="flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter kategori">
               {["Semua", ...daftarKategori].map((k) => (
                 <button key={k} type="button" aria-pressed={kategori === k} onClick={() => setKategori(k)}
@@ -328,9 +328,12 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             ))}
           </div>
           {tersaring.length === 0 && (
-            <div className="rounded-kartu border border-dashed border-garis py-14 text-center">
-              <p className="font-judul text-lg font-semibold">Menu tidak ditemukan</p>
+            <div className="rounded-kartu border border-dashed border-garis bg-permukaan py-14 text-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/jebew-mark.svg" alt="" width={48} height={48} className="mx-auto opacity-40" />
+              <p className="mt-4 font-judul text-lg font-semibold">Menu tidak ditemukan</p>
               <p className="mt-1 text-sm text-tinta-lemah">Coba kata kunci atau kategori lain.</p>
+              <Tombol onClick={() => { setKategori("Semua"); setCari(""); }} jenis="sekunder" kelas="mt-5">Tampilkan semua menu</Tombol>
             </div>
           )}
         </section>
