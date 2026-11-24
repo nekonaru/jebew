@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import type { Peran } from "@/lib/auth.ts";
+
+const KonteksPeran = createContext<Peran>("kasir");
+
+/** Peran pengguna yang aktif, dipakai halaman untuk menyembunyikan aksi terlarang. */
+export function usePeran(): Peran {
+  return useContext(KonteksPeran);
+}
 
 const NAV = [
   { href: "/admin", label: "Ringkasan", ikon: "M3 12l9-9 9 9M5 10v10h14V10" },
@@ -31,6 +38,7 @@ export default function Panel({
   const item = NAV.filter((n) => n.href !== "/admin/pengaturan" || peran === "pemilik");
 
   return (
+    <KonteksPeran.Provider value={peran}>
     <div className="min-h-screen lg:grid lg:grid-cols-[250px_1fr]">
       <aside className="border-b border-garis bg-permukaan lg:min-h-screen lg:border-b-0 lg:border-r">
         <div className="flex items-center gap-3 px-5 py-5">
@@ -84,5 +92,6 @@ export default function Panel({
         <main className="mx-auto max-w-7xl px-4 py-7 sm:px-6">{children}</main>
       </div>
     </div>
+    </KonteksPeran.Provider>
   );
 }

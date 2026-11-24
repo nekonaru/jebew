@@ -1,25 +1,29 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { galat } from "@/lib/api-final.ts";
-import { querySatu } from "@/lib/database.ts";
-import { ambilMenu } from "@/lib/final/menu.ts";
-import { ambilBahan } from "@/lib/final/stok.ts";
+import { ambilMenuPublik } from "@/lib/final/menu.ts";
 import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
-import { tanggalHariIni } from "@/lib/format.ts";
+import { ambilBahan } from "@/lib/final/stok.ts";
 
 export const runtime = "nodejs";
 
+/** Data publik untuk website konsumen. Tidak memuat statistik keuangan. */
 const dataPublik = unstable_cache(
   async () => {
-    const [menu, bahan, pengaturan] = await Promise.all([ambilMenu(), ambilBahan(), ambilPengaturan()]);
+    const [menu, pengaturan, bahan] = await Promise.all([
+      ambilMenuPublik(), ambilPengaturan(), ambilBahan(),
+    ]);
     return {
-      menu: menu.filter((m) => m.aktif).map((m) => ({
-        id: m.id, nama: m.nama, harga: m.harga, deskripsi: m.deskripsi, kategori: m.kategori,
-        foto: m.foto, porsi: m.porsi, tersedia: m.tersedia,
-        varian: m.varian.filter((v) => v.aktif).map((v) => ({ id: v.id, nama: v.nama, harga_tambahan: v.harga_tambahan })),
-      })),
-      pengaturan,
-      bahanTipis: bahan.filter((b) => b.menipis).length,
+      menu,
+      pengaturan: {
+        nama_usaha: pengaturan.nama_usaha ?? "Warung Kak Ikaa",
+        tagline: pengaturan.tagline ?? "Mie Jebew Chili Oil",
+        whatsapp_admin: pengaturan.whatsapp_admin ?? process.env.WHATSAPP_ADMIN ?? "6282173282591",
+        jam_buka: pengaturan.jam_buka ?? "10:00",
+        jam_tutup: pengaturan.jam_tutup ?? "21:00",
+        hari_buka: pengaturan.hari_buka ?? "Senin - Minggu",
+        toko_aktif: pengaturan.toko_aktif ?? "true",
+      },
     };
   },
   ["status-final"],
@@ -28,29 +32,7 @@ const dataPublik = unstable_cache(
 
 export async function GET() {
   try {
-    const [publik, penjualan, pengeluaran, preorder] = await Promise.all([
-      dataPublik(),
-      querySatu<{ omzet: number; jumlah: number }>(
-        "SELECT COALESCE(SUM(total),0) AS omzet, COUNT(*) AS jumlah FROM penjualan WHERE dibuat_pada::date = $1::date",
-        [tanggalHariIni()],
-      ),
-      querySatu<{ jumlah: number }>(
-        "SELECT COALESCE(SUM(jumlah),0) AS jumlah FROM pengeluaran WHERE tanggal::date = $1::date",
-        [tanggalHariIni()],
-      ),
-      querySatu<{ jumlah: number }>(
-        "SELECT COUNT(*) AS jumlah FROM preorder WHERE status IN ('baru','diproses')",
-      ),
-    ]);
-    return NextResponse.json({
-      ...publik,
-      statistik: {
-        omzet: Number(penjualan?.omzet ?? 0),
-        transaksi: Number(penjualan?.jumlah ?? 0),
-        pengeluaran: Number(pengeluaran?.jumlah ?? 0),
-        preorderAktif: Number(preorder?.jumlah ?? 0),
-      },
-    });
+    return NextResponse.json(await dataPublik());
   } catch (kesalahan) {
     return galat(kesalahan) as NextResponse;
   }

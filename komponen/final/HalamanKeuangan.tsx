@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
+import { usePeran } from "./Panel.tsx";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tabel, Tombol, KepalaTabel, SelKepala, BarisKosong } from "./ui.tsx";
 
 type Kategori = { id: number; nama: string };
@@ -10,6 +11,7 @@ type Tutup = { id: number; tanggal: string; total_tunai: number; total_qris: num
 type Audit = { id: number; aksi: string; tabel: string; catatan: string; dibuat_pada: string; nama_pengguna: string | null };
 
 export default function HalamanKeuangan() {
+  const pemilik = usePeran() === "pemilik";
   const [kategori, setKategori] = useState<Kategori[]>([]);
   const [tutup, setTutup] = useState<Tutup[]>([]);
   const [audit, setAudit] = useState<Audit[]>([]);
@@ -61,7 +63,7 @@ export default function HalamanKeuangan() {
   return (
     <div>
       <Judul anak="Keuangan" sub="Catat pengeluaran, tutup kasir harian, dan lihat jejak aktivitas."
-        aksi={<div className="flex gap-2"><Tombol onClick={() => setDialog("pengeluaran")}>Tambah pengeluaran</Tombol><Tombol onClick={() => setDialog("tutup")} jenis="sekunder">Tutup kasir</Tombol></div>} />
+        aksi={pemilik ? <div className="flex gap-2"><Tombol onClick={() => setDialog("pengeluaran")}>Tambah pengeluaran</Tombol><Tombol onClick={() => setDialog("tutup")} jenis="sekunder">Tutup kasir</Tombol></div> : undefined} />
       <Pesan teks={pesan} jenis={jenis} />
 
       <div className="mb-5">

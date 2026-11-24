@@ -18,7 +18,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { penolakan, pengguna } = await aman(req, "masuk");
+    const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     const badan = z.object({
       id: z.number().int().positive(), tambahan: z.number().finite().positive(),

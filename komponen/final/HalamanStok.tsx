@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { formatAngka, formatRupiah, formatWaktu } from "@/lib/format.ts";
+import { formatAngka, formatRupiah, formatWaktu, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
+import { usePeran } from "./Panel.tsx";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tabel, Tombol, KepalaTabel, SelKepala, BarisKosong } from "./ui.tsx";
 
 type Bahan = { id: number; nama: string; satuan: string; stok: number; stok_minimum: number; harga_rata_rata: number; aktif: boolean; menipis: boolean };
@@ -15,6 +16,7 @@ const TAB = ["Bahan", "Pergerakan", "Pembelian", "Opname"] as const;
 type Tab = typeof TAB[number];
 
 export default function HalamanStok() {
+  const pemilik = usePeran() === "pemilik";
   const [tab, setTab] = useState<Tab>("Bahan");
   const [bahan, setBahan] = useState<Bahan[]>([]);
   const [pergerakan, setPergerakan] = useState<Pergerakan[]>([]);
@@ -30,9 +32,9 @@ export default function HalamanStok() {
   const [dialogRestock, setDialogRestock] = useState<number | null>(null);
   const [restock, setRestock] = useState({ tambahan: "", catatan: "" });
   const [dialogBeli, setDialogBeli] = useState(false);
-  const [formBeli, setFormBeli] = useState({ supplier_id: "", tanggal: new Date().toISOString().slice(0, 10), catatan: "", items: [{ bahan_id: "", jumlah: "1", harga_satuan: "0" }] });
+  const [formBeli, setFormBeli] = useState({ supplier_id: "", tanggal: tanggalHariIni(), catatan: "", items: [{ bahan_id: "", jumlah: "1", harga_satuan: "0" }] });
   const [dialogOpname, setDialogOpname] = useState(false);
-  const [formOpname, setFormOpname] = useState({ tanggal: new Date().toISOString().slice(0, 10), catatan: "", items: [{ bahan_id: "", stok_fisik: "0", alasan: "" }] });
+  const [formOpname, setFormOpname] = useState({ tanggal: tanggalHariIni(), catatan: "", items: [{ bahan_id: "", stok_fisik: "0", alasan: "" }] });
 
   const muat = useCallback(async () => {
     try {
@@ -124,7 +126,7 @@ export default function HalamanStok() {
   return (
     <div>
       <Judul anak="Bahan & Stok" sub="Kelola bahan, riwayat pergerakan, pembelian, dan stok opname."
-        aksi={<Tombol onClick={() => bukaBahan()}>Tambah bahan</Tombol>} />
+        aksi={pemilik ? <Tombol onClick={() => bukaBahan()}>Tambah bahan</Tombol> : undefined} />
       <Pesan teks={pesan} jenis={jenis} />
 
       <div className="mb-5 flex flex-wrap gap-2" role="group" aria-label="Bagian stok">
@@ -151,8 +153,10 @@ export default function HalamanStok() {
                 <td className="px-4 py-3"><Badge warna={b.menipis ? "peringatan" : "sukses"}>{b.menipis ? "Menipis" : "Aman"}</Badge></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <Tombol onClick={() => { setDialogRestock(b.id); setRestock({ tambahan: "", catatan: "" }); }} jenis="sukses" kelas="min-h-[36px] px-2 text-xs">Tambah</Tombol>
-                    <Tombol onClick={() => bukaBahan(b)} jenis="sekunder" kelas="min-h-[36px] px-2 text-xs">Ubah</Tombol>
+                    {pemilik && <>
+                      <Tombol onClick={() => { setDialogRestock(b.id); setRestock({ tambahan: "", catatan: "" }); }} jenis="sukses" kelas="min-h-[36px] px-2 text-xs">Tambah</Tombol>
+                      <Tombol onClick={() => bukaBahan(b)} jenis="sekunder" kelas="min-h-[36px] px-2 text-xs">Ubah</Tombol>
+                    </>}
                   </div>
                 </td>
               </tr>
@@ -187,7 +191,7 @@ export default function HalamanStok() {
 
       {tab === "Pembelian" && (
         <div>
-          <div className="mb-4 flex justify-end"><Tombol onClick={() => setDialogBeli(true)}>Catat pembelian</Tombol></div>
+          {pemilik && <div className="mb-4 flex justify-end"><Tombol onClick={() => setDialogBeli(true)}>Catat pembelian</Tombol></div>}
           <Tabel>
             <KepalaTabel><tr>
               <SelKepala>Nomor</SelKepala><SelKepala>Tanggal</SelKepala><SelKepala>Supplier</SelKepala>
@@ -212,7 +216,7 @@ export default function HalamanStok() {
 
       {tab === "Opname" && (
         <div>
-          <div className="mb-4 flex justify-end"><Tombol onClick={() => setDialogOpname(true)}>Buat opname</Tombol></div>
+          {pemilik && <div className="mb-4 flex justify-end"><Tombol onClick={() => setDialogOpname(true)}>Buat opname</Tombol></div>}
           <Tabel>
             <KepalaTabel><tr>
               <SelKepala>Nomor</SelKepala><SelKepala>Tanggal</SelKepala><SelKepala>Item</SelKepala><SelKepala>Catatan</SelKepala>

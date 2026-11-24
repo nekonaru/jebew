@@ -84,7 +84,9 @@ export async function ambilSlotWaktu() {
 
 export async function simpanSlotWaktu(input: { tanggal: string; jam: string; kuota: number }): Promise<void> {
   await jalankan(
-    "INSERT INTO slot_waktu (tanggal, jam, kuota) VALUES ($1,$2,$3) ON CONFLICT (tanggal, jam) DO UPDATE SET kuota = EXCLUDED.kuota",
+    `INSERT INTO slot_waktu (tanggal, jam, kuota) VALUES ($1,$2,$3)
+     ON CONFLICT (tanggal, jam) DO UPDATE SET kuota = EXCLUDED.kuota,
+     terisi = LEAST(slot_waktu.terisi, EXCLUDED.kuota)`,
     [input.tanggal, input.jam, input.kuota],
   );
 }

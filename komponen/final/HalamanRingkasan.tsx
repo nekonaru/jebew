@@ -6,12 +6,15 @@ import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Judul, Kartu, Statistik } from "./ui.tsx";
 
-type Data = {
-  menu: { id: number; nama: string; tersedia: boolean; porsi: number }[];
-  pengaturan: Record<string, string>;
+type Ringkasan = {
+  omzet: number;
+  transaksi: number;
+  pengeluaran: number;
+  preorderAktif: number;
   bahanTipis: number;
-  statistik: { omzet: number; transaksi: number; pengeluaran: number; preorderAktif: number };
+  menuTotal: number;
 };
+type Publik = { pengaturan: Record<string, string> };
 
 const PINTASAN = [
   { href: "/admin/kasir", label: "Buka kasir", warna: "bg-utama" },
@@ -21,26 +24,26 @@ const PINTASAN = [
 ];
 
 export default function HalamanRingkasan() {
-  const [data, setData] = useState<Data | null>(null);
+  const [statistik, setStatistik] = useState<Ringkasan | null>(null);
+  const [publik, setPublik] = useState<Publik | null>(null);
 
   useEffect(() => {
-    void fetch("/api/dashboard").then(ambilJson<Data>).then(setData).catch(() => {});
+    void fetch("/api/statistik").then(ambilJson<Ringkasan>).then(setStatistik).catch(() => {});
+    void fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik).catch(() => {});
   }, []);
-
-  const tersedia = data?.menu.filter((m) => m.tersedia).length ?? 0;
 
   return (
     <div className="space-y-6">
       <Judul
-        anak={`Selamat datang, ${data?.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}`}
+        anak={`Selamat datang, ${publik?.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}`}
         sub="Ringkasan aktivitas hari ini dan kondisi dapur Anda."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Statistik label="Omzet hari ini" nilai={formatRupiah(data?.statistik.omzet ?? 0)} aksen />
-        <Statistik label="Transaksi" nilai={String(data?.statistik.transaksi ?? 0)} keterangan="Hari ini" />
-        <Statistik label="Pre-order aktif" nilai={String(data?.statistik.preorderAktif ?? 0)} keterangan="Perlu ditangani" />
-        <Statistik label="Bahan menipis" nilai={String(data?.bahanTipis ?? 0)} keterangan="Perlu restock" />
+        <Statistik label="Omzet hari ini" nilai={formatRupiah(statistik?.omzet ?? 0)} aksen />
+        <Statistik label="Transaksi" nilai={String(statistik?.transaksi ?? 0)} keterangan="Hari ini" />
+        <Statistik label="Pre-order aktif" nilai={String(statistik?.preorderAktif ?? 0)} keterangan="Perlu ditangani" />
+        <Statistik label="Bahan menipis" nilai={String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
@@ -59,7 +62,7 @@ export default function HalamanRingkasan() {
             ))}
           </div>
           <div className="mt-5 rounded-xl bg-latar px-4 py-3 text-sm">
-            Menu tersedia <strong>{tersedia}</strong> dari {data?.menu.length ?? 0} menu.
+            Menu aktif: <strong>{statistik?.menuTotal ?? 0}</strong> menu. Kelola menu di halaman Menu dan Resep.
           </div>
         </Kartu>
 

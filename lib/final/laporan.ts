@@ -4,18 +4,17 @@ import { query, querySatu, denganTransaksi, jalankan } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
 import { ringkasKeuangan } from "../inti-final.ts";
 import type { PenggunaSesi } from "../auth.ts";
-import { hitungHpp } from "../inti-final.ts";
-import { ambilBahanSemua, resepMenu } from "./menu.ts";
+import { catatAudit } from "../audit.ts";
 
 export async function ambilLaporan(dari: string, sampai: string) {
   const penjualan = await query<{
     id: number; nomor: string; total: number; diskon: number; metode: string;
     catatan: string; sumber: string; dibuat_pada: string;
     nama_menu: string; nama_varian: string; jumlah: number;
-    subtotal: number; menu_id: number; varian_id: number | null;
+    subtotal: number; menu_id: number; varian_id: number | null; hpp: number;
   }>(
     `SELECT p.id, p.nomor, p.total, p.diskon, p.metode, p.catatan, p.sumber, p.dibuat_pada,
-            i.nama_menu, i.nama_varian, i.jumlah, i.subtotal, i.menu_id, i.varian_id
+            i.nama_menu, i.nama_varian, i.jumlah, i.subtotal, i.menu_id, i.varian_id, i.hpp
      FROM penjualan p LEFT JOIN item_penjualan i ON i.penjualan_id = p.id
      WHERE p.dibuat_pada::date BETWEEN $1::date AND $2::date
      ORDER BY p.dibuat_pada DESC, p.id DESC`,
@@ -29,14 +28,15 @@ export async function ambilLaporan(dari: string, sampai: string) {
 
   const peta = new Map<number, {
     nomor: string; total: number; diskon: number; metode: string; sumber: string;
-    dibuat_pada: string; items: { nama: string; jumlah: number }[];
+    dibuat_pada: string; hpp: number; items: { nama: string; jumlah: number }[];
   }>();
   for (const baris of penjualan) {
     if (!peta.has(baris.id)) {
       peta.set(baris.id, {
         nomor: baris.nomor, total: baris.total, diskon: baris.diskon, metode: baris.metode,
-        sumber: baris.sumber, dibuat_pada: baris.dibuat_pada, items: [],
+        sumber: baris.sumber, dibuat_pada: baris.dibuat_pada, items: [], hpp: 0,
       });
+      peta.get(baris.id)!.hpp += Number(baris.hpp ?? 0);
     }
     if (baris.nama_menu) {
       const nama = baris.nama_varian ? `${baris.nama_menu} (${baris.nama_varian})` : baris.nama_menu;
@@ -44,23 +44,8 @@ export async function ambilLaporan(dari: string, sampai: string) {
     }
   }
 
-  // HPP dihitung dari resep menu pada saat laporan dibuka.
-  const bahan = await ambilBahanSemua();
-  const hppPerMenu = new Map<number, number>();
-  for (const baris of penjualan) {
-    if (!baris.menu_id || hppPerMenu.has(baris.menu_id)) continue;
-    const resep = await resepMenu(baris.menu_id);
-    hppPerMenu.set(baris.menu_id, Math.round(hitungHpp(
-      resep.map((r) => ({ bahanId: r.bahan_id, jumlahPerPorsi: r.jumlah_per_porsi })), bahan,
-    )));
-  }
-
-  const daftar = [...peta.entries()].map(([id, nilai]) => {
-    const hpp = penjualan
-      .filter((b) => b.id === id)
-      .reduce((n, b) => n + (hppPerMenu.get(b.menu_id) ?? 0) * b.jumlah, 0);
-    return { id, ...nilai, hpp };
-  });
+  // HPP diambil dari snapshot saat transaksi, sehingga laporan historis tidak berubah.
+  const daftar = [...peta.entries()].map(([id, nilai]) => ({ id, ...nilai }));
 
   const ringkasan = ringkasKeuangan(
     daftar.map((d) => ({ total: d.total, diskon: d.diskon, metode: d.metode, hpp: d.hpp })),
@@ -107,6 +92,7 @@ export async function tambahPengeluaran(
       "INSERT INTO pengeluaran (kategori_id, nama, jumlah, tanggal, catatan, pengguna_id) VALUES ($1,$2,$3,$4,$5,$6)",
       [input.kategori_id, input.nama, input.jumlah, input.tanggal, input.catatan, pengguna?.id ?? null],
     );
+    await catatAudit(pengguna, "tambah", "pengeluaran", `${input.nama}, ${input.jumlah}`);
   });
 }
 
@@ -142,6 +128,7 @@ export async function tutupKasir(
          kas_fisik=EXCLUDED.kas_fisik, selisih=EXCLUDED.selisih, catatan=EXCLUDED.catatan`,
       [input.tanggal, pengguna?.id ?? null, tunai, qris, transfer, input.kas_fisik, selisih, input.catatan],
     );
+    await catatAudit(pengguna, "tambah", "tutup_kasir", `${input.tanggal}, selisih ${selisih}`);
   });
 }
 

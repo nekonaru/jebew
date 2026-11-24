@@ -36,9 +36,12 @@ export async function POST(req: Request) {
     if (!(await izinLaju(kunci, 5, 60 * 1000))) {
       return NextResponse.json({ pesan: "Terlalu banyak pre-order. Coba lagi sebentar." }, { status: 429 });
     }
+    const pengaturan = await ambilPengaturan();
+    if (pengaturan.toko_aktif === "false") {
+      return NextResponse.json({ pesan: "Toko sedang tutup. Silakan coba lagi lain waktu." }, { status: 403 });
+    }
     const badan = skema.parse(await req.json());
     const hasil = await simpanPreorder(badan);
-    const pengaturan = await ambilPengaturan();
     const pesan = susunPesanWhatsApp({
       kode: `${hasil.kode} / ${hasil.kode_lacak}`,
       namaPelanggan: badan.nama_pelanggan,
@@ -55,7 +58,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ...hasil,
       pesan,
-      tautan: tautanWhatsApp(pengaturan.whatsapp_admin ?? "6282173282591", pesan),
+      tautan: tautanWhatsApp(process.env.WHATSAPP_ADMIN ?? pengaturan.whatsapp_admin ?? "6282173282591", pesan),
     }, { status: 201 });
   } catch (e) { return galat(e) as NextResponse; }
 }

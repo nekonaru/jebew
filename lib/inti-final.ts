@@ -79,6 +79,11 @@ export function totalDenganDiskon(subtotal: number, diskon: number): number {
   return Math.max(0, subtotal - Math.max(0, diskon));
 }
 
+/** Diskon tidak boleh melebihi subtotal agar ringkasan keuangan tetap masuk akal. */
+export function batasiDiskon(subtotal: number, diskon: number): number {
+  return Math.min(Math.max(0, diskon), Math.max(0, subtotal));
+}
+
 export function ringkasKeuangan(
   penjualan: { total: number; diskon: number; metode: string; hpp: number }[],
   pengeluaran: number,

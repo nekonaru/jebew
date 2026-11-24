@@ -91,6 +91,7 @@ export async function restockBahan(
        VALUES ($1,'masuk',$2,$3,$4,'RESTOCK',$5,$6)`,
       [id, tambahan, lama.stok, baru, catatan, pengguna?.id ?? null],
     );
+    await catatAudit(pengguna, "tambah", "stok", `restock ${id}, tambahan ${tambahan}`);
   });
 }
 
@@ -231,6 +232,8 @@ export async function ambilItemOpname(id: number) {
 }
 
 async function nomorOtomatis(tabel: string, awalan: string): Promise<string> {
+  // Kunci advisory memastikan nomor unik walau dua permintaan masuk bersamaan.
+  await query("SELECT pg_advisory_xact_lock(hashtext($1))", [tabel]);
   const hasil = await querySatu<{ jumlah: number }>(`SELECT COUNT(*) AS jumlah FROM ${tabel}`);
   return `${awalan}-${String((hasil?.jumlah ?? 0) + 1).padStart(4, "0")}`;
 }

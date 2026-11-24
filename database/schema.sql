@@ -177,7 +177,8 @@ CREATE TABLE IF NOT EXISTS item_preorder (
   nama_varian TEXT NOT NULL DEFAULT '',
   harga_satuan INTEGER NOT NULL CHECK (harga_satuan >= 0),
   jumlah INTEGER NOT NULL CHECK (jumlah > 0),
-  subtotal INTEGER NOT NULL CHECK (subtotal >= 0)
+  subtotal INTEGER NOT NULL CHECK (subtotal >= 0),
+  hpp INTEGER NOT NULL DEFAULT 0 CHECK (hpp >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS penjualan (
@@ -202,7 +203,8 @@ CREATE TABLE IF NOT EXISTS item_penjualan (
   nama_varian TEXT NOT NULL DEFAULT '',
   harga_satuan INTEGER NOT NULL CHECK (harga_satuan >= 0),
   jumlah INTEGER NOT NULL CHECK (jumlah > 0),
-  subtotal INTEGER NOT NULL CHECK (subtotal >= 0)
+  subtotal INTEGER NOT NULL CHECK (subtotal >= 0),
+  hpp INTEGER NOT NULL DEFAULT 0 CHECK (hpp >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS kategori_pengeluaran (

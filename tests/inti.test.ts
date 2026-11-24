@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  cekStokCukup, hitungHpp, hitungPorsi, margin, ringkasKeuangan, totalDenganDiskon,
+  batasiDiskon, cekStokCukup, hitungHpp, hitungPorsi, margin, ringkasKeuangan, totalDenganDiskon,
   type InfoBahan, type ItemResep,
 } from "../lib/inti-final.ts";
 import { formatRupiah, tanggalHariIni } from "../lib/format.ts";
@@ -61,6 +61,12 @@ test("margin per menu", () => {
 test("diskon tidak membuat total negatif", () => {
   assert.equal(totalDenganDiskon(20000, 3000), 17000);
   assert.equal(totalDenganDiskon(20000, 25000), 0);
+});
+
+test("diskon dibatasi sampai subtotal", () => {
+  assert.equal(batasiDiskon(20000, 25000), 20000);
+  assert.equal(batasiDiskon(20000, -500), 0);
+  assert.equal(batasiDiskon(20000, 3000), 3000);
 });
 
 test("ringkasan keuangan menghitung laba", () => {

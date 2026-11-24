@@ -19,7 +19,7 @@ const skema = z.object({
   kategori_id: z.number().int().positive(),
   nama: z.string().trim().min(1).max(100),
   jumlah: z.number().int().min(0).max(100000000),
-  tanggal: z.string().min(10),
+  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((v) => !Number.isNaN(new Date(`${v}T00:00:00Z`).getTime()), "Tanggal tidak valid"),
   catatan: z.string().trim().max(200),
 }).strict();
 

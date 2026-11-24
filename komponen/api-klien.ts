@@ -4,7 +4,7 @@
 
 export async function ambilJson<T>(jawaban: Response): Promise<T> {
   if (jawaban.status === 401) {
-    window.location.href = "/admin/login";
+    window.location.href = "/login";
     throw new Error("Sesi berakhir");
   }
   if (!jawaban.ok) {

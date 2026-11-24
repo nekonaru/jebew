@@ -69,16 +69,19 @@ export function bacaToken(token: string | undefined): PenggunaSesi | null {
 
 export async function penggunaSaatIni(): Promise<PenggunaSesi | null> {
   const toko = await cookies();
-  return bacaToken(toko.get(NAMA_COOKIE)?.value);
-}
+  const dariToken = bacaToken(toko.get(NAMA_COOKIE)?.value);
+  if (!dariToken) return null;
 
-export async function wajibLogin(): Promise<PenggunaSesi | null> {
-  return penggunaSaatIni();
-}
-
-export async function wajibPemilik(): Promise<PenggunaSesi | null> {
-  const pengguna = await penggunaSaatIni();
-  return pengguna?.peran === "pemilik" ? pengguna : null;
+  // Status dan peran selalu dibaca ulang dari database agar perubahan admin
+  // langsung berlaku tanpa menunggu token kedaluwarsa.
+  const baris = await querySatu<{
+    id: number; email: string; nama: string; peran: Peran; aktif: boolean;
+  }>(
+    "SELECT id, email, nama, peran, aktif FROM pengguna WHERE id = $1 AND aktif = TRUE",
+    [dariToken.id],
+  );
+  if (!baris) return null;
+  return { id: baris.id, email: baris.email, nama: baris.nama, peran: baris.peran };
 }
 
 export async function verifikasiLogin(email: string, kataSandi: string): Promise<PenggunaSesi | null> {

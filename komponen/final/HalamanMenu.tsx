@@ -4,19 +4,20 @@ import { useCallback, useEffect, useState } from "react";
 import { formatAngka, formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
+import { usePeran } from "./Panel.tsx";
 
 type Menu = {
   id: number; nama: string; harga: number; deskripsi: string; kategori: string; foto: string | null;
   aktif: boolean; porsi: number; penghambat: string | null; hpp: number; tersedia: boolean;
   resep: { bahan_id: number; nama_bahan: string; satuan: string; jumlah_per_porsi: number; stok: number }[];
-  varian: { id: number; nama: string; harga_tambahan: number; aktif: boolean }[];
+  varian: { id: number; nama: string; harga_tambahan: number; aktif: boolean; resep: { bahan_id: number; jumlah_per_porsi: number; nama_bahan: string; satuan: string }[] }[];
 };
 type Bahan = { id: number; nama: string; satuan: string };
 
 type Form = {
   nama: string; harga: string; deskripsi: string; kategori: string; foto: string; aktif: boolean;
   resep: { bahan_id: string; jumlah_per_porsi: string }[];
-  varian: { nama: string; harga_tambahan: string; aktif: boolean }[];
+  varian: { nama: string; harga_tambahan: string; aktif: boolean; resep: { bahan_id: string; jumlah_per_porsi: string }[] }[];
 };
 
 const kosong = (): Form => ({
@@ -25,6 +26,7 @@ const kosong = (): Form => ({
 });
 
 export default function HalamanMenu() {
+  const pemilik = usePeran() === "pemilik";
   const [menu, setMenu] = useState<Menu[]>([]);
   const [bahan, setBahan] = useState<Bahan[]>([]);
   const [dialog, setDialog] = useState(false);
@@ -51,7 +53,10 @@ export default function HalamanMenu() {
       nama: m.nama, harga: String(m.harga), deskripsi: m.deskripsi, kategori: m.kategori,
       foto: m.foto ?? "", aktif: m.aktif,
       resep: m.resep.map((r) => ({ bahan_id: String(r.bahan_id), jumlah_per_porsi: String(r.jumlah_per_porsi) })),
-      varian: m.varian.map((v) => ({ nama: v.nama, harga_tambahan: String(v.harga_tambahan), aktif: v.aktif })),
+      varian: m.varian.map((v) => ({
+        nama: v.nama, harga_tambahan: String(v.harga_tambahan), aktif: v.aktif,
+        resep: v.resep.map((r) => ({ bahan_id: String(r.bahan_id), jumlah_per_porsi: String(r.jumlah_per_porsi) })),
+      })),
     } : kosong());
     setPesan(""); setDialog(true);
   }
@@ -63,7 +68,10 @@ export default function HalamanMenu() {
         nama: form.nama, harga: Number(form.harga), deskripsi: form.deskripsi, kategori: form.kategori,
         foto: form.foto.trim() || null, aktif: form.aktif,
         resep: form.resep.map((r) => ({ bahan_id: Number(r.bahan_id), jumlah_per_porsi: Number(r.jumlah_per_porsi) })),
-        varian: form.varian.map((v) => ({ nama: v.nama, harga_tambahan: Number(v.harga_tambahan), aktif: v.aktif, resep: [] })),
+        varian: form.varian.map((v) => ({
+          nama: v.nama, harga_tambahan: Number(v.harga_tambahan), aktif: v.aktif,
+          resep: v.resep.map((r) => ({ bahan_id: Number(r.bahan_id), jumlah_per_porsi: Number(r.jumlah_per_porsi) })),
+        })),
       };
       const respons = await fetch("/api/menu", {
         method: edit ? "PUT" : "POST",
@@ -91,7 +99,7 @@ export default function HalamanMenu() {
   return (
     <div>
       <Judul anak="Menu & Resep" sub="Atur harga, resep per porsi, dan varian. HPP dihitung otomatis dari harga bahan."
-        aksi={<Tombol onClick={() => buka()}>Tambah menu</Tombol>} />
+        aksi={pemilik ? <Tombol onClick={() => buka()}>Tambah menu</Tombol> : undefined} />
       <Pesan teks={pesan} jenis={jenis} />
 
       <div className="mb-5 max-w-sm">
@@ -129,10 +137,10 @@ export default function HalamanMenu() {
               {m.varian.length > 0 && (
                 <p className="mt-2 text-xs text-tinta-lemah">Varian: {m.varian.map((v) => v.nama).join(", ")}</p>
               )}
-              <div className="mt-4 flex gap-2">
+              {pemilik && <div className="mt-4 flex gap-2">
                 <Tombol onClick={() => buka(m)} jenis="sekunder" kelas="min-h-[38px] px-3 text-xs">Ubah</Tombol>
                 <Tombol onClick={() => void hapus(m.id, m.nama)} jenis="hapus" kelas="min-h-[38px] px-3 text-xs">Hapus</Tombol>
-              </div>
+              </div>}
             </Kartu>
           </li>
         ))}
@@ -164,14 +172,25 @@ export default function HalamanMenu() {
           <fieldset>
             <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-tinta-lemah">Varian (opsional)</legend>
             {form.varian.map((v, i) => (
-              <div key={i} className="mb-2 grid grid-cols-[1.4fr_1fr_auto_auto] gap-2 items-end">
-                <div><label>Nama</label><input required value={v.nama} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, nama: e.target.value } : x) })} /></div>
-                <div><label>Tambah harga</label><input type="number" min={0} value={v.harga_tambahan} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, harga_tambahan: e.target.value } : x) })} /></div>
-                <label className="flex items-center gap-1 normal-case tracking-normal text-tinta"><input type="checkbox" className="h-5 w-5 min-h-0" checked={v.aktif} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, aktif: e.target.checked } : x) })} /> Aktif</label>
-                <Tombol jenis="hapus" onClick={() => setForm({ ...form, varian: form.varian.filter((_, j) => j !== i) })} kelas="px-2">-</Tombol>
+              <div key={i} className="mb-3 rounded-xl border border-garis p-3">
+                <div className="grid grid-cols-[1.4fr_1fr_auto_auto] gap-2 items-end">
+                  <div><label>Nama</label><input required value={v.nama} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, nama: e.target.value } : x) })} /></div>
+                  <div><label>Tambah harga</label><input type="number" min={0} value={v.harga_tambahan} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, harga_tambahan: e.target.value } : x) })} /></div>
+                  <label className="flex items-center gap-1 normal-case tracking-normal text-tinta"><input type="checkbox" className="h-5 w-5 min-h-0" checked={v.aktif} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, aktif: e.target.checked } : x) })} /> Aktif</label>
+                  <Tombol jenis="hapus" onClick={() => setForm({ ...form, varian: form.varian.filter((_, j) => j !== i) })} kelas="px-2">-</Tombol>
+                </div>
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-tinta-lemah">Bahan tambahan varian</p>
+                {v.resep.map((r, j) => (
+                  <div key={j} className="mt-2 grid grid-cols-[1.4fr_1fr_auto] gap-2 items-end">
+                    <div><label>Bahan</label><select value={r.bahan_id} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: x.resep.map((y, l) => l === j ? { ...y, bahan_id: e.target.value } : y) } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}</select></div>
+                    <div><label>Jumlah</label><input type="number" min="0.01" step="any" value={r.jumlah_per_porsi} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: x.resep.map((y, l) => l === j ? { ...y, jumlah_per_porsi: e.target.value } : y) } : x) })} /></div>
+                    <Tombol jenis="hapus" onClick={() => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: x.resep.filter((_, l) => l !== j) } : x) })} kelas="px-2">-</Tombol>
+                  </div>
+                ))}
+                <Tombol jenis="kosong" kelas="mt-2 min-h-[36px] px-0 text-xs" onClick={() => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: [...x.resep, { bahan_id: "", jumlah_per_porsi: "" }] } : x) })}>+ Tambah bahan varian</Tombol>
               </div>
             ))}
-            <Tombol jenis="sekunder" onClick={() => setForm({ ...form, varian: [...form.varian, { nama: "", harga_tambahan: "0", aktif: true }] })}>Tambah varian</Tombol>
+            <Tombol jenis="sekunder" onClick={() => setForm({ ...form, varian: [...form.varian, { nama: "", harga_tambahan: "0", aktif: true, resep: [] }] })}>Tambah varian</Tombol>
           </fieldset>
 
           <Tombol tipe="submit" kelas="w-full">Simpan menu</Tombol>

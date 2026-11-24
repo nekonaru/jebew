@@ -23,7 +23,7 @@ const skema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const { penolakan, pengguna } = await aman(req, "masuk");
+    const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     await tutupKasir(skema.parse(await req.json()), pengguna);
     return NextResponse.json({ berhasil: true });

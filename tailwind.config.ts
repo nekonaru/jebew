@@ -5,23 +5,30 @@ const konfigurasi: Config = {
   theme: {
     extend: {
       colors: {
+        // Warna identitas dari lembar merek Jebew.
+        bata: "#D8432B",
+        oranye: "#F29A2E",
+        krem: "#FFF1D6",
+        coklat: "#3A2218",
+        hijau: "#2E9E5B",
+        // Turunan identitas yang memenuhi kontras untuk teks di atas warna.
         utama: { DEFAULT: "#C2412C", gelap: "#9E3322", terang: "#E15A42" },
-        aksen: { DEFAULT: "#E08A2E", terang: "#F3AE5C" },
-        latar: "#FBF7F2",
+        aksen: { DEFAULT: "#F29A2E", terang: "#F5B05C" },
+        latar: "#FFF1D6",
         permukaan: "#FFFFFF",
-        tinta: { DEFAULT: "#2B1C16", lemah: "#6E5A4D" },
-        garis: "#E8DED3",
+        tinta: { DEFAULT: "#3A2218", lemah: "#6E5A4D" },
+        garis: "#EADCC3",
         sukses: { DEFAULT: "#24613F", terang: "#E6F4EC" },
         bahaya: "#B42318",
         info: "#2563EB",
       },
       fontFamily: {
-        judul: ["var(--font-judul)", "Georgia", "serif"],
-        isi: ["var(--font-isi)", "Segoe UI", "system-ui", "sans-serif"],
+        judul: ["Poppins", "Segoe UI", "system-ui", "sans-serif"],
+        isi: ["Inter", "Segoe UI", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        kartu: "0 1px 2px rgba(43,28,22,.04), 0 8px 24px rgba(43,28,22,.06)",
-        angkat: "0 12px 32px rgba(43,28,22,.12)",
+        kartu: "0 1px 2px rgba(58,34,24,.04), 0 8px 24px rgba(58,34,24,.06)",
+        angkat: "0 12px 32px rgba(58,34,24,.12)",
       },
       borderRadius: {
         kartu: "16px",
