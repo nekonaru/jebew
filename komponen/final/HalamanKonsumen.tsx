@@ -15,12 +15,12 @@ type DataAwal = { menu: Menu[]; pengaturan: Record<string, string> };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
 type Hasil = { kode: string; kode_lacak: string; total: number; pesan: string; tautan: string };
 
-const AKSESEN_KATEGORI: Record<string, { teks: string; garis: string }> = {
-  "Mie Jebew": { teks: "text-utama", garis: "bg-utama" },
-  "Mie Chili Oil": { teks: "text-[#9A5608]", garis: "bg-aksen" },
-  "Wonton Ayam Chili Oil": { teks: "text-orange-700", garis: "bg-orange-500" },
-  "Extra Topping": { teks: "text-amber-700", garis: "bg-amber-500" },
-  Minuman: { teks: "text-info", garis: "bg-blue-500" },
+const AKSESEN_KATEGORI: Record<string, { teks: string; garis: string; pinggir: string }> = {
+  "Mie Jebew": { teks: "text-utama", garis: "bg-utama", pinggir: "border-t-utama" },
+  "Mie Chili Oil": { teks: "text-[#9A5608]", garis: "bg-aksen", pinggir: "border-t-aksen" },
+  "Wonton Ayam Chili Oil": { teks: "text-orange-700", garis: "bg-orange-500", pinggir: "border-t-orange-500" },
+  "Extra Topping": { teks: "text-amber-700", garis: "bg-amber-500", pinggir: "border-t-amber-500" },
+  Minuman: { teks: "text-info", garis: "bg-blue-500", pinggir: "border-t-blue-500" },
 };
 
 export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
@@ -218,6 +218,28 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             ikon="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
         </section>
 
+        <section className="reveal mb-10">
+          <div className="mb-4 flex items-center gap-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Cara pesan</p>
+            <span className="h-px flex-1 bg-garis" aria-hidden="true" />
+          </div>
+          <ol className="grid gap-4 md:grid-cols-3">
+            {[
+              { angka: "01", judul: "Pilih menu", isi: "Klik tombol Tambah pada menu yang kamu mau. Bisa lebih dari satu." },
+              { angka: "02", judul: "Isi data", isi: "Setelah selesai, isi nama, WhatsApp, dan waktu ambil di akhir." },
+              { angka: "03", judul: "Terima konfirmasi", isi: "Pesanan terbuka di WhatsApp admin dengan rincian lengkap." },
+            ].map((langkah) => (
+              <li key={langkah.angka} className="flex gap-4 rounded-kartu border border-garis bg-permukaan p-5 shadow-kartu">
+                <span className="font-judul text-3xl font-semibold leading-none text-utama">{langkah.angka}</span>
+                <div>
+                  <p className="font-judul text-base font-semibold text-tinta">{langkah.judul}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-tinta-lemah">{langkah.isi}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
         <section id="menu" className="scroll-mt-4">
           <div className="reveal mb-4 flex items-end justify-between gap-3">
             <div>
@@ -252,7 +274,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
 
           <div className="daftar-panjang mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tersaring.map((m, indeks) => (
-              <article key={m.id} className="animasi-muncul group flex flex-col overflow-hidden rounded-kartu border border-garis bg-permukaan shadow-kartu transition-[transform,box-shadow,border-color] duration-[var(--gerak-standar)] ease-[var(--ease-halus)] hover:-translate-y-1 hover:border-utama/30 hover:shadow-angkat"
+              <article key={m.id} className={`animasi-muncul group flex flex-col overflow-hidden rounded-kartu border border-t-2 border-garis bg-permukaan shadow-kartu transition-[transform,box-shadow] duration-[var(--gerak-standar)] ease-[var(--ease-halus)] hover:-translate-y-1 hover:shadow-angkat ${AKSESEN_KATEGORI[m.kategori]?.pinggir ?? "border-t-tinta-lemah"}`}
                 style={{ animationDelay: `${Math.min(indeks, 12) * 35}ms` }}>
                 <div className="flex flex-1 flex-col p-5">
                   <span className={`mb-2 block h-0.5 w-8 rounded-full ${AKSESEN_KATEGORI[m.kategori]?.garis ?? "bg-tinta-lemah"}`} aria-hidden="true" />

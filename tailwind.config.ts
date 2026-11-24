@@ -9,7 +9,7 @@ const konfigurasi: Config = {
         aksen: { DEFAULT: "#E08A2E", terang: "#F3AE5C" },
         latar: "#FBF7F2",
         permukaan: "#FFFFFF",
-        tinta: { DEFAULT: "#2B1C16", lemah: "#7A6659" },
+        tinta: { DEFAULT: "#2B1C16", lemah: "#6E5A4D" },
         garis: "#E8DED3",
         sukses: { DEFAULT: "#24613F", terang: "#E6F4EC" },
         bahaya: "#B42318",

@@ -1,5 +1,19 @@
 # Riwayat Perubahan
 
+## final-v1.0.8
+
+Penyempurnaan struktur dan warna website konsumen.
+
+### Peningkatan
+
+- **Panduan tiga langkah.** Bagian Cara pesan menjelaskan pilih menu, isi data, lalu terima konfirmasi WhatsApp.
+- **Batas kartu berwarna.** Tiap kartu menu memakai garis atas sesuai warna kategori.
+- **Warna teks lebih gelap.** Teks sekunder dan angka langkah memenuhi ambang kontras tanpa mengurangi keterbacaan.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.0.7
 
 Penyempurnaan kartu menu dan daftar kategori.
