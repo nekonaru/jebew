@@ -1,8 +1,13 @@
 <div align="center">
   <img src="public/assets/jebew-mark.png" alt="Tanda Jebew" width="110" />
-  <h1>Jebew: Sistem Kelola Warung Kak Ikaa</h1>
-  <p><b>Kelola stok, resep, kasir, keuangan, dan pre-order dalam satu sistem.<br/>
-  Tersedia dalam dua versi: prototipe Tahap 1 dan produk jadi Tahap 2.</b></p>
+  <h1>Mie Jebew: Sistem Kelola Warung Kak Ikaa</h1>
+  <p><b>Stok, resep, kasir, keuangan, dan pre-order untuk Mie Jebew Chili Oil<br/>
+  dan Wonton Ayam Chili Oil dalam satu sistem.</b></p>
+
+  <p>
+    <a href="https://jebew-nu.vercel.app"><img src="https://img.shields.io/badge/Live-Prototipe-C2412C?style=for-the-badge" alt="Buka prototipe" /></a>
+    <a href="https://jebew-final.vercel.app"><img src="https://img.shields.io/badge/Live-Produk%20Jadi-24613F?style=for-the-badge" alt="Buka produk jadi" /></a>
+  </p>
 
   <a href="https://github.com/nekonaru/jebew/releases"><img src="https://img.shields.io/github/v/release/nekonaru/jebew?style=flat-square&color=blue" alt="Rilis" /></a>
   <img src="https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=next.js&logoColor=white" alt="Next.js" />
@@ -20,6 +25,7 @@
 ## Daftar Isi
 
 - [Tentang](#tentang)
+- [Demo Langsung](#demo-langsung)
 - [Dua Versi](#dua-versi)
 - [Fitur Final](#fitur-final)
 - [Persyaratan](#persyaratan)
@@ -39,6 +45,20 @@
 **Jebew** adalah sistem manajemen untuk **Warung Kak Ikaa**, penjual Mie Jebew Chili Oil dan Wonton Ayam Chili Oil. Sistem ini menghubungkan dapur, kasir, keuangan, dan pemesanan pelanggan dalam satu database.
 
 Inti sistem ada pada resep. Setiap menu menyimpan bahan dan jumlah per porsi. Jumlah porsi yang bisa dibuat dihitung dari stok terkecil, dan HPP dihitung dari harga rata rata bahan. Saat transaksi dicatat, stok berkurang otomatis lewat satu transaksi database.
+
+---
+
+## Demo Langsung
+
+Kedua versi bisa dibuka langsung tanpa instalasi:
+
+| Versi | Website konsumen | Dashboard admin |
+|-------|------------------|-----------------|
+| Prototipe Tahap 1 | [jebew-nu.vercel.app](https://jebew-nu.vercel.app) | `/admin`, PIN `1234` |
+| Produk Jadi Tahap 2 | [jebew-final.vercel.app](https://jebew-final.vercel.app) | `/login`, `pemilik@jebew.test` / `pemilik123` |
+
+> [!TIP]
+> Gunakan dua tab berdampingan untuk membandingkan alur pre-order di prototipe dan di produk jadi.
 
 ---
 

@@ -100,10 +100,12 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/jebew-icon.svg" alt="" width={40} height={40} />
+            <img src="/assets/jebew-icon.svg" alt="" width={42} height={42} />
+            <div className="h-8 w-px bg-garis" aria-hidden="true" />
             <div>
-              <p className="font-judul text-base font-semibold tracking-tight">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</p>
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-tinta-lemah">{data.pengaturan.tagline ?? "Mie Jebew Chili Oil"}</p>
+              <p className="font-judul text-[17px] font-bold uppercase leading-none tracking-[0.12em] text-tinta">Mie Jebew</p>
+              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-utama">Chili Oil & Wonton</p>
+              <p className="mt-0.5 text-[10px] text-tinta-lemah">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -115,21 +117,26 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
 
       <main className="mx-auto max-w-6xl px-4 pb-28">
         <section className="animasi-muncul relative my-7 overflow-hidden rounded-kartu border border-garis bg-permukaan px-6 py-9 sm:px-10">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-utama/5" aria-hidden="true" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/jebew-mark.svg" alt="" aria-hidden="true"
+            className="pointer-events-none absolute -right-10 -top-20 hidden h-80 w-80 opacity-[0.06] md:block" />
+          <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-aksen/5" aria-hidden="true" />
           <div className="relative grid gap-8 md:grid-cols-[1.5fr_0.7fr] md:items-end">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Warung Kak Ikaa · Pre-order</p>
-              <h1 className="mt-4 font-judul text-3xl font-semibold leading-[1.15] tracking-tight text-tinta sm:text-[2.6rem]">
-                Mie hangat,<br />pesan lebih mudah.
+              <p className="animasi-geser text-[10px] font-bold uppercase tracking-[0.24em] text-utama">Mie Jebew Chili Oil · Pre-order</p>
+              <h1 className="animasi-muncul mt-4 font-judul text-3xl font-semibold leading-[1.12] tracking-tight text-tinta sm:text-[2.7rem]" style={{ animationDelay: "60ms" }}>
+                Mie hangat,<br /><span className="text-utama">pesan lebih mudah.</span>
               </h1>
-              <p className="mt-4 max-w-lg text-sm leading-relaxed text-tinta-lemah">
+              <p className="animasi-muncul mt-4 max-w-lg text-sm leading-relaxed text-tinta-lemah" style={{ animationDelay: "120ms" }}>
                 Pilih menu, tentukan waktu ambil, lalu kami siapkan. Status menu mengikuti sisa bahan di dapur.
               </p>
-              <Tombol onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
-                kelas="mt-6 gap-3 px-5">
-                Lihat menu
-                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </Tombol>
+              <div className="animasi-muncul" style={{ animationDelay: "180ms" }}>
+                <Tombol onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
+                  kelas="mt-6 gap-3 px-5">
+                  Lihat menu
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </Tombol>
+              </div>
             </div>
             <div className="hidden rounded-kartu border border-garis bg-latar/70 p-5 md:block">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-tinta-lemah">Hari ini</p>
@@ -142,7 +149,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           </div>
         </section>
 
-        <section className="mb-9 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-kartu border border-garis bg-permukaan px-5 py-4 shadow-kartu sm:px-7">
+        <section className="reveal mb-9 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-kartu border border-garis bg-permukaan px-5 py-4 shadow-kartu sm:px-7">
           <InfoRingkas judul="Jam buka" isi={`${data.pengaturan.jam_buka ?? "10:00"} - ${data.pengaturan.jam_tutup ?? "21:00"}`}
             ikon="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
           <InfoRingkas judul="Lacak pesanan" isi="Pakai kode dari website" aksi="/lacak"
@@ -152,7 +159,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         </section>
 
         <section id="menu" className="scroll-mt-4">
-          <div className="mb-4 flex items-end justify-between gap-3">
+          <div className="reveal mb-4 flex items-end justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Pilih dan pesan</p>
               <h2 id="judul-menu" className="mt-1 font-judul text-2xl font-semibold tracking-tight">Menu hari ini</h2>
@@ -311,12 +318,15 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             </div>
           </div>
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-garis pt-5">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/jebew-icon.svg" alt="" width={24} height={24} />
-              <span className="font-judul text-sm font-semibold">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</span>
+              <img src="/assets/jebew-icon.svg" alt="" width={30} height={30} />
+              <div>
+                <p className="font-judul text-sm font-bold uppercase tracking-[0.16em] text-tinta">Mie Jebew</p>
+                <p className="text-[10px] text-tinta-lemah">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</p>
+              </div>
             </div>
-            <p className="text-[11px] text-tinta-lemah">Mie Jebew Chili Oil & Wonton Ayam</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-tinta-lemah">Chili Oil & Wonton Ayam</p>
           </div>
         </div>
       </div>

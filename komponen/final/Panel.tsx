@@ -37,8 +37,8 @@ export default function Panel({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/jebew-icon.svg" alt="" width={42} height={42} />
           <div className="min-w-0">
-            <p className="truncate font-judul text-base font-semibold">Warung Kak Ikaa</p>
-            <p className="text-[11px] text-tinta-lemah">Panel pengelolaan</p>
+            <p className="truncate font-judul text-sm font-bold uppercase tracking-[0.14em] text-tinta">Mie Jebew</p>
+            <p className="mt-0.5 truncate text-[10px] text-tinta-lemah">Warung Kak Ikaa · Panel</p>
           </div>
         </div>
         <nav aria-label="Navigasi utama" className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible lg:pb-0">
@@ -73,7 +73,7 @@ export default function Panel({
       <div className="min-w-0">
         <header className="flex items-center justify-between gap-4 border-b border-garis bg-permukaan px-5 py-3">
           <div className="lg:hidden">
-            <p className="font-judul font-semibold">Warung Kak Ikaa</p>
+            <p className="font-judul text-sm font-bold uppercase tracking-[0.14em]">Mie Jebew</p>
           </div>
           <div className="ml-auto flex items-center gap-4">
             <a href="/" className="text-sm font-semibold text-utama hover:underline">Lihat website</a>
