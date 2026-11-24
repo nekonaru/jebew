@@ -1,5 +1,16 @@
 # Riwayat Perubahan
 
+## final-v1.0.7
+
+Penyempurnaan kartu menu dan daftar kategori.
+
+### Peningkatan
+
+- **Kartu lebih jelas.** Harga sejajar dengan nama menu, varian ditampilkan sebagai chip, dan tombol Tambah ke pesanan memakai lebar penuh.
+- **Filter berjumlah.** Setiap kategori menampilkan jumlah menu agar konsumen tahu isi kategori sebelum memilih.
+- **Garis identitas.** Keterangan kategori diberi garis pendek sebagai penanda visual pada area sambutan.
+- **Kontras dan label.** Dua temuan aksesibilitas pada warna jumlah kategori dan nama tombol diperbaiki.
+
 ## final-v1.0.6
 
 Penyempurnaan tipografi dan detail visual website konsumen.

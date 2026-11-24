@@ -181,7 +181,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-aksen/5" aria-hidden="true" />
           <div className="relative grid gap-8 md:grid-cols-[1.5fr_0.7fr] md:items-end">
             <div>
-              <p className="animasi-geser text-[10px] font-bold uppercase tracking-[0.24em] text-utama">Mie Jebew Chili Oil · Pre-order</p>
+              <div className="animasi-geser flex items-center gap-3">
+                <span className="h-px w-10 bg-utama" aria-hidden="true" />
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-utama">Mie Jebew Chili Oil · Pre-order</p>
+              </div>
               <h1 className="animasi-muncul mt-4 font-judul text-3xl font-semibold leading-[1.12] tracking-tight text-tinta sm:text-[2.7rem]" style={{ animationDelay: "60ms" }}>
                 Mie hangat,<br /><span className="text-utama">pesan lebih mudah.</span>
               </h1>
@@ -228,9 +231,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             <div className="flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter kategori">
               {["Semua", ...daftarKategori].map((k) => (
                 <button key={k} type="button" aria-pressed={kategori === k} onClick={() => setKategori(k)}
-                  className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold transition-[background-color,color,box-shadow] duration-[var(--gerak-cepat)] ${
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-[background-color,color,box-shadow] duration-[var(--gerak-cepat)] ${
                     kategori === k ? "bg-utama text-white shadow-sm" : "border border-garis bg-white text-tinta-lemah hover:border-utama/40 hover:text-tinta"
-                  }`}>{k}</button>
+                  }`}>
+                    {k}
+                    <span className={`text-[10px] font-bold ${kategori === k ? "text-white" : "text-tinta-lemah"}`}>
+                      {data.menu.filter((x) => k === "Semua" || x.kategori === k).length}
+                    </span>
+                  </button>
               ))}
             </div>
             <div className="relative">
@@ -257,22 +265,25 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                       {m.tersedia ? "Tersedia" : "Habis"}
                     </span>
                   </div>
-                  <h3 className="mt-2 font-judul text-[17px] font-semibold leading-snug text-tinta">{m.nama}</h3>
+                  <div className="mt-3 flex items-start justify-between gap-3">
+                    <h3 className="font-judul text-[18px] font-semibold leading-snug text-tinta">{m.nama}</h3>
+                    <span className="shrink-0 font-judul text-lg font-semibold tracking-tight text-utama">{formatRupiah(m.harga)}</span>
+                  </div>
                   <p className="mt-2 flex-1 text-xs leading-relaxed text-tinta-lemah">{m.deskripsi}</p>
                   {m.varian.length > 0 && (
-                    <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-lg bg-latar px-2.5 py-1 text-[11px] font-semibold text-tinta-lemah">
-                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5"><path d="M4 6h16M4 12h16M4 18h10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-                      {m.varian.length} varian
-                    </span>
+                    <div className="mt-3 flex flex-wrap gap-1.5" aria-label={`Varian ${m.nama}`}>
+                      {m.varian.map((v) => (
+                        <span key={v.id} className="rounded-md border border-garis bg-latar px-2 py-1 text-[10px] font-semibold text-tinta-lemah">{v.nama}</span>
+                      ))}
+                    </div>
                   )}
                 </div>
-                <div className="flex items-center justify-between gap-3 border-t border-garis bg-latar/60 px-5 py-3.5">
-                  <p className="font-judul text-xl font-semibold tracking-tight text-utama">{formatRupiah(m.harga)}</p>
+                <div className="border-t border-garis bg-latar/60 px-4 py-3">
                   <button type="button" onClick={() => klikMenu(m)} disabled={!m.tersedia || !tokoBuka}
-                    aria-label={`Tambah ${m.nama} ke keranjang`}
-                    className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg bg-utama px-3 text-xs font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama-gelap disabled:bg-stone-300">
+                    aria-label={`Tambah ke pesanan: ${m.nama}`}
+                    className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-utama text-sm font-semibold text-white transition-[background-color,transform] duration-[var(--gerak-cepat)] hover:bg-utama-gelap active:scale-[0.98] disabled:bg-stone-300">
                     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-                    Tambah
+                    {m.tersedia ? "Tambah ke pesanan" : "Sedang habis"}
                   </button>
                 </div>
               </article>
