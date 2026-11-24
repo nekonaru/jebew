@@ -21,7 +21,7 @@ function ditolak(): NextResponse {
 
 export async function GET() {
   if (!(await sudahMasuk())) return ditolak();
-  return NextResponse.json({ menu: ambilMenu() });
+  return NextResponse.json({ menu: await ambilMenu() });
 }
 
 export async function POST(permintaan: Request) {
@@ -29,7 +29,7 @@ export async function POST(permintaan: Request) {
     const penolakan = await izin(permintaan);
     if (penolakan) return penolakan;
     const badan = skemaMenu.parse(await permintaan.json());
-    return NextResponse.json({ id: simpanMenu(badan) }, { status: 201 });
+    return NextResponse.json({ id: await simpanMenu(badan) }, { status: 201 });
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);
   }
@@ -40,7 +40,7 @@ export async function PUT(permintaan: Request) {
     const penolakan = await izin(permintaan);
     if (penolakan) return penolakan;
     const badan = skemaUbah.parse(await permintaan.json());
-    return NextResponse.json({ id: simpanMenu(badan.data, badan.id) });
+    return NextResponse.json({ id: await simpanMenu(badan.data, badan.id) });
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);
   }
@@ -51,7 +51,7 @@ export async function DELETE(permintaan: Request) {
     const penolakan = await izin(permintaan);
     if (penolakan) return penolakan;
     const badan = skemaHapus.parse(await permintaan.json());
-    hapusMenu(badan.id);
+    await hapusMenu(badan.id);
     return NextResponse.json({ berhasil: true });
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);

@@ -21,7 +21,7 @@ export async function GET() {
   if (!(await sudahMasuk())) {
     return NextResponse.json({ pesan: "Silakan masuk ke dashboard admin" }, { status: 401 });
   }
-  return NextResponse.json({ preorder: ambilPreorder() });
+  return NextResponse.json({ preorder: await ambilPreorder() });
 }
 
 export async function POST(permintaan: Request) {
@@ -35,8 +35,8 @@ export async function POST(permintaan: Request) {
       );
     }
     const badan = skemaPreorder.parse(await permintaan.json());
-    const hasil = simpanPreorder(badan);
-    const pengaturan = ambilPengaturan();
+    const hasil = await simpanPreorder(badan);
+    const pengaturan = await ambilPengaturan();
     const pesan = susunPesanWhatsApp({
       kode: hasil.kode,
       namaPelanggan: badan.nama_pelanggan,
@@ -70,7 +70,7 @@ export async function PUT(permintaan: Request) {
     const penolakan = await pastikanAman(permintaan, true);
     if (penolakan) return penolakan;
     const badan = skemaUbahStatus.parse(await permintaan.json());
-    ubahStatusPreorder(badan.id, badan.status);
+    await ubahStatusPreorder(badan.id, badan.status);
     return NextResponse.json({ berhasil: true });
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);

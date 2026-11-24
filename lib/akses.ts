@@ -17,8 +17,18 @@ type CatatanPercobaan = { jumlah: number; resetPada: number };
 const percobaanMasuk = new Map<string, CatatanPercobaan>();
 const kirimanPreorder = new Map<string, CatatanPercobaan>();
 
+/** Nilai bawaan hanya dipakai saat pengembangan. Produksi gagal bila env kosong. */
+function ambilNilaiRahasia(nama: string, bawaanDemo: string): string {
+  const nilai = process.env[nama];
+  if (nilai && nilai.trim() !== "") return nilai;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(`${nama} wajib diatur di lingkungan produksi`);
+  }
+  return bawaanDemo;
+}
+
 function kunciRahasia(): string {
-  return process.env.RAHASIA_SESI ?? "jebew-prototipe-kunci-sesi-ganti-melalui-env";
+  return ambilNilaiRahasia("RAHASIA_SESI", "jebew-prototipe-kunci-sesi-ganti-melalui-env");
 }
 
 function tandaTangan(payload: string): string {
@@ -61,7 +71,7 @@ export async function sudahMasuk(): Promise<boolean> {
 }
 
 export function cocokPin(pin: string): boolean {
-  const pinBenar = process.env.ADMIN_PIN ?? "1234";
+  const pinBenar = ambilNilaiRahasia("ADMIN_PIN", "1234");
   const masukan = Buffer.from(pin);
   const pembanding = Buffer.from(pinBenar);
   return masukan.length === pembanding.length && timingSafeEqual(masukan, pembanding);

@@ -6,10 +6,10 @@ export const dynamic = "force-dynamic";
 
 /** Data publik untuk halaman konsumen. Tidak mengandung data privat admin. */
 export async function GET() {
-  const pengaturan = ambilPengaturan();
+  const pengaturan = await ambilPengaturan();
   return NextResponse.json(
     {
-      menu: ambilMenuPublik(),
+      menu: await ambilMenuPublik(),
       nama_usaha: pengaturan.nama_usaha,
     },
     { headers: { "Cache-Control": "no-store" } },

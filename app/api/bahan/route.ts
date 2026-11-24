@@ -37,7 +37,7 @@ function ditolak(): NextResponse {
 
 export async function GET() {
   if (!(await sudahMasuk())) return ditolak();
-  return NextResponse.json({ bahan: ambilBahan() });
+  return NextResponse.json({ bahan: await ambilBahan() });
 }
 
 export async function POST(permintaan: Request) {
@@ -45,7 +45,7 @@ export async function POST(permintaan: Request) {
     const penolakan = await izin(permintaan);
     if (penolakan) return penolakan;
     const badan = skemaBahan.parse(await permintaan.json());
-    return NextResponse.json({ id: simpanBahan(badan) }, { status: 201 });
+    return NextResponse.json({ id: await simpanBahan(badan) }, { status: 201 });
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);
   }
@@ -56,7 +56,7 @@ export async function PUT(permintaan: Request) {
     const penolakan = await izin(permintaan);
     if (penolakan) return penolakan;
     const badan = skemaUbah.parse(await permintaan.json());
-    return NextResponse.json({ id: simpanBahan(badan.data, badan.id) });
+    return NextResponse.json({ id: await simpanBahan(badan.data, badan.id) });
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);
   }
@@ -69,10 +69,10 @@ export async function PATCH(permintaan: Request) {
     const badan = await permintaan.json();
     if ("tambahan" in badan) {
       const data = skemaRestockBahan.parse(badan);
-      restockBahan(data.id, data.tambahan);
+      await restockBahan(data.id, data.tambahan);
     } else {
       const data = skemaStokBahan.parse(badan);
-      ubahStokBahan(data.id, data.data.stok);
+      await ubahStokBahan(data.id, data.data.stok);
     }
     return NextResponse.json({ berhasil: true });
   } catch (kesalahan) {
@@ -85,7 +85,7 @@ export async function DELETE(permintaan: Request) {
     const penolakan = await izin(permintaan);
     if (penolakan) return penolakan;
     const badan = skemaHapus.parse(await permintaan.json());
-    hapusBahan(badan.id);
+    await hapusBahan(badan.id);
     return NextResponse.json({ berhasil: true });
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);

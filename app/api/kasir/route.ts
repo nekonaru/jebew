@@ -10,7 +10,7 @@ export async function POST(permintaan: Request) {
     const penolakan = await pastikanAman(permintaan, true);
     if (penolakan) return penolakan;
     const badan = skemaKasir.parse(await permintaan.json());
-    const hasil = catatPenjualan(badan);
+    const hasil = await catatPenjualan(badan);
     return NextResponse.json(hasil, { status: 201 });
   } catch (kesalahan) {
     return tanggapiGalat(kesalahan);

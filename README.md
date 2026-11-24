@@ -92,13 +92,13 @@ Inti sistem ada pada resep. Setiap menu menyimpan daftar bahan dan jumlah per sa
 
 | Dependensi | Versi Minimum | Catatan |
 |------------|---------------|---------|
-| **Node.js** | 24 | Dibutuhkan untuk modul `node:sqlite` bawaan |
+| **Node.js** | 24 | Versi yang dipakai untuk pengembangan dan CI |
 | **npm** | 11 | Disertakan bersama Node.js 24 |
 | **Browser** | Versi terkini | Chrome, Edge, Firefox, atau Safari |
 | **Git** | 2.40 | Dibutuhkan hanya untuk mengambil kode sumber |
 
 > [!TIP]
-> Aplikasi ini memakai database SQLite lokal. Kamu tidak perlu akun Supabase, kredensial cloud, atau koneksi internet setelah dependensi terpasang.
+> Aplikasi ini memakai Supabase Postgres. Kamu perlu satu project Supabase gratis untuk menyimpan data, dan akun Vercel bila ingin mempublikasikannya.
 
 ### Belum pernah memakai terminal? Mulai dari sini
 
@@ -148,24 +148,52 @@ npm ci
 > [!IMPORTANT]
 > Perintah ini harus selesai tanpa galat. Bila ada galat, periksa versi Node.js dengan `node --version`.
 
-#### 3. Siapkan variabel lingkungan
+#### 3. Buat project Supabase
+
+1. Buka `https://supabase.com` dan masuk dengan akunmu
+2. Buat project baru, lalu tunggu sampai statusnya aktif
+3. Buka **Project Settings**, lalu **Database**, dan salin **Connection string** untuk koneksi langsung atau transaction pooler
+4. Salin berkas contoh lingkungan:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Ubah `ADMIN_PIN`, `RAHASIA_SESI`, dan `WHATSAPP_ADMIN` di berkas `.env.local`. Semua nilai sudah punya bawaan untuk demo, jadi aplikasi tetap bisa jalan tanpa mengubahnya.
+5. Isi `DATABASE_URL` dengan connection string tadi. Ganti `[KATA_SANDI]` dengan kata sandi database project-mu
+6. Isi `ADMIN_PIN`, `RAHASIA_SESI`, dan `WHATSAPP_ADMIN`
 
 > [!IMPORTANT]
-> PIN bawaan `1234` hanya untuk demo. Ganti nilainya sebelum aplikasi dipakai di luar keperluan presentasi.
+> Jangan pernah memasukkan nilai `DATABASE_URL` yang sebenarnya ke dalam chat, commit, atau berkas yang masuk git. Berkas `.env.local` sudah ada di `.gitignore`.
 
-#### 4. Jalankan aplikasi
+#### 4. Siapkan tabel dan data contoh
+
+```bash
+npm run siap:supabase
+```
+
+Perintah ini menjalankan `database/schema.sql` dan `database/seed.sql` ke project Supabase-mu. Perintah bisa dijalankan ulang dengan aman.
+
+> [!IMPORTANT]
+> Di lingkungan produksi, aplikasi akan menolak jalan bila `ADMIN_PIN` atau `RAHASIA_SESI` kosong. Isi keduanya sebelum deploy.
+
+#### 5. Jalankan aplikasi
 
 ```bash
 npm run dev
 ```
 
-Buka `http://localhost:3000` di browser. Database dan data contoh dibuat otomatis saat halaman pertama dibuka.
+Buka `http://localhost:3000` di browser.
+
+### Opsi B: Deploy ke Vercel
+
+1. Buka `https://vercel.com`, masuk dengan akun GitHub-mu, lalu pilih **Add New**, **Project**
+2. Impor repositori `nekonaru/jebew`. Vercel akan mendeteksi Next.js otomatis
+3. Pada bagian **Environment Variables**, isi `DATABASE_URL`, `ADMIN_PIN`, dan `RAHASIA_SESI`. Isi juga `WHATSAPP_ADMIN` dan `NAMA_USAHA` bila perlu
+4. Tekan **Deploy**. Setelah selesai, buka URL produksi yang diberikan
+5. Jalankan `npm run siap:supabase` secara lokal sekali untuk memasang tabel dan data contoh ke project Supabase yang sama
+
+> [!IMPORTANT]
+> `DATABASE_URL` produksi sebaiknya memakai connection string transaction pooler dari Supabase. Jangan memakai PIN bawaan `1234` di Vercel.
 
 ---
 
@@ -173,13 +201,13 @@ Buka `http://localhost:3000` di browser. Database dan data contoh dibuat otomati
 
 ### Pertama kali dibuka
 
-1. Buka `http://localhost:3000` untuk melihat website konsumen
-2. Perhatikan status Tersedia pada Mie Jebew Original dengan sisa delapan porsi
-3. Buka `http://localhost:3000/admin/login` dan masukkan PIN admin
-4. Database lokal tersimpan di `data/jebew.db`. Hapus folder `data` untuk mengembalikan data contoh
+1. Pastikan `npm run siap:supabase` sudah dijalankan dan tiga menu contoh tampil di website
+2. Buka `http://localhost:3000` untuk melihat website konsumen
+3. Perhatikan status Tersedia pada Mie Jebew Original dengan sisa delapan porsi
+4. Buka `http://localhost:3000/admin/login` dan masukkan PIN admin
 
 > [!NOTE]
-> Berkas database tidak masuk git. Setiap orang yang mengambil kode sumber akan mendapat data contoh yang sama.
+> Data tersimpan di Supabase, bukan di komputer. Untuk mengembalikan data contoh, hapus baris di tabel `penjualan`, `item_penjualan`, `preorder`, dan `item_preorder`, lalu jalankan ulang `database/seed.sql` lewat SQL Editor Supabase.
 
 ### Pemakaian sehari-hari
 
@@ -198,14 +226,14 @@ Variabel lingkungan dibaca dari berkas `.env.local`.
 
 | Variabel | Wajib | Fungsi |
 |----------|-------|--------|
-| `ADMIN_PIN` | Tidak | PIN masuk dashboard. Bawaan: `1234` |
-| `RAHASIA_SESI` | Tidak | Kunci penandatanganan cookie sesi. Ganti dengan string acak panjang |
+| `DATABASE_URL` | Ya | Connection string Postgres dari Supabase |
+| `ADMIN_PIN` | Ya di produksi | PIN masuk dashboard. Boleh kosong hanya saat pengembangan lokal |
+| `RAHASIA_SESI` | Ya di produksi | Kunci penandatanganan cookie sesi. Pakai string acak panjang |
 | `WHATSAPP_ADMIN` | Tidak | Nomor tujuan pesan pre-order dalam format internasional tanpa tanda plus |
 | `NAMA_USAHA` | Tidak | Nama yang tampil di pesan WhatsApp bila pengaturan database kosong |
-| `JEBEW_DB` | Tidak | Lokasi berkas database. Bawaan: `data/jebew.db` |
 
 > [!NOTE]
-> Nomor WhatsApp admin juga bisa diubah lewat baris `whatsapp_admin` pada berkas `database/seed.sql` sebelum database pertama kali dibuat.
+> Nomor WhatsApp admin juga bisa diubah lewat baris `whatsapp_admin` pada berkas `database/seed.sql` sebelum data contoh pertama kali dimasukkan.
 
 ---
 
@@ -243,17 +271,19 @@ jebew/
 ├── komponen/                  # komponen antarmuka
 ├── lib/
 │   ├── akses.ts               # PIN, sesi, dan pembatasan percobaan
-│   ├── database.ts            # koneksi SQLite lokal
+│   ├── database.ts            # koneksi Postgres Supabase dan transaksi
 │   ├── format.ts              # format rupiah dan waktu WIB
 │   ├── inti.ts                # logika perhitungan porsi tanpa efek samping
 │   ├── operasi.ts             # transaksi atomik dan kueri database
 │   ├── validasi.ts            # skema validasi sisi server
 │   └── wa.ts                  # penyusun pesan dan tautan WhatsApp
 ├── database/
-│   ├── schema.sql             # struktur tabel
+│   ├── schema.sql             # struktur tabel Postgres
 │   └── seed.sql               # data contoh Mie Jebew
 ├── docs/
 │   └── panduan-demo.md        # skenario presentasi dan keterbatasan
+├── scripts/
+│   └── siap-supabase.mjs      # menjalankan skema dan seed ke Supabase
 ├── public/assets/             # tanda dan ikon aplikasi
 ├── tests/                     # pengujian logika inti
 ├── .github/workflows/ci.yml   # pemeriksaan pada setiap push
@@ -278,7 +308,7 @@ jebew/
 5. Periksa angka porsi yang muncul. Bila nol, berarti salah satu bahan masih kosong
 
 > [!WARNING]
-> Berkas di dalam `database/` dipakai saat database pertama kali dibuat. Mengubahnya setelah database ada tidak akan berpengaruh sampai berkas `data/jebew.db` dihapus.
+> Berkas di dalam `database/` dijalankan sekali lewat `npm run siap:supabase`. Mengubahnya setelah tabel ada tidak akan mengubah struktur yang sudah terpasang. Buat migrasi baru bila perlu mengubah struktur.
 
 ### Menjalankan pengujian
 
@@ -312,12 +342,14 @@ Aturan tipe TypeScript ada di `tsconfig.json` dengan mode strict. Pengujian mema
 
 ## Keamanan
 
-Dashboard admin dilindungi PIN yang dividerifikasi di server. Sesi disimpan dalam cookie HttpOnly bertanda tangan HMAC. Setiap endpoint admin memeriksa sesi di dalam handler, bukan hanya di antarmuka. Semua masukan divalidasi dengan Zod di server, semua kueri memakai parameter, dan semua perubahan stok berjalan dalam transaksi database.
+Dashboard admin dilindungi PIN yang diverifikasi di server. Sesi disimpan dalam cookie HttpOnly bertanda tangan HMAC. Setiap endpoint admin memeriksa sesi di dalam handler, bukan hanya di antarmuka. Semua masukan divalidasi dengan Zod di server, semua kueri Postgres memakai parameter, dan semua perubahan stok berjalan dalam satu transaksi database.
+
+Akses ke Supabase hanya dari kode server lewat `DATABASE_URL`. Tidak ada kunci database yang dikirim ke browser. Row Level Security aktif pada semua tabel sebagai pertahanan tambahan. Di lingkungan produksi, aplikasi menolak jalan bila `ADMIN_PIN` atau `RAHASIA_SESI` kosong.
 
 Kerentanan dependensi diperiksa di CI pada setiap push. Cara melaporkan temuan ada di [`SECURITY.md`](SECURITY.md).
 
 > [!NOTE]
-> PIN bawaan hanya untuk demo. Rahasiakan berkas `.env.local` dan jangan pernah memasukkannya ke git.
+> Rahasiakan berkas `.env.local` dan jangan pernah memasukkannya ke git. Putar ulang kata sandi database bila connection string pernah terbuka.
 
 ---
 
@@ -327,7 +359,7 @@ Kerentanan dependensi diperiksa di CI pada setiap push. Cara melaporkan temuan a
 |----------|--------|
 | `ci.yml` | Menjalankan pemeriksaan tipe, pengujian, audit dependensi, dan build pada setiap push dan pull request |
 
-Setiap perubahan dikerjakan pada branch tersendiri, lalu dikirim sebagai pull request ke `main`. CI menilai setiap push dan pull request. Penggabungan ke `main` hanya dilakukan setelah pemeriksaan hijau. Prototipe Tahap 1 sudah tergabung dan dirilis sebagai `v0.1.0`.
+Setiap perubahan dikerjakan pada branch tersendiri, lalu dikirim sebagai pull request ke `main`. CI menilai setiap push dan pull request. Penggabungan ke `main` hanya dilakukan setelah pemeriksaan hijau. Rilis `v0.1.0` memakai SQLite lokal. Rilis `v0.2.0` memakai Supabase dan Vercel.
 
 ---
 
@@ -336,14 +368,14 @@ Setiap perubahan dikerjakan pada branch tersendiri, lalu dikirim sebagai pull re
 <details>
 <summary><b>Apakah aplikasi ini butuh Supabase atau akun cloud?</b></summary>
 
-Tidak. Prototipe memakai SQLite lokal yang tersimpan di `data/jebew.db`. Skema dan data contoh ada di folder `database`.
+Ya. Data disimpan di Supabase Postgres. Kamu perlu satu project Supabase gratis dan `DATABASE_URL` di `.env.local`. Untuk mempublikasikannya, kamu juga perlu akun Vercel.
 
 </details>
 
 <details>
 <summary><b>Bagaimana cara mengembalikan data contoh setelah dicoba?</b></summary>
 
-Hentikan aplikasi, hapus folder `data`, lalu jalankan `npm run dev` lagi. Database beserta data contoh akan dibuat ulang otomatis.
+Buka SQL Editor di panel Supabase, hapus isi tabel `item_penjualan`, `penjualan`, `item_preorder`, dan `preorder` dalam urutan itu, lalu jalankan isi `database/seed.sql` kembali. Data bahan, menu, dan resep akan kembali seperti semula.
 
 </details>
 

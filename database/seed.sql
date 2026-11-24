@@ -1,4 +1,4 @@
--- Data contoh untuk keperluan demo Tahap 1.
+-- Data contoh untuk keperluan demo Tahap 1. Dijalankan setelah schema.sql.
 
 INSERT INTO bahan (id, nama, satuan, stok, stok_minimum) VALUES
   (1, 'Mie', 'gram', 1000, 200),
@@ -6,12 +6,14 @@ INSERT INTO bahan (id, nama, satuan, stok, stok_minimum) VALUES
   (3, 'Telur', 'butir', 15, 5),
   (4, 'Cabai', 'gram', 100, 30),
   (5, 'Teh', 'gram', 50, 20),
-  (6, 'Gula', 'gram', 200, 50);
+  (6, 'Gula', 'gram', 200, 50)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO menu (id, nama, harga, deskripsi, kategori, foto, aktif) VALUES
-  (1, 'Mie Jebew Original', 15000, 'Mie dengan bumbu khas Jebew dan telur.', 'Makanan', NULL, 1),
-  (2, 'Mie Jebew Pedas', 17000, 'Mie Jebew dengan tambahan cabai pedas.', 'Makanan', NULL, 1),
-  (3, 'Es Teh', 5000, 'Teh manis dingin, pendamping yang pas.', 'Minuman', NULL, 1);
+  (1, 'Mie Jebew Original', 15000, 'Mie dengan bumbu khas Jebew dan telur.', 'Makanan', NULL, TRUE),
+  (2, 'Mie Jebew Pedas', 17000, 'Mie Jebew dengan tambahan cabai pedas.', 'Makanan', NULL, TRUE),
+  (3, 'Es Teh', 5000, 'Teh manis dingin, pendamping yang pas.', 'Minuman', NULL, TRUE)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO resep (menu_id, bahan_id, jumlah_per_porsi) VALUES
   (1, 1, 100),
@@ -22,8 +24,15 @@ INSERT INTO resep (menu_id, bahan_id, jumlah_per_porsi) VALUES
   (2, 3, 1),
   (2, 4, 15),
   (3, 5, 5),
-  (3, 6, 10);
+  (3, 6, 10)
+ON CONFLICT (menu_id, bahan_id) DO NOTHING;
 
 INSERT INTO pengaturan (kunci, nilai) VALUES
   ('nama_usaha', 'Mie Jebew'),
-  ('whatsapp_admin', '6281234567890');
+  ('whatsapp_admin', '6281234567890')
+ON CONFLICT (kunci) DO NOTHING;
+
+-- ID disisipkan eksplisit agar data contoh stabil. Sequence harus digeser supaya
+-- baris baru tidak bertabrakan dengan ID contoh.
+SELECT setval(pg_get_serial_sequence('bahan', 'id'), (SELECT MAX(id) FROM bahan));
+SELECT setval(pg_get_serial_sequence('menu', 'id'), (SELECT MAX(id) FROM menu));
