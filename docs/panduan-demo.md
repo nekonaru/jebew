@@ -5,7 +5,7 @@ Panduan ini dipakai untuk menunjukkan alur utama Jebew dalam waktu lima menit. S
 ## Persiapan
 
 1. Pastikan project Supabase sudah aktif dan `DATABASE_URL` terisi di `.env.local`
-2. Jalankan `npm run siap:supabase` sekali untuk memasang tabel dan data contoh
+2. Jalankan `npm run siap:supabase` untuk memasang tabel. Bila data lama masih ada, jalankan `npm run muat:contoh` agar menu terbaru terpasang
 3. Jalankan `npm ci` lalu `npm run dev`
 4. Buka `http://localhost:3000` di browser
 5. Buka tab lain ke `http://localhost:3000/admin/login` dan masukkan PIN yang kamu atur
@@ -15,7 +15,7 @@ Panduan ini dipakai untuk menunjukkan alur utama Jebew dalam waktu lima menit. S
 
 ### Menit pertama: kondisi awal
 
-Tampilkan website konsumen. Mie Jebew Original berstatus **Tersedia** dengan keterangan **Sisa 8 porsi**. Jelaskan bahwa angka itu dihitung dari stok mie 1.000 gram, bumbu 80 gram, dan telur 15 butir. Bumbu menjadi penghambat karena hanya cukup untuk delapan porsi.
+Tampilkan website konsumen dengan 33 menu Warung Kak Ikaa. Coba filter kategori **Minuman**, lalu kolom cari dengan kata "dumpling", lalu kembalikan ke **Semua**. Tunjukkan Mie Jebew Original berstatus **Tersedia** dengan keterangan **Sisa 8 porsi**. Jelaskan bahwa angka itu dihitung dari stok mie 2.000 gram, bumbu chili oil 120 gram, dan telur 60 butir. Bumbu menjadi penghambat karena hanya cukup untuk delapan porsi.
 
 ### Menit kedua: menu dan resep
 
@@ -27,7 +27,7 @@ Buka halaman **Kasir**, pilih Mie Jebew Original, masukkan jumlah delapan, lalu 
 
 ### Menit keempat: laporan dan restock
 
-Buka halaman **Laporan**. Tampilkan omzet Rp120.000 dari satu transaksi. Kembali ke **Bahan baku**, tekan **Tambah stok** pada Bumbu, lalu isi seratus gram. Segarkan tab website. Mie Jebew Original kembali **Tersedia** dengan sisa dua porsi.
+Buka halaman **Laporan**. Tampilkan omzet Rp80.000 dari satu transaksi. Kembali ke **Bahan baku**, tekan **Tambah stok** pada Bumbu Chili Oil, lalu isi seratus gram. Segarkan tab website. Mie Jebew Original kembali **Tersedia** dengan sisa enam porsi.
 
 ### Menit kelima: pre-order
 

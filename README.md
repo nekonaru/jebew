@@ -42,7 +42,9 @@
 
 ## Tentang
 
-**Jebew** adalah prototipe aplikasi untuk UMKM kuliner Mie Jebew. Aplikasi ini menyatukan dua sisi yang memakai satu database: dashboard admin untuk mengelola bahan, resep, kasir, laporan, dan pre-order, serta website konsumen untuk melihat menu yang masih tersedia dan memesan lewat WhatsApp.
+**Jebew** adalah prototipe aplikasi pre-order untuk **Warung Kak Ikaa**, penjual Mie Jebew Chili Oil dan Wonton Ayam Chili Oil. Aplikasi ini menyatukan dua sisi dalam satu database: dashboard admin untuk mengelola bahan, resep, kasir, laporan, dan pre-order, serta website konsumen untuk melihat menu yang masih tersedia dan memesan lewat WhatsApp.
+
+Menu yang tersedia mencakup 11 varian Mie Jebew, 4 pilihan wonton, 2 mie chili oil, 10 extra topping, dan 6 minuman. Level pedas 0 sampai 3 dicantumkan pelanggan lewat kolom catatan saat memesan.
 
 Inti sistem ada pada resep. Setiap menu menyimpan daftar bahan dan jumlah per satu porsi. Jumlah porsi yang bisa dibuat dihitung dari nilai terkecil antara stok bahan dibagi kebutuhan per porsi. Saat transaksi dicatat, stok berkurang otomatis dan status menu di website berubah tanpa diubah manual.
 
@@ -84,7 +86,9 @@ Inti sistem ada pada resep. Setiap menu menyimpan daftar bahan dan jumlah per sa
 | **Transaksi atomik** | Pengecekan stok, penyimpanan penjualan, dan pengurangan stok terjadi dalam satu transaksi database |
 | **Snapshot harga** | Nama menu dan harga disimpan saat transaksi agar laporan lama tidak berubah |
 | **Stok tidak negatif** | Batas database menolak nilai stok di bawah nol |
-| **Data contoh** | Tiga menu dan enam bahan siap pakai untuk keperluan demo |
+| **Data contoh** | 33 menu dan 23 bahan Warung Kak Ikaa siap pakai untuk keperluan demo |
+| **Filter dan pencarian** | Pilih kategori atau cari nama menu tanpa memuat ulang halaman |
+| **Total langsung** | Total pre-order terhitung otomatis saat menambah menu dan mengubah jumlah |
 
 ---
 
@@ -242,10 +246,11 @@ Variabel lingkungan dibaca dari berkas `.env.local`.
 Simulasi lima menit untuk presentasi ke dosen dan mitra. Panduan lengkap ada di [`docs/panduan-demo.md`](docs/panduan-demo.md).
 
 1. Tampilkan website konsumen. Mie Jebew Original berstatus Tersedia dengan sisa delapan porsi
-2. Di dashboard kasir, catat delapan porsi Mie Jebew Original
-3. Segarkan website. Menu berubah menjadi Habis dan laporan harian menampilkan omzet Rp120.000
-4. Di dashboard bahan, tambah seratus gram Bumbu. Menu kembali Tersedia
-5. Buat pre-order dari ponsel. Tautan WhatsApp admin terbuka dengan pesan yang sudah rapi
+2. Coba filter kategori **Minuman** dan kolom cari, lalu kembalikan ke **Semua**
+3. Di dashboard kasir, catat delapan porsi Mie Jebew Original
+4. Segarkan website. Menu berubah menjadi Habis dan laporan menampilkan omzet Rp80.000
+5. Di dashboard bahan, tambah seratus gram Bumbu Chili Oil. Menu kembali Tersedia dengan sisa enam porsi
+6. Buat pre-order dari ponsel. Tautan WhatsApp admin terbuka dengan pesan yang sudah rapi
 
 ---
 
@@ -283,7 +288,8 @@ jebew/
 ├── docs/
 │   └── panduan-demo.md        # skenario presentasi dan keterbatasan
 ├── scripts/
-│   └── siap-supabase.mjs      # menjalankan skema dan seed ke Supabase
+│   ├── siap-supabase.mjs      # menjalankan skema dan seed ke Supabase
+│   └── muat-contoh.mjs        # mengganti seluruh data dengan menu terbaru
 ├── public/assets/             # tanda dan ikon aplikasi
 ├── tests/                     # pengujian logika inti
 ├── .github/workflows/ci.yml   # pemeriksaan pada setiap push
@@ -309,6 +315,15 @@ jebew/
 
 > [!WARNING]
 > Berkas di dalam `database/` dijalankan sekali lewat `npm run siap:supabase`. Mengubahnya setelah tabel ada tidak akan mengubah struktur yang sudah terpasang. Buat migrasi baru bila perlu mengubah struktur.
+
+### Mengganti data contoh setelah mengubah menu
+
+1. Ubah isi `database/seed.sql`
+2. Jalankan `npm run muat:contoh`
+3. Perintah ini menghapus transaksi dan pre-order lama, lalu memasang kembali seluruh menu, bahan, dan resep
+
+> [!CAUTION]
+> `npm run muat:contoh` menghapus semua transaksi dan pre-order. Pakai hanya untuk data demo, bukan data yang sudah dipakai untuk pencatatan nyata.
 
 ### Menjalankan pengujian
 
