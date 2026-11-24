@@ -17,7 +17,7 @@ Audit mendalam dan optimalisasi pada fitur yang sudah ada.
 
 ### Peningkatan
 
-- **Muat menu jauh lebih cepat.** Semua resep diambil dalam satu kueri dan menu langsung dirender dari server. Halaman tidak lagi menunggu fetch awal.
+- **Muat menu jauh lebih cepat.** Semua resep diambil dalam satu kueri, menu langsung dirender dari server, dan data publik disimpan dalam cache 10 detik. Halaman tidak lagi menunggu fetch awal.
 - **Lebih ringan.** Daftar preorder dan transaksi memakai satu kueri lalu dikelompokkan di memori, bukan satu kueri per baris.
 - **Batas jumlah kasir.** Jumlah dibatasi 1 sampai 100 di antarmuka agar sesuai dengan validasi server.
 - **Tanpa label prototipe.** Catatan prototipe dan PIN demo dihapus dari antarmuka.
