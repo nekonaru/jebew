@@ -60,6 +60,45 @@ dialog:not([open]) {
   display: none;
 }
 
+@keyframes muncul {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animasi-muncul {
+  animation: muncul 0.35s ease-out both;
+}
+
+@keyframes dialog-masuk {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes layar-masuk {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+dialog[open] {
+  animation: dialog-masuk 0.22s ease-out;
+}
+
+dialog[open]::backdrop {
+  animation: layar-masuk 0.22s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

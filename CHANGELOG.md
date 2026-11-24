@@ -1,5 +1,26 @@
 # Riwayat Perubahan
 
+## v0.3.0
+
+Menu Warung Kak Ikaa dimasukkan lengkap dan tampilan konsumen disederhanakan agar lebih mudah dipakai.
+
+### Fitur baru
+
+- **Menu lengkap.** 33 item dari lima kategori: Mie Jebew, Wonton Ayam Chili Oil, Mie Chili Oil, Extra Topping, dan Minuman.
+- **Filter dan pencarian.** Pelanggan bisa memilih kategori atau mencari nama menu langsung di halaman.
+- **Muat ulang contoh.** Perintah `npm run muat:contoh` mengganti seluruh data demo dengan isi `seed.sql` terbaru.
+
+### Peningkatan
+
+- **Tampilan lebih jelas.** Informasi harga, status, dan sisa porsi dipisah dengan rapi di setiap kartu menu.
+- **Animasi ringan.** Transisi kartu dan dialog memakai CSS murni, tanpa pustaka tambahan.
+- **Total langsung.** Form pre-order menampilkan total yang berubah saat jumlah diubah.
+- **Petunjuk level pedas.** Pelanggan diingatkan menuliskan level 0 sampai 3 di kolom catatan.
+
+### Penggunaan
+
+Jalankan `npm run muat:contoh` sekali untuk memasang menu terbaru ke Supabase, lalu buka website konsumen.
+
 ## v0.2.0
 
 Prototipe Tahap 1 kini memakai Supabase Postgres dan siap dideploy ke Vercel.
