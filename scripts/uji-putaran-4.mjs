@@ -23,19 +23,19 @@ if (ekspor.status === 200) {
 
   const tanpaKonfirmasi = await api("/api/pulihkan", {
     method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie },
-    body: JSON.stringify({ konfirmasi: "YA", data: cadangan.data }),
+    body: JSON.stringify({ aplikasi: "Jebew", konfirmasi: "YA", data: cadangan.data }),
   });
   catat("pulihkan tanpa konfirmasi ditolak", tanpaKonfirmasi.status === 400, String(tanpaKonfirmasi.status));
 
   const tabelAsing = await api("/api/pulihkan", {
     method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie },
-    body: JSON.stringify({ konfirmasi: "PULIHKAN", data: { rahasia: [] } }),
+    body: JSON.stringify({ aplikasi: "Jebew", konfirmasi: "PULIHKAN", data: { rahasia: [] } }),
   });
   catat("pulihkan tabel asing ditolak", tabelAsing.status === 400, String(tabelAsing.status));
 
   const pulih = await api("/api/pulihkan", {
     method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie },
-    body: JSON.stringify({ konfirmasi: "PULIHKAN", data: cadangan.data }),
+    body: JSON.stringify({ aplikasi: "Jebew", konfirmasi: "PULIHKAN", data: cadangan.data }),
   });
   catat("pulihkan berhasil", pulih.status === 200, String(pulih.status));
   const sesudah = JSON.parse((await api("/api/menu", { headers: H })).teks);

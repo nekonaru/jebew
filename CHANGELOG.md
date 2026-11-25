@@ -1,5 +1,33 @@
 # Riwayat Perubahan
 
+## final-v1.6.0
+
+Audit putaran kelima dan analitik operasional.
+
+### Perbaikan kritis
+
+- **Tanggal kolom DATE dibaca sebagai teks.** Parser database kini mengembalikan `YYYY-MM-DD`, sehingga preorder lewat slot tidak lagi ditolak dan grafik serta jadwal menampilkan tanggal yang benar.
+- **Pemulihan cadangan produksi.** Batas ukuran permintaan untuk endpoint pemulihan dinaikkan menjadi 8 MB dan berkas divalidasi lengkap sebelum tabel dikosongkan.
+- **Akun pada cadangan tidak merusak relasi.** Kolom referensi pengguna dinolkan saat memulihkan ke database lain.
+- **Preorder lama tetap selesai.** Menu yang sudah dinonaktifkan tetap boleh diproses lewat jalur preorder.
+- **Waktu ambil lebih ketat.** Jam dan menit divalidasi, termasuk waktu yang sudah lewat pada hari yang sama.
+- **Pemilik terakhir terkunci.** Pemeriksaan jumlah pemilik aktif memakai kunci advisory agar dua perubahan bersamaan tidak menghilangkan semua pemilik.
+- **Identitas cetak langsung.** Struk kasir dan kop laporan mengambil nama usaha dari endpoint yang tidak di-cache.
+
+### Fitur baru
+
+- **Laba per menu.** Laporan menampilkan porsi, omzet, dan laba untuk setiap menu.
+- **Nilai stok.** Dashboard menampilkan total nilai bahan aktif.
+- **Kirim daftar stok.** Tombol pada dashboard menyusun pesan WhatsApp berisi bahan yang perlu diisi.
+
+### Peningkatan
+
+- Urutan tanggal pada ekspor CSV diberi penanda WIB, kunci daftar menu diperbaiki, dan ukuran berkas cadangan diperiksa sebelum dibaca.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.5.0
 
 Audit putaran keempat dan pemulihan cadangan.

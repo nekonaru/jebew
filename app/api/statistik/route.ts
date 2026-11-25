@@ -12,7 +12,7 @@ export async function GET() {
     if (!(await penggunaSaatIni())) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    const [penjualan, pengeluaran, preorder, bahan, menu, tren, menipis, terlaris] = await Promise.all([
+    const [penjualan, pengeluaran, preorder, bahan, menu, tren, menipis, terlaris, nilaiStok] = await Promise.all([
       querySatu<{ omzet: number; jumlah: number }>(
         "SELECT COALESCE(SUM(total),0) AS omzet, COUNT(*) AS jumlah FROM penjualan WHERE dibuat_pada::date = $1::date",
         [tanggalHariIni()],
@@ -51,6 +51,9 @@ export async function GET() {
          GROUP BY i.nama_menu, i.nama_varian ORDER BY jumlah DESC LIMIT 5`,
         [tanggalHariIni()],
       ),
+      querySatu<{ nilai: number }>(
+        "SELECT COALESCE(SUM(stok * harga_rata_rata),0) AS nilai FROM bahan WHERE aktif = TRUE",
+      ),
     ]);
     return NextResponse.json({
       omzet: Number(penjualan?.omzet ?? 0),
@@ -59,6 +62,7 @@ export async function GET() {
       preorderAktif: Number(preorder?.jumlah ?? 0),
       bahanTipis: Number(bahan?.jumlah ?? 0),
       menuTotal: Number(menu?.total ?? 0),
+      nilaiStok: Number(nilaiStok?.nilai ?? 0),
       tren: tren.map((t) => ({
         tanggal: String(t.tanggal).slice(0, 10),
         omzet: Number(t.omzet),

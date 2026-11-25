@@ -10,6 +10,8 @@ const { Pool } = pg;
 // Samakan bentuk nilai tanggal dan bilangan besar supaya lapisan tampilan menerima teks dan angka, bukan objek Date.
 pg.types.setTypeParser(1114, (nilai: string) => nilai.split(".")[0]);
 pg.types.setTypeParser(1184, (nilai: string) => nilai.split(".")[0]);
+// Kolom DATE harus tetap berupa YYYY-MM-DD, bukan objek Date UTC.
+pg.types.setTypeParser(1082, (nilai: string) => nilai);
 pg.types.setTypeParser(20, (nilai: string) => Number(nilai));
 
 type Pelaksana = Pick<pg.PoolClient, "query">;

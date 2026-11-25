@@ -2,7 +2,7 @@
 
 import { query, querySatu, denganTransaksi, jalankan } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
-import { hppPerTransaksi, ringkasKeuangan } from "../inti-final.ts";
+import { hppBaris, hppPerTransaksi, ringkasKeuangan } from "../inti-final.ts";
 import type { PenggunaSesi } from "../auth.ts";
 import { catatAudit } from "../audit.ts";
 
@@ -28,7 +28,7 @@ export async function ambilLaporan(dari: string, sampai: string) {
 
   const peta = new Map<number, {
     nomor: string; total: number; diskon: number; metode: string; sumber: string;
-    dibuat_pada: string; hpp: number; items: { nama: string; jumlah: number }[];
+    dibuat_pada: string; hpp: number; items: { nama: string; jumlah: number; omzet: number; hpp: number }[];
   }>();
   for (const baris of penjualan) {
     if (!peta.has(baris.id)) {
@@ -39,7 +39,11 @@ export async function ambilLaporan(dari: string, sampai: string) {
     }
     if (baris.nama_menu) {
       const nama = baris.nama_varian ? `${baris.nama_menu} (${baris.nama_varian})` : baris.nama_menu;
-      peta.get(baris.id)!.items.push({ nama, jumlah: baris.jumlah });
+      peta.get(baris.id)!.items.push({
+        nama, jumlah: baris.jumlah,
+        omzet: Number(baris.subtotal ?? 0),
+        hpp: hppBaris(Number(baris.hpp ?? 0), Number(baris.jumlah ?? 0)),
+      });
     }
   }
 
@@ -55,16 +59,20 @@ export async function ambilLaporan(dari: string, sampai: string) {
     Number(pengeluaran?.jumlah ?? 0),
   );
 
-  const menuTerlaris = new Map<string, number>();
+  const menuTerlaris = new Map<string, { jumlah: number; omzet: number; hpp: number }>();
   for (const transaksi of daftar) {
     for (const item of transaksi.items) {
-      menuTerlaris.set(item.nama, (menuTerlaris.get(item.nama) ?? 0) + item.jumlah);
+      const nilai = menuTerlaris.get(item.nama) ?? { jumlah: 0, omzet: 0, hpp: 0 };
+      nilai.jumlah += item.jumlah;
+      nilai.omzet += item.omzet;
+      nilai.hpp += item.hpp;
+      menuTerlaris.set(item.nama, nilai);
     }
   }
   const terlaris = [...menuTerlaris.entries()]
-    .map(([nama, jumlah]) => ({ nama, jumlah }))
+    .map(([nama, v]) => ({ nama, ...v, laba: v.omzet - v.hpp }))
     .sort((a, b) => b.jumlah - a.jumlah)
-    .slice(0, 5);
+    .slice(0, 8);
 
   const harian = new Map<string, number>();
   for (const transaksi of daftar) {
@@ -141,7 +149,7 @@ export function keCsv(laporan: Awaited<ReturnType<typeof ambilLaporan>>): string
     const menu = transaksi.items.map((i) => `${i.nama} x${i.jumlah}`).join(" | ");
     baris.push([
       transaksi.nomor,
-      transaksi.dibuat_pada,
+      `${transaksi.dibuat_pada} WIB`,
       `"${menu.replace(/"/g, '""')}"`,
       transaksi.items.reduce((n, i) => n + i.jumlah, 0),
       transaksi.metode,

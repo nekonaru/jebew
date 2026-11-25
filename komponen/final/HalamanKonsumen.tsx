@@ -135,7 +135,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         body: JSON.stringify({
           items: keranjang.map((i) => ({ menu_id: i.menuId, varian_id: i.varianId, jumlah: i.jumlah })),
           nama_pelanggan: nama, whatsapp,
-          waktu_ambil: slotDipilih ? `${slotDipilih.tanggal} ${slotDipilih.jam}` : waktu,
+          waktu_ambil: slotDipilih ? `${String(slotDipilih.tanggal).slice(0, 10)} ${slotDipilih.jam}` : waktu,
           slot_id: slotId ? Number(slotId) : null,
           catatan,
         }),

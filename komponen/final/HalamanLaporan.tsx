@@ -8,7 +8,7 @@ import { Badge, Judul, Kartu, Pesan, Statistik, Tabel, KepalaTabel, SelKepala, B
 type Laporan = {
   daftar: { id: number; nomor: string; total: number; diskon: number; metode: string; sumber: string; dibuat_pada: string; items: { nama: string; jumlah: number }[]; hpp: number }[];
   ringkasan: { omzet: number; hpp: number; diskon: number; labaKotor: number; pengeluaran: number; labaBersih: number; perMetode: Record<string, number> };
-  menuTerlaris: { nama: string; jumlah: number }[];
+  menuTerlaris: { nama: string; jumlah: number; omzet: number; hpp: number; laba: number }[];
   harian: { tanggal: string; omzet: number }[];
   pengeluaranList: { id: number; nama: string; jumlah: number; tanggal: string; kategori: string }[];
 };
@@ -29,8 +29,8 @@ export default function HalamanLaporan() {
   useEffect(() => { const h = tanggalHariIni(); void muat(h, h); }, [muat]);
 
   useEffect(() => {
-    void fetch("/api/dashboard").then(ambilJson<{ pengaturan: Record<string, string> }>)
-      .then((d) => setNamaUsaha(d.pengaturan.nama_usaha ?? "Warung Kak Ikaa"))
+    void fetch("/api/pengaturan").then(ambilJson<Record<string, string>>)
+      .then((d) => setNamaUsaha(d.nama_usaha ?? "Warung Kak Ikaa"))
       .catch(() => {});
   }, []);
 
@@ -99,17 +99,25 @@ export default function HalamanLaporan() {
         </Kartu>
 
         <Kartu>
-          <h2 className="text-lg font-semibold">Menu terlaris</h2>
-          <ul className="mt-4 space-y-3">
-            {data?.menuTerlaris.map((m, i) => (
-              <li key={m.nama} className="flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-latar text-xs font-semibold">{i + 1}</span>
-                <span className="flex-1 text-sm">{m.nama}</span>
-                <Badge>{m.jumlah} porsi</Badge>
-              </li>
-            ))}
-            {!data?.menuTerlaris.length && <li className="text-sm text-tinta-lemah">Belum ada data.</li>}
-          </ul>
+          <h2 className="text-lg font-semibold">Menu terlaris dan laba</h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[420px] text-left text-sm">
+              <thead className="border-b border-garis text-[11px] uppercase tracking-wide text-tinta-lemah">
+                <tr><th className="py-2 font-semibold">Menu</th><th className="py-2 font-semibold">Porsi</th><th className="py-2 font-semibold">Omzet</th><th className="py-2 font-semibold">Laba</th></tr>
+              </thead>
+              <tbody className="divide-y divide-garis">
+                {data?.menuTerlaris.map((m) => (
+                  <tr key={m.nama}>
+                    <td className="py-2 pr-3 font-medium">{m.nama}</td>
+                    <td className="py-2"><Badge>{m.jumlah}</Badge></td>
+                    <td className="py-2">{formatRupiah(m.omzet)}</td>
+                    <td className="py-2 font-semibold text-sukses">{formatRupiah(m.laba)}</td>
+                  </tr>
+                ))}
+                {!data?.menuTerlaris.length && <tr><td colSpan={4} className="py-8 text-center text-tinta-lemah">Belum ada data.</td></tr>}
+              </tbody>
+            </table>
+          </div>
           <div className="mt-5 flex flex-wrap gap-2 border-t border-garis pt-4">
             {Object.entries(data?.ringkasan.perMetode ?? {}).map(([m, n]) => (
               <Badge key={m} warna="info">{m}: {formatRupiah(n)}</Badge>

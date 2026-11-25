@@ -30,7 +30,7 @@ export type KasirInput = {
 type ResepDipakai = { menuId: number; varianId: number | null; jumlah: number; item: { bahanId: number; jumlahPerPorsi: number }[] };
 
 /** Validasi stok dan susun barang. Semua menu, varian, dan resep dimuat sekali, lalu diindeks. */
-async function siapkanBarang(items: KasirInput["items"]): Promise<{ barang: Barang[]; resepDipakai: ResepDipakai[] }> {
+async function siapkanBarang(items: KasirInput["items"], untukPreorder = false): Promise<{ barang: Barang[]; resepDipakai: ResepDipakai[] }> {
   // Di dalam transaksi semua kueri memakai satu koneksi, jadi dijalankan berurutan.
   const bahan = await ambilBahanTransaksi();
   const daftarMenu = await ambilMenu();
@@ -40,7 +40,7 @@ async function siapkanBarang(items: KasirInput["items"]): Promise<{ barang: Bara
 
   for (const item of items) {
     const menu = petaMenu.get(item.menu_id);
-    if (!menu || !menu.aktif) throw new GalatBisnis(`Menu dengan id ${item.menu_id} tidak tersedia`);
+    if (!menu || (!menu.aktif && !untukPreorder)) throw new GalatBisnis(`Menu dengan id ${item.menu_id} tidak tersedia`);
 
     let varianNama = "";
     let harga = menu.harga;
@@ -297,7 +297,7 @@ export async function selesaikanPreorder(id: number, pengguna: PenggunaSesi | nu
     const mangsa: KasirInput["items"] = snapshot.map((s) => ({
       menu_id: s.menu_id, varian_id: s.varian_id && varianIds.has(s.varian_id) ? s.varian_id : null, jumlah: s.jumlah,
     }));
-    const { resepDipakai } = await siapkanBarang(mangsa);
+    const { resepDipakai } = await siapkanBarang(mangsa, true);
     const total = snapshot.reduce((n, b) => n + b.subtotal, 0);
     const nomor = await nomorPenjualan();
 

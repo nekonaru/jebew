@@ -92,7 +92,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Riwayat pergerakan** | Semua stok masuk, keluar, penyesuaian, dan rusak tercatat |
 | **Pembelian** | Supplier, harga beli, dan harga rata rata diperbarui otomatis |
 | **Stock opname** | Input stok fisik, selisih, dan alasan |
-| **Peringatan stok** | Bahan menipis ditandai di dashboard beserta jumlah dan batasnya |
+| **Peringatan stok** | Bahan menipis ditandai di dashboard beserta jumlah, batas, dan tombol kirim WhatsApp |
 | **Master data** | Kelola supplier dan kategori pengeluaran lewat satu halaman |
 | **Konversi satuan** | Hitung kg ke gram, liter ke ml, dan lusin ke pcs |
 
@@ -102,8 +102,9 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 |-------|-----------|
 | **HPP dan margin** | Dihitung otomatis dari resep dan harga bahan, lalu disimpan per transaksi |
 | **Pengeluaran** | Kategori gas, listrik, sewa, gaji, dan lainnya |
-| **Laporan** | Omzet, HPP, laba kotor, laba bersih, grafik harian, dan ringkasan yang bisa dicetak |
+| **Laporan** | Omzet, HPP, laba kotor, laba bersih, laba per menu, grafik harian, dan ringkasan cetak |
 | **Omzet 7 hari** | Grafik batang di dashboard tanpa pustaka grafik tambahan |
+| **Nilai stok** | Total nilai bahan aktif pada dashboard |
 | **Menu paling laku** | Lima menu terlaris tujuh hari terakhir beserta omzetnya |
 | **Ekspor CSV** | Unduh rincian transaksi untuk rentang tanggal tertentu |
 | **Cadangan JSON** | Unduh dan pulihkan seluruh data induk serta turunan tanpa kata sandi pengguna |

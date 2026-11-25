@@ -50,9 +50,10 @@ export async function izinLaju(kunci: string, batas: number, jendelaMs: number):
 export async function aman(
   permintaan: Request,
   peran: "publik" | "masuk" | "pemilik" = "masuk",
+  batasUkuran = BATAS_UKURAN,
 ): Promise<{ penolakan: Response | null; pengguna: PenggunaSesi | null }> {
   const panjang = Number(permintaan.headers.get("content-length") ?? "0");
-  if (Number.isFinite(panjang) && panjang > BATAS_UKURAN) {
+  if (Number.isFinite(panjang) && panjang > batasUkuran) {
     return { penolakan: Response.json({ pesan: "Permintaan terlalu besar" }, { status: 413 }), pengguna: null };
   }
   if (!asalValid(permintaan)) {

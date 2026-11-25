@@ -38,7 +38,18 @@ const skema = z.object({
   whatsapp: z.string().trim().regex(/^[0-9+\-() ]{8,20}$/),
   waktu_ambil: z.string().trim().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/, "Format waktu ambil: YYYY-MM-DD HH:mm")
     .refine((v) => v.slice(0, 10) >= tanggalHariIni(), "Waktu ambil tidak boleh lampau")
-    .refine((v) => { const h = Number(v.slice(11, 13)); return h >= 0 && h < 24; }, "Jam tidak valid"),
+    .refine((v) => {
+      const jam = Number(v.slice(11, 13));
+      const menit = Number(v.slice(14, 16));
+      return jam >= 0 && jam < 24 && menit >= 0 && menit < 60;
+    }, "Jam atau menit tidak valid")
+    .refine((v) => {
+      if (v.slice(0, 10) > tanggalHariIni()) return true;
+      const sekarang = new Date();
+      const jam = Number(v.slice(11, 13));
+      const menit = Number(v.slice(14, 16));
+      return jam * 60 + menit > sekarang.getHours() * 60 + sekarang.getMinutes();
+    }, "Waktu ambil sudah lewat"),
   slot_id: z.number().int().positive().nullable(),
   catatan: z.string().trim().max(300),
 }).strict();

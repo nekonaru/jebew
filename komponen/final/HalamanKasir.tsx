@@ -38,8 +38,8 @@ export default function HalamanKasir() {
   useEffect(() => { void muat(); }, [muat]);
 
   useEffect(() => {
-    void fetch("/api/dashboard").then(ambilJson<{ pengaturan: Record<string, string> }>)
-      .then((d) => setNamaUsaha(d.pengaturan.nama_usaha ?? "Warung Kak Ikaa"))
+    void fetch("/api/pengaturan").then(ambilJson<Record<string, string>>)
+      .then((d) => setNamaUsaha(d.nama_usaha ?? "Warung Kak Ikaa"))
       .catch(() => {});
   }, []);
 

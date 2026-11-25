@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
+import { tautanWhatsApp } from "@/lib/wa.ts";
 import { Badge, Judul, Kartu, Pesan, Statistik } from "./ui.tsx";
 import GrafikOmzet, { type TitikOmzet } from "./GrafikOmzet.tsx";
 
@@ -14,6 +15,7 @@ type Ringkasan = {
   preorderAktif: number;
   bahanTipis: number;
   menuTotal: number;
+  nilaiStok: number;
   tren: TitikOmzet[];
   bahanMenipis: { id: number; nama: string; satuan: string; stok: number; stok_minimum: number }[];
   terlaris: { nama: string; varian: string; jumlah: number; omzet: number }[];
@@ -56,6 +58,7 @@ export default function HalamanRingkasan() {
         <Statistik label="Transaksi" nilai={gagal ? "-" : String(statistik?.transaksi ?? 0)} keterangan="Hari ini" />
         <Statistik label="Pre-order aktif" nilai={gagal ? "-" : String(statistik?.preorderAktif ?? 0)} keterangan="Perlu ditangani" />
         <Statistik label="Bahan menipis" nilai={gagal ? "-" : String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
+        <Statistik label="Nilai stok" nilai={gagal ? "-" : formatRupiah(statistik?.nilaiStok ?? 0)} keterangan="Bahan aktif" />
       </div>
 
       {!gagal && <Kartu>
@@ -103,8 +106,23 @@ export default function HalamanRingkasan() {
               ))}
             </ul>
           )}
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             <Badge warna="info">Data WIB</Badge>
+            {(statistik?.bahanMenipis ?? []).length > 0 && (
+              <a
+                href={tautanWhatsApp(
+                  publik?.pengaturan.whatsapp_admin ?? "",
+                  `Halo, berikut bahan yang perlu segera diisi:\n${
+                    (statistik?.bahanMenipis ?? []).map((b) => `- ${b.nama}: ${b.stok} / ${b.stok_minimum} ${b.satuan}`).join("\n")
+                  }`,
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto inline-flex min-h-[38px] items-center rounded-xl border border-garis px-3 text-xs font-semibold text-sukses transition hover:bg-sukses-terang"
+              >
+                Kirim daftar via WhatsApp
+              </a>
+            )}
           </div>
         </Kartu>
       </div>
@@ -122,7 +140,7 @@ export default function HalamanRingkasan() {
         ) : (
           <ol className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             {statistik?.terlaris.map((m, i) => (
-              <li key={`${m.nama}-${m.varian}`} className="rounded-xl border border-garis p-3">
+              <li key={`${i}-${m.nama}-${m.varian}`} className="rounded-xl border border-garis p-3">
                 <div className="flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-latar text-[11px] font-bold text-utama">{i + 1}</span>
                   <p className="truncate text-sm font-semibold">{m.nama}</p>

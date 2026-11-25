@@ -81,8 +81,14 @@ export default function HalamanPengaturan() {
     const berkas = e.target.files?.[0];
     setCadangan(null); setKonfirmasi("");
     if (!berkas) return;
+    if (berkas.size > 8 * 1024 * 1024) {
+      setJenis("galat"); setPesan("Berkas terlalu besar. Maksimal 8 MB.");
+      return;
+    }
     try {
-      const isi = JSON.parse(await berkas.text()) as { aplikasi?: string; data?: Record<string, unknown[]> };
+      const isi = JSON.parse(await berkas.text()) as {
+        aplikasi?: string; versi?: string; data?: Record<string, unknown[]>;
+      };
       if (isi.aplikasi !== "Jebew" || !isi.data || typeof isi.data !== "object") {
         throw new Error("Berkas bukan cadangan Jebew yang valid");
       }
@@ -102,7 +108,7 @@ export default function HalamanPengaturan() {
     try {
       const respons = await fetch("/api/pulihkan", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ konfirmasi, data: cadangan }),
+        body: JSON.stringify({ aplikasi: "Jebew", konfirmasi, data: cadangan }),
       });
       const hasil = await ambilJson<{ jumlahBaris?: number }>(respons);
       setJenis("sukses"); setPesan(`Data berhasil dipulihkan (${hasil.jumlahBaris ?? 0} baris).`);

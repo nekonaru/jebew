@@ -35,6 +35,7 @@ export type PenggunaInput = {
 export async function simpanPengguna(input: PenggunaInput, id?: number, actorId?: number): Promise<void> {
   const email = input.email.trim().toLowerCase();
   await denganTransaksi(async () => {
+    await query("SELECT pg_advisory_xact_lock(818881)");
     if (id !== undefined) {
       const ada = await querySatu<{ id: number; peran: string }>(
         "SELECT id, peran FROM pengguna WHERE id = $1", [id],
@@ -74,6 +75,7 @@ export async function simpanPengguna(input: PenggunaInput, id?: number, actorId?
 
 export async function hapusPengguna(id: number, actorId?: number): Promise<void> {
   await denganTransaksi(async () => {
+    await query("SELECT pg_advisory_xact_lock(818881)");
     if (id === actorId) throw new GalatBisnis("Anda tidak bisa menghapus akun sendiri");
     const pengguna = await querySatu<{ peran: string; aktif: boolean }>(
       "SELECT peran, aktif FROM pengguna WHERE id = $1", [id],
