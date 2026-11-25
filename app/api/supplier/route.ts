@@ -14,11 +14,18 @@ const skema = z.object({
 
 export async function GET(req: Request) {
   try {
-    const { penolakan } = await aman(req, "masuk");
+    const { penolakan, pengguna } = await aman(req, "masuk");
     if (penolakan) return penolakan;
-    return NextResponse.json({
-      supplier: await query("SELECT id, nama, kontak, aktif FROM supplier ORDER BY nama"),
-    });
+    const supplier = await query("SELECT id, nama, kontak, aktif FROM supplier ORDER BY nama");
+    if (pengguna?.peran !== "pemilik") return NextResponse.json({ supplier });
+    const ringkasan = await query<{ id: number; nama: string; jumlah_pembelian: number; total: number }>(
+      `SELECT s.id, s.nama,
+              COUNT(p.id) AS jumlah_pembelian,
+              COALESCE(SUM(p.total), 0) AS total
+       FROM supplier s LEFT JOIN pembelian p ON p.supplier_id = s.id
+       GROUP BY s.id, s.nama ORDER BY total DESC`,
+    );
+    return NextResponse.json({ supplier, ringkasan });
   } catch (kesalahan) {
     return galat(kesalahan) as NextResponse;
   }

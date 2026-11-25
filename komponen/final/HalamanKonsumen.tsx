@@ -122,6 +122,12 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
 
   function bukaCheckout() {
     if (keranjang.length === 0) return;
+    if (!slotId && !waktu.trim()) {
+      setJenis("galat");
+      setPesan("Pilih slot waktu atau isi waktu ambil terlebih dahulu.");
+      setDialogKeranjang(false);
+      return;
+    }
     setPesan(""); setDialogKeranjang(false); setDialogCheckout(true);
   }
 

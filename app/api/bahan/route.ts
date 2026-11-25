@@ -21,8 +21,13 @@ export async function GET() {
     if (!pengguna) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    const bahan = await ambilBahan();
-    if (pengguna.peran !== "pemilik") return NextResponse.json({ bahan });
+    const semuaBahan = await ambilBahan();
+    if (pengguna.peran !== "pemilik") {
+      return NextResponse.json({
+        bahan: semuaBahan.map(({ harga_rata_rata: _harga, ...b }) => b),
+      });
+    }
+    const bahan = semuaBahan;
     const aktif = bahan.filter((b) => b.aktif);
     return NextResponse.json({
       bahan,

@@ -3,6 +3,7 @@
 import { denganTransaksi, jalankan, query, querySatu } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
 import { hashKataSandi } from "../auth.ts";
+import { escapeLike } from "../format.ts";
 import { catatAudit } from "../audit.ts";
 
 export async function ambilPengaturan(): Promise<Record<string, string>> {
@@ -131,7 +132,7 @@ export async function ambilAudit(filter: FilterAudit = {}): Promise<{
     syarat.push(`a.tabel = $${nilai.length}`);
   }
   if (filter.cari) {
-    nilai.push(`%${filter.cari.replace(/[\\%_]/g, "\\$&")}%`);
+    nilai.push(`%${escapeLike(filter.cari)}%`);
     syarat.push(`(a.catatan ILIKE $${nilai.length} ESCAPE '\\' OR p.nama ILIKE $${nilai.length} ESCAPE '\\')`);
   }
   const where = syarat.length > 0 ? `WHERE ${syarat.join(" AND ")}` : "";

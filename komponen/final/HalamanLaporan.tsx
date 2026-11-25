@@ -18,13 +18,14 @@ export default function HalamanLaporan() {
   const [dari, setDari] = useState(tanggalHariIni());
   const [sampai, setSampai] = useState(tanggalHariIni());
   const [data, setData] = useState<Laporan | null>(null);
+  const [rentangAktif, setRentangAktif] = useState({ dari: tanggalHariIni(), sampai: tanggalHariIni() });
   const [pesan, setPesan] = useState("");
   const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
 
   const muat = useCallback(async (a: string, b: string) => {
     try {
       const hasil = await fetch(`/api/laporan?dari=${a}&sampai=${b}`).then(ambilJson<Laporan>);
-      setData(hasil); setPesan("");
+      setData(hasil); setRentangAktif({ dari: a, sampai: b }); setPesan("");
     } catch (e) { setPesan(e instanceof Error ? e.message : "Gagal memuat laporan"); }
   }, []);
   useEffect(() => { const h = tanggalHariIni(); void muat(h, h); }, [muat]);
@@ -51,7 +52,7 @@ export default function HalamanLaporan() {
             const valid = tanggalValid(dari) && tanggalValid(sampai) && dari <= sampai && sampai <= hariIni &&
               (Date.parse(sampai) - Date.parse(dari)) <= 365 * 86400000;
             return valid ? (
-              <a href={`/api/laporan?dari=${dari}&sampai=${sampai}&format=csv`}
+              <a href={`/api/laporan?dari=${rentangAktif.dari}&sampai=${rentangAktif.sampai}&format=csv`}
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">
                 Unduh CSV
               </a>
@@ -79,7 +80,7 @@ export default function HalamanLaporan() {
         </div>
         <div id="laporan-cetak" className="mt-4 rounded-xl border border-garis p-4 text-sm">
           <p className="font-judul text-lg font-semibold">{namaUsaha}</p>
-          <p className="text-xs text-tinta-lemah">{dari} sampai {sampai} · WIB</p>
+          <p className="text-xs text-tinta-lemah">{rentangAktif.dari} sampai {rentangAktif.sampai} · WIB</p>
           <dl className="mt-4 grid gap-2 sm:grid-cols-2">
             <div className="flex justify-between gap-3"><dt>Omzet</dt><dd className="font-semibold">{formatRupiah(data?.ringkasan.omzet ?? 0)}</dd></div>
             <div className="flex justify-between gap-3"><dt>HPP</dt><dd className="font-semibold">{formatRupiah(data?.ringkasan.hpp ?? 0)}</dd></div>

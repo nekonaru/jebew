@@ -26,7 +26,7 @@ export async function GET(req: Request) {
         const aman = /^[=+\-@\t\r]/.test(teks) ? `'${teks}` : teks;
         return `"${aman.replace(/"/g, '""')}"`;
       };
-      const baris = ["Waktu,Aksi,Data,Catatan,Pengguna"];
+      const baris = ["Waktu,Aksi,Tabel,Catatan,Pengguna"];
       for (const a of daftar) {
         baris.push([
           `${a.dibuat_pada} WIB`, a.aksi, a.tabel,

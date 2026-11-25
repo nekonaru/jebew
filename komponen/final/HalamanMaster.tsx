@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ambilApi } from "@/komponen/api-klien.ts";
-import { formatAngka } from "@/lib/format.ts";
+import { formatAngka, formatRupiah } from "@/lib/format.ts";
 import { Badge, BarisKosong, Dialog, Judul, Kartu, KepalaTabel, SelKepala, Tabel, Tombol } from "./ui.tsx";
 
 type Supplier = { id: number; nama: string; kontak: string; aktif: boolean };
@@ -13,6 +13,7 @@ type Tab = "Supplier" | "Kategori";
 export default function HalamanMaster() {
   const [tab, setTab] = useState<Tab>("Supplier");
   const [supplier, setSupplier] = useState<Supplier[]>([]);
+  const [ringkasanSupplier, setRingkasanSupplier] = useState<{ id: number; nama: string; jumlah_pembelian: number; total: number }[]>([]);
   const [kategori, setKategori] = useState<Kategori[]>([]);
   const [konversi, setKonversi] = useState<Konversi[]>([]);
   const [nilaiKonversi, setNilaiKonversi] = useState("1");
@@ -28,11 +29,11 @@ export default function HalamanMaster() {
   const muat = useCallback(async () => {
     try {
       const [s, k, v] = await Promise.all([
-        ambilApi<{ supplier: Supplier[] }>("/api/supplier"),
+        ambilApi<{ supplier: Supplier[]; ringkasan?: { id: number; nama: string; jumlah_pembelian: number; total: number }[] }>("/api/supplier"),
         ambilApi<{ kategori: Kategori[] }>("/api/kategori"),
         ambilApi<{ konversi: Konversi[] }>("/api/konversi"),
       ]);
-      setSupplier(s.supplier ?? []);
+      setSupplier(s.supplier ?? []); setRingkasanSupplier(s.ringkasan ?? []);
       setKategori(k.kategori ?? []);
       setKonversi(v.konversi ?? []);
     } catch (e) {
@@ -113,6 +114,27 @@ export default function HalamanMaster() {
           <h2 className="text-lg font-semibold">Daftar {tab.toLowerCase()}</h2>
           <Tombol kelas="min-h-[38px] px-3 text-xs" onClick={() => buka()}>Tambah</Tombol>
         </div>
+
+        {tab === "Supplier" ? (
+          <div className="space-y-4">
+            <div className="overflow-x-auto">
+              <Tabel>
+                <KepalaTabel>
+                  <tr><SelKepala>Supplier</SelKepala><SelKepala>Pembelian</SelKepala><SelKepala>Total</SelKepala></tr>
+                </KepalaTabel>
+                <tbody className="divide-y divide-garis">
+                  {ringkasanSupplier.length === 0 ? <BarisKosong kolom={3} teks="Belum ada pembelian." /> : ringkasanSupplier.map((s) => (
+                    <tr key={s.id}>
+                      <td className="px-4 py-2.5 font-medium">{s.nama}</td>
+                      <td className="px-4 py-2.5 text-xs">{s.jumlah_pembelian}</td>
+                      <td className="px-4 py-2.5">{formatRupiah(s.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Tabel>
+            </div>
+          </div>
+        ) : null}
 
         {tab === "Supplier" ? (
           <Tabel>

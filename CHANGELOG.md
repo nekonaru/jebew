@@ -1,5 +1,28 @@
 # Riwayat Perubahan
 
+## final-v2.0.0
+
+Pembaruan besar: analitik master data dan kerapian kebijakan data.
+
+### Fitur baru
+
+- **Ringkasan supplier.** Master data menampilkan jumlah pembelian dan total nilai per supplier.
+- **Filter pergerakan stok.** Riwayat mutasi bisa disaring per bahan tanpa memuat ulang data lain.
+
+### Perbaikan
+
+- **Data keuangan benar-benar terbatas.** Kasir tidak lagi menerima harga rata rata maupun ringkasan nilai stok, baik lewat API maupun tampilan.
+- **Pelaku perubahan tercatat.** Pembuatan pengguna kini mencatat pemilik yang melakukan, bukan "Sistem".
+- **Email duplikat jelas.** Konflik email pengguna menghasilkan respons 400, bukan galat server umum.
+- **Batas cadangan realistis.** Batas pemulihan disesuaikan dengan ukuran payload yang benar-benar bisa dikirim.
+- **Laporan konsisten.** Kop cetak dan tautan CSV memakai rentang yang berhasil diterapkan, bukan nilai form yang belum diproses.
+- **Checkout lebih awal.** Pelanggan diminta mengisi slot atau waktu ambil sebelum membuka formulir data diri.
+- **Audit lebih rapi.** Header CSV audit diberi label Tabel, helper escape LIKE disatukan, dan pembaruan tutup kasir memakai kunci baris.
+
+### Perubahan besar
+
+Versi minor dinaikkan ke 2.0.0 karena kebijakan pembatasan data keuangan kini diterapkan sampai ke tingkat field respons, bukan hanya menyembunyikan komponen antarmuka.
+
 ## final-v1.16.0
 
 Audit putaran kelima belas dan kerapian data master.

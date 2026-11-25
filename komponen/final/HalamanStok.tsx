@@ -42,20 +42,27 @@ export default function HalamanStok() {
 
   const muat = useCallback(async () => {
     try {
-      const [b, p, pb, op] = await Promise.all([
+      const [b, pb, op] = await Promise.all([
         fetch("/api/bahan").then(ambilJson<{
           bahan: Bahan[];
           ringkasan: { jumlah: number; menipis: number; nilai: number; terbesar: { id: number; nama: string; nilai: number }[] };
         }>),
-        fetch(`/api/stok${filterBahan ? `?bahan=${filterBahan}` : ""}`).then(ambilJson<{ pergerakan: Pergerakan[] }>),
         fetch("/api/pembelian").then(ambilJson<{ pembelian: Pembelian[]; supplier: Supplier[] }>),
         fetch("/api/opname").then(ambilJson<{ opname: Opname[] }>),
       ]);
-      setBahan(b.bahan ?? []); setRingkasan(b.ringkasan ?? null); setPergerakan(p.pergerakan ?? []);
+      setBahan(b.bahan ?? []); setRingkasan(b.ringkasan ?? null);
       setPembelian(pb.pembelian ?? []); setSupplier(pb.supplier ?? []); setOpname(op.opname ?? []);
+    } catch { /* abaikan */ }
+  }, []);
+
+  const muatPergerakan = useCallback(async () => {
+    try {
+      const p = await ambilApi<{ pergerakan: Pergerakan[] }>(`/api/stok${filterBahan ? `?bahan=${filterBahan}` : ""}`);
+      setPergerakan(p.pergerakan ?? []);
     } catch { /* abaikan */ }
   }, [filterBahan]);
   useEffect(() => { void muat(); }, [muat]);
+  useEffect(() => { void muatPergerakan(); }, [muatPergerakan]);
 
   function gagal(e: unknown) {
     setJenis("galat"); setPesan(e instanceof Error ? e.message : "Permintaan gagal");
@@ -97,7 +104,7 @@ export default function HalamanStok() {
         body: JSON.stringify(editBahan ? { id: editBahan, data } : data),
       });
       await ambilJson(respons);
-      setDialogBahan(false); setJenis("sukses"); setPesan("Bahan berhasil disimpan."); void muat();
+      setDialogBahan(false); setJenis("sukses"); setPesan("Bahan berhasil disimpan."); void muat(); void muatPergerakan();
     } catch (e) { gagal(e); }
   }
 
@@ -109,7 +116,7 @@ export default function HalamanStok() {
         body: JSON.stringify({ id: dialogRestock, tambahan: Number(restock.tambahan), catatan: restock.catatan }),
       });
       await ambilJson(respons);
-      setDialogRestock(null); setJenis("sukses"); setPesan("Stok berhasil ditambah."); void muat();
+      setDialogRestock(null); setJenis("sukses"); setPesan("Stok berhasil ditambah."); void muat(); void muatPergerakan();
     } catch (e) { gagal(e); }
   }
 
@@ -125,7 +132,7 @@ export default function HalamanStok() {
         }),
       });
       await ambilJson(respons);
-      setDialogBeli(false); setJenis("sukses"); setPesan("Pembelian tercatat dan stok bertambah."); void muat();
+      setDialogBeli(false); setJenis("sukses"); setPesan("Pembelian tercatat dan stok bertambah."); void muat(); void muatPergerakan();
     } catch (e) { gagal(e); }
   }
 
@@ -140,7 +147,7 @@ export default function HalamanStok() {
         }),
       });
       await ambilJson(respons);
-      setDialogOpname(false); setJenis("sukses"); setPesan("Opname tersimpan. Stok disesuaikan."); void muat();
+      setDialogOpname(false); setJenis("sukses"); setPesan("Opname tersimpan. Stok disesuaikan."); void muat(); void muatPergerakan();
     } catch (e) { gagal(e); }
   }
 
@@ -188,7 +195,7 @@ export default function HalamanStok() {
           <Tabel>
           <KepalaTabel><tr>
             <SelKepala>Nama</SelKepala><SelKepala>Satuan</SelKepala><SelKepala>Stok</SelKepala>
-            <SelKepala>Minimum</SelKepala><SelKepala>Harga rata rata</SelKepala><SelKepala>Status</SelKepala><SelKepala>Aksi</SelKepala>
+            <SelKepala>Minimum</SelKepala>{pemilik && <SelKepala>Harga rata rata</SelKepala>}<SelKepala>Status</SelKepala><SelKepala>Aksi</SelKepala>
           </tr></KepalaTabel>
           <tbody>
             {bahan.map((b) => (
@@ -197,7 +204,7 @@ export default function HalamanStok() {
                 <td className="px-4 py-3">{b.satuan}</td>
                 <td className="px-4 py-3">{formatAngka(b.stok)}</td>
                 <td className="px-4 py-3">{formatAngka(b.stok_minimum)}</td>
-                <td className="px-4 py-3">{formatRupiah(b.harga_rata_rata)}</td>
+                {pemilik && <td className="px-4 py-3">{formatRupiah(b.harga_rata_rata)}</td>}
                 <td className="px-4 py-3"><Badge warna={b.menipis ? "peringatan" : "sukses"}>{b.menipis ? "Menipis" : "Aman"}</Badge></td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
@@ -209,7 +216,7 @@ export default function HalamanStok() {
                 </td>
               </tr>
             ))}
-            {bahan.length === 0 && <BarisKosong kolom={7} teks="Belum ada bahan." />}
+            {bahan.length === 0 && <BarisKosong kolom={pemilik ? 7 : 6} teks="Belum ada bahan." />}
           </tbody>
         </Tabel>
         </div>

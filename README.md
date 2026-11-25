@@ -93,7 +93,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Pembelian** | Supplier, harga beli, dan harga rata rata diperbarui otomatis |
 | **Stock opname** | Input stok fisik, selisih, dan alasan |
 | **Peringatan stok** | Bahan menipis ditandai di dashboard beserta jumlah, batas, dan tombol kirim WhatsApp |
-| **Master data** | Kelola supplier dan kategori pengeluaran lewat satu halaman |
+| **Master data** | Kelola supplier dan kategori pengeluaran, serta lihat total pembelian per supplier |
 | **Konversi satuan** | Hitung kg ke gram, liter ke ml, dan lusin ke pcs |
 
 ### Keuangan

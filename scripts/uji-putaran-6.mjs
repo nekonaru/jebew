@@ -35,7 +35,7 @@ const wj = JSON.parse(wild.teks);
 catat("wildcard escaped pada riwayat", wild.status === 200 && (wj.daftar?.length ?? 0) === 0, `${wj.daftar?.length ?? 0}`);
 
 const csv = await api("/api/audit?format=csv", { headers: { Cookie: cp } });
-catat("ekspor audit tersedia", csv.status === 200 && csv.teks.includes("Waktu,Aksi,Data"), String(csv.status));
+catat("ekspor audit tersedia", csv.status === 200 && csv.teks.includes("Waktu,Aksi,Tabel"), String(csv.status));
 
 console.log(hasil.join("\n"));
 console.log(`\nTOTAL: ${hasil.length}, GAGAL: ${hasil.filter((x) => x.startsWith("??")).length}`);
