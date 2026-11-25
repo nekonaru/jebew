@@ -12,7 +12,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
     const teksBahan = new URL(req.url).searchParams.get("bahan") ?? "";
-    if (teksBahan && !/^\d+$/.test(teksBahan)) {
+    const bahanValid = /^\d+$/.test(teksBahan) && Number(teksBahan) >= 1 && Number(teksBahan) <= 2147483647;
+    if (teksBahan && !bahanValid) {
       return NextResponse.json({ pesan: "Id bahan tidak valid" }, { status: 400 });
     }
     const bahanId = teksBahan ? Number(teksBahan) : undefined;

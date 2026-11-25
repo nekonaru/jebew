@@ -28,7 +28,28 @@ export async function GET(req: Request) {
       dari,
       sampai,
     };
-    return NextResponse.json({ preorder: await ambilPreorder(filter) });
+    const daftar = await ambilPreorder(filter);
+    if (p.get("format") === "csv") {
+      const amanCsv = (teks: string) => {
+        const nilai = /^[=+\-@\t\r]/.test(teks) ? `'${teks}` : teks;
+        return `"${nilai.replace(/"/g, '""')}"`;
+      };
+      const baris = ["Kode,Kode lacak,Pelanggan,WhatsApp,Waktu ambil,Status,Total"];
+      for (const po of daftar) {
+        baris.push([
+          po.kode, po.kode_lacak, amanCsv(po.nama_pelanggan), po.whatsapp,
+          amanCsv(po.waktu_ambil), po.status, po.total,
+        ].join(","));
+      }
+      return new Response("\uFEFF" + baris.join("\r\n"), {
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": "attachment; filename=\"preorder.csv\"",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+    return NextResponse.json({ preorder: daftar });
   } catch (e) { return galat(e) as NextResponse; }
 }
 
@@ -87,7 +108,8 @@ export async function POST(req: Request) {
       namaUsaha: pengaturan.nama_usaha ?? "Warung Kak Ikaa",
     });
     return NextResponse.json({
-      ...hasil,
+      kode: hasil.kode, kode_lacak: hasil.kode_lacak, total: hasil.total,
+      items: hasil.items.map(({ hpp: _hpp, ...i }) => i),
       pesan,
       tautan: nomorAdmin ? tautanWhatsApp(nomorAdmin, pesan) : null,
     }, { status: 201 });

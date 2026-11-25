@@ -123,7 +123,7 @@ export default function HalamanMenu() {
                 <div><p className="text-[11px] text-tinta-lemah">Harga</p><p className="font-semibold">{formatRupiah(m.harga)}</p></div>
                 {pemilik && <div><p className="text-[11px] text-tinta-lemah">HPP / porsi</p><p className="font-semibold">{formatRupiah(m.hpp ?? 0)}</p></div>}
               </div>
-              <details className="mt-3 text-sm">
+              {pemilik && <details className="mt-3 text-sm">
                 <summary className="cursor-pointer text-xs font-semibold text-utama">Resep ({(m.resep ?? []).length})</summary>
                 <ul className="mt-2 space-y-1 text-xs text-tinta-lemah">
                   {(m.resep ?? []).map((r) => (
@@ -133,7 +133,7 @@ export default function HalamanMenu() {
                   ))}
                 </ul>
                 {m.penghambat && <p className="mt-2 text-xs font-semibold text-bahaya">Penghambat: {m.penghambat}</p>}
-              </details>
+              </details>}
               {m.varian.length > 0 && (
                 <p className="mt-2 text-xs text-tinta-lemah">Varian: {m.varian.map((v) => v.nama).join(", ")}</p>
               )}

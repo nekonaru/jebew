@@ -59,6 +59,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [loading, setLoading] = useState(false);
   const [kodeLacak, setKodeLacak] = useState("");
   const [toast, setToast] = useState("");
+  const [toastGalat, setToastGalat] = useState(false);
 
   const muat = useCallback(async () => {
     try {
@@ -100,6 +101,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     });
     setPilihVarian(null);
     setPesan("");
+    setToastGalat(false);
     setToast(`${menu.nama} masuk keranjang`);
   }
 
@@ -123,6 +125,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   function bukaCheckout() {
     if (keranjang.length === 0) return;
     if (!slotId && !waktu.trim()) {
+      setToastGalat(true);
       setToast("Pilih slot waktu atau isi waktu ambil terlebih dahulu.");
       setDialogKeranjang(false);
       return;
@@ -365,9 +368,13 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       </main>
 
       {toast && (
-        <div role="status" aria-live="polite"
-          className="animasi-muncul fixed left-1/2 top-4 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-tinta px-4 py-2.5 text-xs font-semibold text-white shadow-angkat">
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-aksen-terang"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <div role={toastGalat ? "alert" : "status"} aria-live={toastGalat ? "assertive" : "polite"}
+          className={`animasi-muncul fixed left-1/2 top-4 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2.5 text-xs font-semibold text-white shadow-angkat ${toastGalat ? "bg-bahaya" : "bg-tinta"}`}>
+          {toastGalat ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-white"><path d="M12 8v5m0 3h.01M10.3 3.9L2.6 17.2A2 2 0 004.3 20h15.4a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 text-aksen-terang"><path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          )}
           {toast}
         </div>
       )}

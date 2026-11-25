@@ -21,6 +21,9 @@ export async function POST(req: Request) {
     const { penolakan, pengguna } = await aman(req, "masuk");
     if (penolakan) return penolakan;
     const hasil = await catatPenjualan(skema.parse(await req.json()), pengguna);
-    return NextResponse.json(hasil, { status: 201 });
+    return NextResponse.json({
+      id: hasil.id, nomor: hasil.nomor, total: hasil.total, dibuat_pada: hasil.dibuat_pada,
+      items: hasil.items.map(({ hpp: _hpp, ...i }) => i),
+    }, { status: 201 });
   } catch (e) { return galat(e) as NextResponse; }
 }

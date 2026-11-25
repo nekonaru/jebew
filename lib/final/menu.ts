@@ -180,7 +180,7 @@ export async function simpanMenu(
     let menuId: number;
     const varianLama = new Set<number>();
     if (id !== undefined) {
-      const ada = await querySatu("SELECT id FROM menu WHERE id = $1", [id]);
+      const ada = await querySatu("SELECT id FROM menu WHERE id = $1 FOR UPDATE", [id]);
       if (!ada) throw new GalatBisnis("Menu tidak ditemukan");
       await jalankan(
         `UPDATE menu SET nama=$1, harga=$2, deskripsi=$3, kategori=$4, foto=$5, aktif=$6 WHERE id=$7`,
@@ -244,6 +244,7 @@ export async function simpanMenu(
 
 export async function hapusMenu(id: number, pengguna: PenggunaSesi | null = null): Promise<void> {
   await denganTransaksi(async () => {
+    await querySatu("SELECT id FROM menu WHERE id = $1 FOR UPDATE", [id]);
     const aktif = await querySatu<{ jumlah: number }>(
       `SELECT COUNT(*) AS jumlah FROM preorder p
        JOIN item_preorder i ON i.preorder_id = p.id

@@ -19,7 +19,7 @@ export async function GET(req: Request) {
       aksi: (p.get("aksi") ?? "").slice(0, 20),
       tabel: (p.get("tabel") ?? "").slice(0, 40),
       cari: (p.get("cari") ?? "").trim().slice(0, 60),
-      batas: p.get("format") === "csv" ? 5000 : 200,
+      batas: p.get("format") === "csv" ? 5001 : 200,
     });
     if (p.get("format") === "csv") {
       const escape = (teks: string) => {
@@ -27,7 +27,10 @@ export async function GET(req: Request) {
         return `"${aman.replace(/"/g, '""')}"`;
       };
       const baris = ["Waktu,Aksi,Tabel,Catatan,Pengguna"];
-      for (const a of daftar) {
+      if (daftar.length > 5000) {
+        baris.push("# Dipotong: menampilkan 5000 entri terbaru. Persempit filter untuk melihat sisanya.");
+      }
+      for (const a of daftar.slice(0, 5000)) {
         baris.push([
           `${a.dibuat_pada} WIB`, a.aksi, a.tabel,
           escape(a.catatan ?? ""), escape(a.nama_pengguna ?? "Sistem"),

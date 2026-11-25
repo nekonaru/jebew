@@ -116,7 +116,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 |-------|-----------|
 | **Kasir** | Pilih menu dan varian, diskon, metode bayar, catatan, dan struk yang bisa dicetak |
 | **Varian** | Level pedas dan topping punya harga dan resep sendiri |
-| **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, dan saring pesanan berdasarkan status, nama, atau tanggal |
+| **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, saring pesanan berdasarkan status, nama, atau tanggal, dan unduh CSV |
 | **Riwayat transaksi** | Cari berdasarkan nomor atau menu, lihat dan cetak rinciannya, serta unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |

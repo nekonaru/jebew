@@ -240,19 +240,19 @@ export async function ambilPreorder(filter: FilterPreorder = {}) {
     id: number; kode: string; kode_lacak: string; nama_pelanggan: string; whatsapp: string;
     waktu_ambil: string; catatan: string; status: string; penjualan_id: number | null; dibuat_pada: string;
   }>(`SELECT id, kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, catatan, status, penjualan_id, dibuat_pada
-      FROM preorder ${where} ORDER BY id DESC`, nilai);
+      FROM preorder ${where} ORDER BY id DESC LIMIT 500`, nilai);
   const ids = daftar.map((p) => p.id);
   const semuaItem = ids.length === 0 ? [] : await query<Barang & { preorder_id: number }>(
     `SELECT preorder_id, menu_id, varian_id, nama_menu, nama_varian, harga_satuan, jumlah, subtotal, hpp
      FROM item_preorder WHERE preorder_id = ANY($1::int[]) ORDER BY id`, [ids],
   );
-  const peta = new Map<number, Barang[]>();
+  const peta = new Map<number, Omit<Barang, "hpp">[]>();
   for (const item of semuaItem) {
     const daftarItem = peta.get(item.preorder_id) ?? [];
     daftarItem.push({
       menu_id: item.menu_id, varian_id: item.varian_id, nama_menu: item.nama_menu,
       nama_varian: item.nama_varian, harga_satuan: item.harga_satuan,
-      jumlah: item.jumlah, subtotal: item.subtotal, hpp: item.hpp,
+      jumlah: item.jumlah, subtotal: item.subtotal,
     });
     peta.set(item.preorder_id, daftarItem);
   }

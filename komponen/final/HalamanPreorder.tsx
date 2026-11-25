@@ -82,6 +82,14 @@ export default function HalamanPreorder() {
               onChange={(e) => { setSampai(e.target.value); }} />
           </div>
         </div>
+        <a
+          href={`/api/preorder?${new URLSearchParams({
+            cari, status: filter, ...(dari ? { dari } : {}), ...(sampai ? { sampai } : {}), format: "csv",
+          })}`}
+          className="mt-3 inline-flex min-h-[40px] items-center justify-center rounded-xl border border-garis px-4 text-xs font-semibold hover:bg-latar"
+        >
+          Unduh CSV pre-order
+        </a>
       </Kartu>
 
       <div className="mb-5 flex flex-wrap gap-2" role="group" aria-label="Filter status">

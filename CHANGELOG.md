@@ -1,5 +1,23 @@
 # Riwayat Perubahan
 
+## final-v2.2.0
+
+Audit putaran kedelapan belas dan ekspor pre-order.
+
+### Fitur baru
+
+- **Unduh CSV pre-order.** Daftar pesanan bisa diekspor sesuai filter status, nama, dan tanggal.
+
+### Perbaikan
+
+- **HPP benar-benar tidak keluar.** Endpoint preorder publik, kasir, dan daftar preorder tidak lagi mengirim nilai HPP. Nilai tersebut tetap dipakai internal untuk laporan.
+- **Menu dengan preorder aman.** Penghapusan menu mengunci baris dan menolak bila masih ada preorder aktif.
+- **Daftar preorder dibatasi.** Header tidak lagi memuat seluruh riwayat tanpa batas.
+- **Validasi stok ketat.** Id bahan harus bilangan bulat positif dalam rentang integer.
+- **Tampilan konsisten.** Resep disembunyikan untuk kasir dan toast galat memakai gaya serta peran yang berbeda dari toast sukses.
+- **Ekspor audit jujur.** Berkas CSV memberi catatan bila hasil dipotong pada 5000 entri.
+- **Laporan keamanan diberi penanda.** Berkas lama dinyatakan khusus prototipe agar tidak disalahartikan sebagai bukti produk jadi.
+
 ## final-v2.1.0
 
 Audit putaran ketujuh belas dan penguatan pembatasan data.
