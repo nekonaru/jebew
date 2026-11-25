@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ambilJson } from "@/komponen/api-klien.ts";
+import { tanggalHariIni } from "@/lib/format.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
 type Pengaturan = Record<string, string>;
@@ -20,6 +21,7 @@ export default function HalamanPengaturan() {
   const [cadangan, setCadangan] = useState<Record<string, unknown[]> | null>(null);
   const [konfirmasi, setKonfirmasi] = useState("");
   const [memulihkan, setMemulihkan] = useState(false);
+  const [tampilSandi, setTampilSandi] = useState(false);
 
   const muat = useCallback(async () => {
     try {
@@ -60,7 +62,7 @@ export default function HalamanPengaturan() {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formP),
       });
       await ambilJson(respons);
-      setDialog(null); setFormP({ email: "", nama: "", kata_sandi: "", peran: "kasir", aktif: true });
+      setDialog(null); setFormP({ email: "", nama: "", kata_sandi: "", peran: "kasir", aktif: true }); setTampilSandi(false);
       setJenis("sukses"); setPesan("Pengguna ditambahkan."); void muat();
     } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); }
   }
@@ -226,7 +228,23 @@ export default function HalamanPengaturan() {
         <form onSubmit={simpanPengguna} className="space-y-4">
           <div><label htmlFor="u-nama">Nama</label><input id="u-nama" required value={formP.nama} onChange={(e) => setFormP({ ...formP, nama: e.target.value })} /></div>
           <div><label htmlFor="u-email">Email</label><input id="u-email" type="email" required value={formP.email} onChange={(e) => setFormP({ ...formP, email: e.target.value })} /></div>
-          <div><label htmlFor="u-sandi">Kata sandi</label><input id="u-sandi" type="password" minLength={6} required value={formP.kata_sandi} onChange={(e) => setFormP({ ...formP, kata_sandi: e.target.value })} /></div>
+          <div>
+            <label htmlFor="u-sandi">Kata sandi</label>
+            <div className="relative">
+              <input id="u-sandi" type={tampilSandi ? "text" : "password"} minLength={6} required className="pr-12"
+                value={formP.kata_sandi} onChange={(e) => setFormP({ ...formP, kata_sandi: e.target.value })} />
+              <button type="button"
+                onClick={() => setTampilSandi((nilai) => !nilai)}
+                aria-label={tampilSandi ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-tinta-lemah transition-colors duration-[var(--gerak-cepat)] hover:text-utama focus-visible:outline-2 focus-visible:outline-aksen">
+                {tampilSandi ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.6 10.6 0 0112 5c5 0 9 4.5 10 7-.4 1-1.2 2.4-2.4 3.6M6.3 6.3C4.5 7.5 3.1 9 2.5 10c1 2.5 5 7 9.5 7 1.2 0 2.3-.2 3.3-.6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>
+                )}
+              </button>
+            </div>
+          </div>
           <div><label htmlFor="u-peran">Peran</label><select id="u-peran" value={formP.peran} onChange={(e) => setFormP({ ...formP, peran: e.target.value })}><option value="kasir">Kasir</option><option value="pemilik">Pemilik</option></select></div>
           <Tombol tipe="submit" kelas="w-full">Simpan pengguna</Tombol>
         </form>
@@ -234,7 +252,7 @@ export default function HalamanPengaturan() {
 
       <Dialog terbuka={dialog === "slot"} judul="Tambah slot waktu" padaTutup={() => setDialog(null)}>
         <form onSubmit={simpanSlot} className="space-y-4">
-          <div><label htmlFor="sl-tanggal">Tanggal</label><input id="sl-tanggal" type="date" required value={formS.tanggal} onChange={(e) => setFormS({ ...formS, tanggal: e.target.value })} /></div>
+          <div><label htmlFor="sl-tanggal">Tanggal</label><input id="sl-tanggal" type="date" required min={tanggalHariIni()} value={formS.tanggal} onChange={(e) => setFormS({ ...formS, tanggal: e.target.value })} /></div>
           <div><label htmlFor="sl-jam">Jam</label><input id="sl-jam" type="time" required value={formS.jam} onChange={(e) => setFormS({ ...formS, jam: e.target.value })} /></div>
           <div><label htmlFor="sl-kuota">Kuota</label><input id="sl-kuota" type="number" min={1} required value={formS.kuota} onChange={(e) => setFormS({ ...formS, kuota: e.target.value })} /></div>
           <Tombol tipe="submit" kelas="w-full">Simpan slot</Tombol>

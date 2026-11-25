@@ -261,7 +261,7 @@ export default function HalamanStok() {
       <Dialog terbuka={dialogBeli} judul="Catat pembelian" padaTutup={() => setDialogBeli(false)} lebar="44rem">
         <form onSubmit={kirimPembelian} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div><label htmlFor="p-tanggal">Tanggal</label><input id="p-tanggal" type="date" required value={formBeli.tanggal} onChange={(e) => setFormBeli({ ...formBeli, tanggal: e.target.value })} /></div>
+            <div><label htmlFor="p-tanggal">Tanggal</label><input id="p-tanggal" type="date" required max={tanggalHariIni()} value={formBeli.tanggal} onChange={(e) => setFormBeli({ ...formBeli, tanggal: e.target.value })} /></div>
             <div><label htmlFor="p-supplier">Supplier</label><select id="p-supplier" value={formBeli.supplier_id} onChange={(e) => setFormBeli({ ...formBeli, supplier_id: e.target.value })}><option value="">Tanpa supplier</option>{supplier.map((s) => <option key={s.id} value={s.id}>{s.nama}</option>)}</select></div>
           </div>
           {formBeli.items.map((it, i) => (
@@ -280,7 +280,7 @@ export default function HalamanStok() {
 
       <Dialog terbuka={dialogOpname} judul="Buat stok opname" padaTutup={() => setDialogOpname(false)} lebar="44rem">
         <form onSubmit={kirimOpname} className="space-y-4">
-          <div><label htmlFor="o-tanggal">Tanggal</label><input id="o-tanggal" type="date" required value={formOpname.tanggal} onChange={(e) => setFormOpname({ ...formOpname, tanggal: e.target.value })} /></div>
+          <div><label htmlFor="o-tanggal">Tanggal</label><input id="o-tanggal" type="date" required max={tanggalHariIni()} value={formOpname.tanggal} onChange={(e) => setFormOpname({ ...formOpname, tanggal: e.target.value })} /></div>
           {formOpname.items.map((it, i) => (
             <div key={i} className="grid grid-cols-[1.2fr_1fr_1fr_auto] gap-2 items-end">
               <div><label>Bahan</label><select required aria-label={`Bahan baris ${i + 1}`} value={it.bahan_id} onChange={(e) => setFormOpname({ ...formOpname, items: formOpname.items.map((x, j) => j === i ? { ...x, bahan_id: e.target.value } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama} ({formatAngka(b.stok)})</option>)}</select></div>

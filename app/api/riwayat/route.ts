@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 import { aman, galat } from "@/lib/api-final.ts";
 import { query, querySatu } from "@/lib/database.ts";
-import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
+import { tanggalHariIni, tanggalParameter } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
-
-function tanggalAman(nilai: string | null, cadangan: string): string {
-  const teks = nilai ?? "";
-  return tanggalValid(teks) ? teks : cadangan;
-}
 
 function mundur(hari: number): string {
   const t = new Date(`${tanggalHariIni()}T00:00:00Z`);
@@ -46,8 +41,8 @@ export async function GET(req: Request) {
     if (p.get("dari") === "" || p.get("sampai") === "") {
       return NextResponse.json({ pesan: "Format tanggal tidak valid" }, { status: 400 });
     }
-    const dari = p.get("dari") ? tanggalAman(p.get("dari"), "") : mundur(29);
-    const sampai = p.get("sampai") ? tanggalAman(p.get("sampai"), "") : tanggalHariIni();
+    const dari = p.has("dari") ? tanggalParameter(p.get("dari"), "") : mundur(29);
+    const sampai = p.has("sampai") ? tanggalParameter(p.get("sampai"), "") : tanggalHariIni();
     if (!dari || !sampai) {
       return NextResponse.json({ pesan: "Format tanggal tidak valid" }, { status: 400 });
     }

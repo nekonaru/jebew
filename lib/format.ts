@@ -45,6 +45,12 @@ export function tanggalHariIni(): string {
   }).format(new Date());
 }
 
+/** Nilai parameter tanggal: kosong memakai cadangan, tidak valid menghasilkan string kosong. */
+export function tanggalParameter(nilai: string | null, cadangan: string): string {
+  if (nilai === null || nilai === "") return cadangan;
+  return tanggalValid(nilai) ? nilai : "";
+}
+
 /** Jam dan menit saat ini dalam WIB, bukan jam UTC server. */
 export function jamMenitWIB(): { jam: number; menit: number } {
   const bagian = new Intl.DateTimeFormat("en-GB", {

@@ -79,7 +79,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 
 | Fitur | Deskripsi |
 |-------|-----------|
-| **Login email dan sandi** | Kata sandi di-hash dengan scrypt, sesi ditandatangani HMAC |
+| **Login email dan sandi** | Kata sandi di-hash dengan scrypt, sesi ditandatangani HMAC, dan tombol mata untuk menampilkan atau menyembunyikan sandi |
 | **Dua peran** | Pemilik mengelola seluruh data dan keuangan, Kasir memakai kasir serta melihat stok, pre-order, dan riwayat transaksi |
 | **Sesi selalu segar** | Status dan peran pengguna diperiksa ulang dari database pada setiap permintaan |
 | **Row Level Security** | Aktif pada semua tabel. Akses aplikasi memakai peran server, jadi aturan akses utama ada di lapisan API |
@@ -182,7 +182,7 @@ Buat project Vercel baru yang menarik repo ini dengan branch produksi `final`. I
 | Pemilik | `pemilik@jebew.test` | `pemilik123` |
 | Kasir | `kasir@jebew.test` | `kasir123` |
 
-Ganti kata sandi melalui menu **Pengaturan** sebelum dipakai di luar demo.
+Akun demo ini hanya untuk prototipe. Jangan menjalankan `npm run siap:supabase` atau `npm run muat:contoh` pada database produksi. Untuk mengganti kata sandi di luar demo, kirim `PUT /api/pengguna` dengan `kata_sandi` baru atau ubah data seed sebelum penyimpanan produksi disiapkan.
 
 ---
 

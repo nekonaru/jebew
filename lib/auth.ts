@@ -28,8 +28,9 @@ export function hashKataSandi(kataSandi: string): string {
 
 export function cocokKataSandi(kataSandi: string, tersimpan: string): boolean {
   const [garam, hashTeks] = tersimpan.split(":");
-  if (!garam || !hashTeks) return false;
+  if (!garam || !hashTeks || !/^[0-9a-f]{128}$/.test(hashTeks)) return false;
   const hash = Buffer.from(hashTeks, "hex");
+  if (hash.length < 32) return false;
   const hitung = scryptSync(kataSandi, garam, hash.length);
   return hash.length === hitung.length && timingSafeEqual(hash, hitung);
 }

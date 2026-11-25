@@ -144,7 +144,8 @@ export async function simpanPembelian(input: PembelianInput, pengguna: PenggunaS
       [nomor, input.supplier_id, total, input.tanggal, input.catatan, pengguna?.id ?? null],
     );
 
-    for (const item of input.items) {
+    const itemsTerurut = [...input.items].sort((a, b) => a.bahan_id - b.bahan_id);
+    for (const item of itemsTerurut) {
       await jalankan(
         "INSERT INTO item_pembelian (pembelian_id, bahan_id, jumlah, harga_satuan, subtotal) VALUES ($1,$2,$3,$4,$5)",
         [baris!.id, item.bahan_id, item.jumlah, item.harga_satuan, item.jumlah * item.harga_satuan],
@@ -201,7 +202,8 @@ export async function simpanOpname(input: OpnameInput, pengguna: PenggunaSesi | 
       [nomor, input.tanggal, input.catatan, pengguna?.id ?? null],
     );
 
-    for (const item of input.items) {
+    const itemsTerurut = [...input.items].sort((a, b) => a.bahan_id - b.bahan_id);
+    for (const item of itemsTerurut) {
       const bahan = await querySatu<{ stok: number }>("SELECT stok FROM bahan WHERE id = $1 FOR UPDATE", [item.bahan_id]);
       if (!bahan) throw new GalatBisnis("Bahan tidak ditemukan");
       const selisih = item.stok_fisik - bahan.stok;

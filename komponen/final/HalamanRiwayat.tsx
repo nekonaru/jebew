@@ -35,7 +35,9 @@ export default function HalamanRiwayat() {
   const muat = useCallback(async () => {
     setPesan("");
     try {
-      const p = new URLSearchParams({ dari, sampai, cari, halaman: String(halaman) });
+      const p = new URLSearchParams({
+        dari: dari || mundur(29), sampai: sampai || tanggalHariIni(), cari, halaman: String(halaman),
+      });
       setHasil(await ambilApi<Hasil>(`/api/riwayat?${p}`));
     } catch {
       setPesan("Riwayat tidak berhasil dimuat.");
@@ -82,7 +84,7 @@ export default function HalamanRiwayat() {
               onChange={(e) => { setCari(e.target.value); setHalaman(1); }} />
           </div>
           <div className="sm:col-span-3">
-            <a href={`/api/riwayat?dari=${dari}&sampai=${sampai}&cari=${encodeURIComponent(cari)}&format=csv`}
+            <a href={`/api/riwayat?dari=${dari || mundur(29)}&sampai=${sampai || tanggalHariIni()}&cari=${encodeURIComponent(cari)}&format=csv`}
               className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">
               Unduh CSV
             </a>

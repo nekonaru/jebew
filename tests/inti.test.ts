@@ -4,7 +4,7 @@ import {
   batasiDiskon, cekStokCukup, hargaRataRata, hitungHpp, hitungPorsi, hppBaris, hppPerTransaksi, margin, ringkasKeuangan, totalDenganDiskon,
   type InfoBahan, type ItemResep,
 } from "../lib/inti-final.ts";
-import { formatRupiah, tanggalHariIni, tanggalValid } from "../lib/format.ts";
+import { formatRupiah, tanggalHariIni, tanggalParameter, tanggalValid } from "../lib/format.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "../lib/wa.ts";
 
 const bahan: InfoBahan[] = [
@@ -106,6 +106,14 @@ test("tanggal kalender divalidasi ketat", () => {
   assert.equal(tanggalValid("2026-11-25"), true);
   assert.equal(tanggalValid("2026-02-31"), false);
   assert.equal(tanggalValid("xxxx-xx-xx"), false);
+  assert.equal(tanggalValid("2026-13-45"), false);
+});
+
+test("parameter tanggal kosong memakai cadangan", () => {
+  assert.equal(tanggalParameter("", "2026-11-01"), "2026-11-01");
+  assert.equal(tanggalParameter(null, "2026-11-01"), "2026-11-01");
+  assert.equal(tanggalParameter("2026-11-25", "2026-11-01"), "2026-11-25");
+  assert.equal(tanggalParameter("2026-13-45", "2026-11-01"), "");
 });
 
 test("format rupiah dan tanggal", () => {

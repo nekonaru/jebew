@@ -1,5 +1,27 @@
 # Riwayat Perubahan
 
+## final-v1.12.0
+
+Audit putaran kesebelas dan kerapian validasi.
+
+### Fitur baru
+
+- **Tombol mata di kelola pengguna.** Kata sandi saat menambah pengguna bisa ditampilkan atau disembunyikan, sama seperti di halaman login.
+
+### Perbaikan
+
+- **Tanggal preorder divalidasi ketat.** Tanggal kalender yang tidak ada kini ditolak, bukan tersimpan apa adanya.
+- **Riwayat tidak gagal saat tanggal dikosongkan.** Filter mengirim nilai bawaan, sementara parameter kosong dari API tetap ditolak dengan jelas.
+- **Hash rusak tidak membuka akun.** Kata sandi ditolak lebih awal bila format hash tidak valid.
+- **Input tanggal mengikuti aturan server.** Pembelian, opname, dan slot memakai batas tanggal pada kolom input.
+- **Urutan kunci stok konsisten.** Pembelian dan opname mengurutkan bahan sebelum mengunci baris untuk mengurangi bentrok transaksi paralel.
+- **Kolam koneksi disesuaikan.** Jumlah koneksi per instance dinaikkan agar transaksi paralel tidak menguras pool.
+- **Dokumentasi keamanan diperbarui.** `SECURITY.md` kini mencantumkan cabang `final` dan kredensial demo, serta README menjelaskan cara mengganti kata sandi yang sebenarnya.
+
+### Pengujian
+
+Ditambah pengujian untuk parameter tanggal kosong dan tanggal kalender tidak valid.
+
 ## final-v1.11.0
 
 Audit putaran kesepuluh dan kemudahan mengisi kata sandi.
@@ -12,7 +34,7 @@ Audit putaran kesepuluh dan kemudahan mengisi kata sandi.
 ### Perbaikan
 
 - **Alokasi diskon presisi.** Pembagian pada omzet menu terlaris memakai bilangan desimal, sehingga nilainya sama dengan laporan walau ada diskon.
-- **Item harga nol tetap dihitung.** Transaksi dengan subtotal nol tidak hilang dari omzet menu terlaris.
+- **Alokasi omzet tidak null.** Pembagian memakai bilangan desimal dan hasil nol tidak menghilangkan baris menu terlaris.
 - **Tombol WhatsApp hanya muncul bila nomor tersedia.** Kartu bahan menipis tidak lagi membuka WhatsApp ke nomor kosong.
 - **Validasi tanggal seragam.** Pembelian dan opname juga menolak tanggal masa depan, sedangkan riwayat menolak parameter tanggal kosong.
 - **Login membatasi ukuran permintaan.** Body permintaan login dibatasi 4 KB sebelum diproses.

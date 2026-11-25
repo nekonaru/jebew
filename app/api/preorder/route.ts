@@ -37,6 +37,7 @@ const skema = z.object({
   nama_pelanggan: z.string().trim().min(1).max(100),
   whatsapp: z.string().trim().regex(/^[0-9+\-() ]{8,20}$/),
   waktu_ambil: z.string().trim().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/, "Format waktu ambil: YYYY-MM-DD HH:mm")
+    .refine((v) => tanggalValid(v.slice(0, 10)), "Tanggal tidak valid")
     .refine((v) => v.slice(0, 10) >= tanggalHariIni(), "Waktu ambil tidak boleh lampau")
     .refine((v) => {
       const jam = Number(v.slice(11, 13));
