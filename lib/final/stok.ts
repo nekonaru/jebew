@@ -34,7 +34,9 @@ export type BahanInput = {
   aktif: boolean;
 };
 
-export async function simpanBahan(input: BahanInput, id?: number): Promise<number> {
+export async function simpanBahan(
+  input: BahanInput, id?: number, pengguna: PenggunaSesi | null = null,
+): Promise<number> {
   return denganTransaksi(async () => {
     if (id !== undefined) {
       const lama = await querySatu<{ stok: number }>("SELECT stok FROM bahan WHERE id = $1 FOR UPDATE", [id]);
@@ -50,6 +52,7 @@ export async function simpanBahan(input: BahanInput, id?: number): Promise<numbe
           [id, input.stok - lama.stok, lama.stok, input.stok],
         );
       }
+      await catatAudit(pengguna, "ubah", "bahan", `id ${id}`);
       return id;
     }
     const baris = await querySatu<{ id: number }>(
@@ -62,11 +65,12 @@ export async function simpanBahan(input: BahanInput, id?: number): Promise<numbe
        VALUES ($1,'masuk',$2,0,$3,'AWAL','Stok awal bahan baru')`,
       [baris!.id, input.stok, input.stok],
     );
+    await catatAudit(pengguna, "tambah", "bahan", `id ${baris!.id}`);
     return baris!.id;
   });
 }
 
-export async function hapusBahan(id: number): Promise<void> {
+export async function hapusBahan(id: number, pengguna: PenggunaSesi | null = null): Promise<void> {
   await denganTransaksi(async () => {
     const dipakai = await querySatu<{ jumlah: number }>(
       `SELECT (SELECT COUNT(*) FROM resep WHERE bahan_id=$1) + (SELECT COUNT(*) FROM item_varian WHERE bahan_id=$1) AS jumlah`,
@@ -84,9 +88,11 @@ export async function hapusBahan(id: number): Promise<void> {
     if (Number(riwayat?.jumlah ?? 0) > 0) {
       // Riwayat harus tetap utuh, jadi bahan dinonaktifkan, bukan dihapus.
       await jalankan("UPDATE bahan SET aktif = FALSE WHERE id = $1", [id]);
+      await catatAudit(pengguna, "hapus", "bahan", `id ${id} dinonaktifkan`);
       return;
     }
     await jalankan("DELETE FROM bahan WHERE id = $1", [id]);
+    await catatAudit(pengguna, "hapus", "bahan", `id ${id}`);
   });
 }
 
@@ -123,7 +129,7 @@ export async function ambilPergerakan(bahanId?: number): Promise<{
 }
 
 export async function ambilSupplier() {
-  return query("SELECT id, nama, kontak, aktif FROM supplier ORDER BY nama");
+  return query("SELECT id, nama, kontak, aktif FROM supplier WHERE aktif = TRUE ORDER BY nama");
 }
 
 export type PembelianInput = {
@@ -136,6 +142,12 @@ export type PembelianInput = {
 export async function simpanPembelian(input: PembelianInput, pengguna: PenggunaSesi | null): Promise<number> {
   return denganTransaksi(async () => {
     if (input.items.length === 0) throw new GalatBisnis("Tambahkan minimal satu bahan");
+    if (input.supplier_id) {
+      const supplier = await querySatu<{ aktif: boolean }>(
+        "SELECT aktif FROM supplier WHERE id = $1", [input.supplier_id],
+      );
+      if (!supplier?.aktif) throw new GalatBisnis("Supplier tidak aktif");
+    }
     const total = input.items.reduce((n, i) => n + i.jumlah * i.harga_satuan, 0);
     const nomor = await nomorOtomatis("pembelian", "PB");
     const baris = await querySatu<{ id: number }>(

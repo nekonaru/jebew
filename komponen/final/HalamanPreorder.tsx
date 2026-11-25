@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
+import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
@@ -18,8 +18,8 @@ export default function HalamanPreorder() {
   const [daftar, setDaftar] = useState<Preorder[]>([]);
   const [filter, setFilter] = useState<string>("semua");
   const [cari, setCari] = useState("");
-  const [dari, setDari] = useState(tanggalHariIni());
-  const [sampai, setSampai] = useState(tanggalHariIni());
+  const [dari, setDari] = useState("");
+  const [sampai, setSampai] = useState("");
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
   const [aksi, setAksi] = useState<{ id: number; status: "diproses" | "selesai" | "batal" } | null>(null);
@@ -27,7 +27,9 @@ export default function HalamanPreorder() {
 
   const muat = useCallback(async () => {
     try {
-      const p = new URLSearchParams({ cari, dari, sampai, status: filter });
+      const p = new URLSearchParams({ cari, status: filter });
+      if (dari) p.set("dari", dari);
+      if (sampai) p.set("sampai", sampai);
       const data = await fetch(`/api/preorder?${p}`).then(ambilJson<{ preorder: Preorder[] }>);
       setDaftar(data.preorder ?? []);
     } catch { /* abaikan */ }

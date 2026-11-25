@@ -3,6 +3,8 @@
 import { jalankan, query, querySatu, denganTransaksi } from "../database.ts";
 import { hitungHpp, hitungPorsi, type InfoBahan, type ItemResep } from "../inti-final.ts";
 import { GalatBisnis } from "./galat.ts";
+import { catatAudit } from "../audit.ts";
+import type { PenggunaSesi } from "../auth.ts";
 
 export type ResepBaris = {
   menu_id: number;
@@ -171,7 +173,9 @@ export type MenuInput = {
   varian: { id?: number; nama: string; harga_tambahan: number; aktif: boolean; resep: { bahan_id: number; jumlah_per_porsi: number }[] }[];
 };
 
-export async function simpanMenu(input: MenuInput, id?: number): Promise<number> {
+export async function simpanMenu(
+  input: MenuInput, id?: number, pengguna: PenggunaSesi | null = null,
+): Promise<number> {
   return denganTransaksi(async () => {
     let menuId: number;
     const varianLama = new Set<number>();
@@ -233,12 +237,14 @@ export async function simpanMenu(input: MenuInput, id?: number): Promise<number>
         await jalankan("DELETE FROM varian WHERE id = $1", [lamaId]);
       }
     }
+    await catatAudit(pengguna, id !== undefined ? "ubah" : "tambah", "menu", `id ${menuId}`);
     return menuId;
   });
 }
 
-export async function hapusMenu(id: number): Promise<void> {
+export async function hapusMenu(id: number, pengguna: PenggunaSesi | null = null): Promise<void> {
   await denganTransaksi(async () => {
     await jalankan("DELETE FROM menu WHERE id = $1", [id]);
+    await catatAudit(pengguna, "hapus", "menu", `id ${id}`);
   });
 }

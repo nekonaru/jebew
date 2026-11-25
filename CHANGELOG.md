@@ -1,5 +1,26 @@
 # Riwayat Perubahan
 
+## final-v1.13.0
+
+Audit putaran kedua belas dan rincian pembelian.
+
+### Fitur baru
+
+- **Rincian pembelian dan opname.** Tombol Rincian pada tabel stok menampilkan item, harga, dan selisih yang sebelumnya hanya bisa diakses lewat API.
+- **Pengeluaran per kategori.** Laporan menampilkan jumlah dan proporsi pengeluaran untuk setiap kategori.
+
+### Perbaikan
+
+- **Audit mengikuti transaksi.** Pencatatan aktivitas pada bahan, menu, supplier, dan kategori kini berada dalam transaksi yang sama dengan perubahan data, sehingga galat log tidak membuat klien mengira data gagal disimpan.
+- **Daftar pre-order cocok dengan angka dashboard.** Filter tanggal tidak lagi diterapkan secara bawaan.
+- **Supplier nonaktif tidak dipakai.** Dropdown pembelian hanya menampilkan supplier aktif dan server menolak supplier nonaktif.
+- **Filter audit lengkap.** Opsi data kini mencakup semua nilai tabel yang benar-benar ditulis.
+- **Logout memeriksa asal permintaan** dan input tanggal laporan memakai batas hari ini.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.12.0
 
 Audit putaran kesebelas dan kerapian validasi.

@@ -120,6 +120,12 @@ export default function HalamanKeuangan() {
                   <option value="pengeluaran">Pengeluaran</option>
                   <option value="menu">Menu</option>
                   <option value="supplier">Supplier</option>
+                  <option value="bahan">Bahan</option>
+                  <option value="pembelian">Pembelian</option>
+                  <option value="stok_opname">Stok opname</option>
+                  <option value="kategori_pengeluaran">Kategori pengeluaran</option>
+                  <option value="tutup_kasir">Tutup kasir</option>
+                  <option value="pulihkan">Pemulihan data</option>
                 </select>
               </div>
               <div>

@@ -83,17 +83,26 @@ export async function ambilLaporan(dari: string, sampai: string) {
     harian.set(tanggal, (harian.get(tanggal) ?? 0) + transaksi.total);
   }
 
+  const pengeluaranList = await query<{ id: number; nama: string; jumlah: number; tanggal: string; kategori: string }>(
+    `SELECT e.id, e.nama, e.jumlah, e.tanggal, k.nama AS kategori
+     FROM pengeluaran e JOIN kategori_pengeluaran k ON k.id = e.kategori_id
+     WHERE e.tanggal::date BETWEEN $1::date AND $2::date ORDER BY e.tanggal DESC`,
+    [dari, sampai],
+  );
+  const pengeluaranPerKategori = new Map<string, number>();
+  for (const e of pengeluaranList) {
+    pengeluaranPerKategori.set(e.kategori, (pengeluaranPerKategori.get(e.kategori) ?? 0) + Number(e.jumlah));
+  }
+
   return {
     daftar,
     ringkasan,
     menuTerlaris: terlaris,
     harian: [...harian.entries()].map(([tanggal, omzet]) => ({ tanggal, omzet })).sort((a, b) => a.tanggal.localeCompare(b.tanggal)),
-    pengeluaranList: await query(
-      `SELECT e.id, e.nama, e.jumlah, e.tanggal, k.nama AS kategori
-       FROM pengeluaran e JOIN kategori_pengeluaran k ON k.id = e.kategori_id
-       WHERE e.tanggal::date BETWEEN $1::date AND $2::date ORDER BY e.tanggal DESC`,
-      [dari, sampai],
-    ),
+    pengeluaranList,
+    pengeluaranPerKategori: [...pengeluaranPerKategori.entries()]
+      .map(([kategori, jumlah]) => ({ kategori, jumlah }))
+      .sort((a, b) => b.jumlah - a.jumlah),
   };
 }
 

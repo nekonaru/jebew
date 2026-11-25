@@ -11,6 +11,7 @@ type Laporan = {
   menuTerlaris: { nama: string; jumlah: number; omzet: number; hpp: number; laba: number }[];
   harian: { tanggal: string; omzet: number }[];
   pengeluaranList: { id: number; nama: string; jumlah: number; tanggal: string; kategori: string }[];
+  pengeluaranPerKategori: { kategori: string; jumlah: number }[];
 };
 
 export default function HalamanLaporan() {
@@ -42,8 +43,8 @@ export default function HalamanLaporan() {
 
       <Kartu kelas="mb-5">
         <form onSubmit={(e) => { e.preventDefault(); void muat(dari, sampai); }} className="grid items-end gap-4 sm:grid-cols-[1fr_1fr_auto_auto]">
-          <div><label htmlFor="dari">Dari</label><input id="dari" type="date" value={dari} onChange={(e) => setDari(e.target.value)} /></div>
-          <div><label htmlFor="sampai">Sampai</label><input id="sampai" type="date" value={sampai} onChange={(e) => setSampai(e.target.value)} /></div>
+          <div><label htmlFor="dari">Dari</label><input id="dari" type="date" max={tanggalHariIni()} value={dari} onChange={(e) => setDari(e.target.value)} /></div>
+          <div><label htmlFor="sampai">Sampai</label><input id="sampai" type="date" max={tanggalHariIni()} value={sampai} onChange={(e) => setSampai(e.target.value)} /></div>
           <Tombol tipe="submit">Terapkan</Tombol>
           <a href={`/api/laporan?dari=${dari}&sampai=${sampai}&format=csv`}
             className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">
@@ -148,6 +149,31 @@ export default function HalamanLaporan() {
           </tbody>
         </Tabel>
       </div>
+
+      <Kartu>
+        <h2 className="text-lg font-semibold">Pengeluaran per kategori</h2>
+        {(data?.pengeluaranPerKategori ?? []).length === 0 ? (
+          <p className="mt-4 text-sm text-tinta-lemah">Tidak ada pengeluaran pada rentang ini.</p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {data?.pengeluaranPerKategori.map((k) => {
+              const total = data.ringkasan.pengeluaran || 1;
+              const persen = Math.min(100, Math.round((k.jumlah / total) * 100));
+              return (
+                <li key={k.kategori}>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="font-medium">{k.kategori}</span>
+                    <span className="font-semibold">{formatRupiah(k.jumlah)}</span>
+                  </div>
+                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-latar">
+                    <div className="h-full rounded-full bg-aksen" style={{ width: `${persen}%` }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Kartu>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { formatAngka, formatRupiah, formatWaktu, tanggalHariIni } from "@/lib/format.ts";
-import { ambilJson } from "@/komponen/api-klien.ts";
+import { ambilApi, ambilJson } from "@/komponen/api-klien.ts";
 import { usePeran } from "./Panel.tsx";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tabel, Tombol, KepalaTabel, SelKepala, BarisKosong } from "./ui.tsx";
 
@@ -34,6 +34,8 @@ export default function HalamanStok() {
   const [dialogBeli, setDialogBeli] = useState(false);
   const [formBeli, setFormBeli] = useState({ supplier_id: "", tanggal: tanggalHariIni(), catatan: "", items: [{ bahan_id: "", jumlah: "1", harga_satuan: "0" }] });
   const [dialogOpname, setDialogOpname] = useState(false);
+  const [detailBeli, setDetailBeli] = useState<{ nomor: string; items: { nama_bahan: string; jumlah: number; harga_satuan: number; subtotal: number }[] } | null>(null);
+  const [detailOpname, setDetailOpname] = useState<{ nomor: string; items: { nama_bahan: string; stok_fisik: number; stok_sistem: number; selisih: number; alasan: string }[] } | null>(null);
   const [formOpname, setFormOpname] = useState({ tanggal: tanggalHariIni(), catatan: "", items: [{ bahan_id: "", stok_fisik: "0", alasan: "" }] });
 
   const muat = useCallback(async () => {
@@ -52,6 +54,20 @@ export default function HalamanStok() {
 
   function gagal(e: unknown) {
     setJenis("galat"); setPesan(e instanceof Error ? e.message : "Permintaan gagal");
+  }
+
+  async function lihatBeli(p: Pembelian) {
+    try {
+      const d = await ambilApi<{ items: { nama_bahan: string; jumlah: number; harga_satuan: number; subtotal: number }[] }>(`/api/pembelian?id=${p.id}`);
+      setDetailBeli({ nomor: p.nomor, items: d.items ?? [] });
+    } catch (e) { gagal(e); }
+  }
+
+  async function lihatOpname(o: Opname) {
+    try {
+      const d = await ambilApi<{ items: { nama_bahan: string; stok_fisik: number; stok_sistem: number; selisih: number; alasan: string }[] }>(`/api/opname?id=${o.id}`);
+      setDetailOpname({ nomor: o.nomor, items: d.items ?? [] });
+    } catch (e) { gagal(e); }
   }
 
   function bukaBahan(b?: Bahan) {
@@ -195,7 +211,7 @@ export default function HalamanStok() {
           <Tabel>
             <KepalaTabel><tr>
               <SelKepala>Nomor</SelKepala><SelKepala>Tanggal</SelKepala><SelKepala>Supplier</SelKepala>
-              <SelKepala>Item</SelKepala><SelKepala>Total</SelKepala><SelKepala>Catatan</SelKepala>
+              <SelKepala>Item</SelKepala><SelKepala>Total</SelKepala><SelKepala>Catatan</SelKepala><SelKepala>Aksi</SelKepala>
             </tr></KepalaTabel>
             <tbody>
               {pembelian.map((p) => (
@@ -206,9 +222,10 @@ export default function HalamanStok() {
                   <td className="px-4 py-3">{p.jumlah_item}</td>
                   <td className="px-4 py-3">{formatRupiah(p.total)}</td>
                   <td className="px-4 py-3 text-xs">{p.catatan}</td>
+                  <td className="px-4 py-3"><Tombol jenis="kosong" kelas="min-h-[36px] px-2 text-xs" onClick={() => void lihatBeli(p)}>Rincian</Tombol></td>
                 </tr>
               ))}
-              {pembelian.length === 0 && <BarisKosong kolom={6} teks="Belum ada pembelian." />}
+              {pembelian.length === 0 && <BarisKosong kolom={7} teks="Belum ada pembelian." />}
             </tbody>
           </Tabel>
         </div>
@@ -219,7 +236,7 @@ export default function HalamanStok() {
           {pemilik && <div className="mb-4 flex justify-end"><Tombol onClick={() => setDialogOpname(true)}>Buat opname</Tombol></div>}
           <Tabel>
             <KepalaTabel><tr>
-              <SelKepala>Nomor</SelKepala><SelKepala>Tanggal</SelKepala><SelKepala>Item</SelKepala><SelKepala>Catatan</SelKepala>
+              <SelKepala>Nomor</SelKepala><SelKepala>Tanggal</SelKepala><SelKepala>Item</SelKepala><SelKepala>Catatan</SelKepala><SelKepala>Aksi</SelKepala>
             </tr></KepalaTabel>
             <tbody>
               {opname.map((o) => (
@@ -228,9 +245,10 @@ export default function HalamanStok() {
                   <td className="px-4 py-3 text-xs">{o.tanggal.slice(0, 10)}</td>
                   <td className="px-4 py-3">{o.jumlah_item}</td>
                   <td className="px-4 py-3 text-xs">{o.catatan}</td>
+                  <td className="px-4 py-3"><Tombol jenis="kosong" kelas="min-h-[36px] px-2 text-xs" onClick={() => void lihatOpname(o)}>Rincian</Tombol></td>
                 </tr>
               ))}
-              {opname.length === 0 && <BarisKosong kolom={4} teks="Belum ada opname." />}
+              {opname.length === 0 && <BarisKosong kolom={5} teks="Belum ada opname." />}
             </tbody>
           </Tabel>
         </div>
@@ -293,6 +311,45 @@ export default function HalamanStok() {
           <div><label htmlFor="o-catatan">Catatan</label><input id="o-catatan" value={formOpname.catatan} onChange={(e) => setFormOpname({ ...formOpname, catatan: e.target.value })} /></div>
           <Tombol tipe="submit" kelas="w-full">Simpan opname</Tombol>
         </form>
+      </Dialog>
+
+      <Dialog terbuka={detailBeli !== null} judul={`Rincian ${detailBeli?.nomor ?? ""}`} padaTutup={() => setDetailBeli(null)}>
+        {detailBeli && (
+          <Tabel>
+            <KepalaTabel><tr><SelKepala>Bahan</SelKepala><SelKepala>Jumlah</SelKepala><SelKepala>Harga satuan</SelKepala><SelKepala>Subtotal</SelKepala></tr></KepalaTabel>
+            <tbody>
+              {detailBeli.items.map((i, n) => (
+                <tr key={n} className="border-t border-garis">
+                  <td className="px-4 py-3">{i.nama_bahan}</td>
+                  <td className="px-4 py-3">{i.jumlah}</td>
+                  <td className="px-4 py-3">{formatRupiah(i.harga_satuan)}</td>
+                  <td className="px-4 py-3 font-semibold">{formatRupiah(i.subtotal)}</td>
+                </tr>
+              ))}
+              {detailBeli.items.length === 0 && <BarisKosong kolom={4} teks="Tidak ada item." />}
+            </tbody>
+          </Tabel>
+        )}
+      </Dialog>
+
+      <Dialog terbuka={detailOpname !== null} judul={`Rincian ${detailOpname?.nomor ?? ""}`} padaTutup={() => setDetailOpname(null)}>
+        {detailOpname && (
+          <Tabel>
+            <KepalaTabel><tr><SelKepala>Bahan</SelKepala><SelKepala>Sistem</SelKepala><SelKepala>Fisik</SelKepala><SelKepala>Selisih</SelKepala><SelKepala>Alasan</SelKepala></tr></KepalaTabel>
+            <tbody>
+              {detailOpname.items.map((i, n) => (
+                <tr key={n} className="border-t border-garis">
+                  <td className="px-4 py-3">{i.nama_bahan}</td>
+                  <td className="px-4 py-3">{i.stok_sistem}</td>
+                  <td className="px-4 py-3">{i.stok_fisik}</td>
+                  <td className="px-4 py-3 font-semibold">{i.selisih}</td>
+                  <td className="px-4 py-3 text-xs">{i.alasan || "-"}</td>
+                </tr>
+              ))}
+              {detailOpname.items.length === 0 && <BarisKosong kolom={5} teks="Tidak ada item." />}
+            </tbody>
+          </Tabel>
+        )}
       </Dialog>
     </div>
   );

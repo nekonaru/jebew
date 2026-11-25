@@ -58,7 +58,10 @@ export async function POST(permintaan: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(permintaan: Request) {
+  if (!asalValid(permintaan)) {
+    return NextResponse.json({ pesan: "Asal permintaan tidak valid" }, { status: 403 });
+  }
   const respons = NextResponse.json({ masuk: false });
   respons.cookies.set(pilihanCookie.name, "", {
     httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production",

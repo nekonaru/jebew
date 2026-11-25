@@ -28,8 +28,7 @@ export async function POST(req: Request) {
   try {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    const id = await simpanBahan(skema.parse(await req.json()));
-    await import("@/lib/audit.ts").then((m) => m.catatAudit(pengguna, "tambah", "bahan", `id ${id}`));
+    const id = await simpanBahan(skema.parse(await req.json()), undefined, pengguna);
     return NextResponse.json({ id }, { status: 201 });
   } catch (e) { return galat(e) as NextResponse; }
 }
@@ -39,8 +38,7 @@ export async function PUT(req: Request) {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     const badan = z.object({ id: z.number().int().positive(), data: skema }).strict().parse(await req.json());
-    await simpanBahan(badan.data, badan.id);
-    await import("@/lib/audit.ts").then((m) => m.catatAudit(pengguna, "ubah", "bahan", `id ${badan.id}`));
+    await simpanBahan(badan.data, badan.id, pengguna);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }
 }
@@ -50,8 +48,7 @@ export async function DELETE(req: Request) {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     const badan = z.object({ id: z.number().int().positive() }).strict().parse(await req.json());
-    await hapusBahan(badan.id);
-    await import("@/lib/audit.ts").then((m) => m.catatAudit(pengguna, "hapus", "bahan", `id ${badan.id}`));
+    await hapusBahan(badan.id, pengguna);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }
 }
