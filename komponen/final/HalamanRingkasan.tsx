@@ -114,7 +114,7 @@ export default function HalamanRingkasan() {
           )}
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Badge warna="info">Data WIB</Badge>
-            {(statistik?.bahanMenipis ?? []).length > 0 && (
+            {(statistik?.bahanMenipis ?? []).length > 0 && publik?.pengaturan.whatsapp_admin && (
               <a
                 href={tautanWhatsApp(
                   publik?.pengaturan.whatsapp_admin ?? "",

@@ -43,6 +43,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ detail: { ...header, items } });
     }
 
+    if (p.get("dari") === "" || p.get("sampai") === "") {
+      return NextResponse.json({ pesan: "Format tanggal tidak valid" }, { status: 400 });
+    }
     const dari = p.get("dari") ? tanggalAman(p.get("dari"), "") : mundur(29);
     const sampai = p.get("sampai") ? tanggalAman(p.get("sampai"), "") : tanggalHariIni();
     if (!dari || !sampai) {

@@ -69,7 +69,10 @@ export async function GET() {
       query<{ nama: string; varian: string; jumlah: number; omzet: number }>(
         `WITH bobot AS (
            SELECT i.nama_menu, i.nama_varian, i.jumlah, i.subtotal,
-                  p.total / NULLIF(SUM(i.subtotal) OVER (PARTITION BY p.id), 0) AS faktor
+                  COALESCE(
+                    p.total::numeric / NULLIF(SUM(i.subtotal) OVER (PARTITION BY p.id), 0),
+                    p.total::numeric
+                  ) AS faktor
            FROM item_penjualan i JOIN penjualan p ON p.id = i.penjualan_id
            WHERE p.dibuat_pada::date BETWEEN ($1::date - INTERVAL '6 days') AND $1::date
          )

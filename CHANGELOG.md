@@ -1,5 +1,26 @@
 # Riwayat Perubahan
 
+## final-v1.11.0
+
+Audit putaran kesepuluh dan kemudahan mengisi kata sandi.
+
+### Fitur baru
+
+- **Tombol mata pada login.** Kata sandi bisa ditampilkan atau disembunyikan dengan satu klik. Nilai input tetap terjaga dan tombol punya nama untuk pembaca layar.
+- **Akun demo tidak ditampilkan di produksi.** Petunjuk akun demo hanya muncul pada lingkungan pengembangan.
+
+### Perbaikan
+
+- **Alokasi diskon presisi.** Pembagian pada omzet menu terlaris memakai bilangan desimal, sehingga nilainya sama dengan laporan walau ada diskon.
+- **Item harga nol tetap dihitung.** Transaksi dengan subtotal nol tidak hilang dari omzet menu terlaris.
+- **Tombol WhatsApp hanya muncul bila nomor tersedia.** Kartu bahan menipis tidak lagi membuka WhatsApp ke nomor kosong.
+- **Validasi tanggal seragam.** Pembelian dan opname juga menolak tanggal masa depan, sedangkan riwayat menolak parameter tanggal kosong.
+- **Login membatasi ukuran permintaan.** Body permintaan login dibatasi 4 KB sebelum diproses.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.10.0
 
 Audit putaran kesembilan dan perbandingan penjualan.

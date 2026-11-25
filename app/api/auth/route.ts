@@ -20,6 +20,10 @@ export async function POST(permintaan: Request) {
     if (!asalValid(permintaan)) {
       return NextResponse.json({ pesan: "Asal permintaan tidak valid" }, { status: 403 });
     }
+    const panjang = Number(permintaan.headers.get("content-length") ?? "0");
+    if (Number.isFinite(panjang) && panjang > 4096) {
+      return NextResponse.json({ pesan: "Permintaan terlalu besar" }, { status: 413 });
+    }
     const badan = skemaLogin.parse(await permintaan.json());
     const email = badan.email.toLowerCase();
     const alamat = permintaan.headers.get("x-real-ip")

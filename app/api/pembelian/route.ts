@@ -3,7 +3,7 @@ import { z } from "zod";
 import { aman, galat } from "@/lib/api-final.ts";
 import { ambilItemPembelian, ambilPembelian, ambilSupplier, simpanPembelian } from "@/lib/final/stok.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
-import { tanggalValid } from "@/lib/format.ts";
+import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
@@ -25,7 +25,8 @@ export async function GET(req: Request) {
 
 const skema = z.object({
   supplier_id: z.number().int().positive().nullable(),
-  tanggal: z.string().refine(tanggalValid, "Tanggal tidak valid"),
+  tanggal: z.string().refine(tanggalValid, "Tanggal tidak valid")
+    .refine((v) => v <= tanggalHariIni(), "Tanggal tidak boleh di masa depan"),
   catatan: z.string().trim().max(300),
   items: z.array(z.object({
     bahan_id: z.number().int().positive(),
