@@ -20,6 +20,7 @@ export default function HalamanStok() {
   const [tab, setTab] = useState<Tab>("Bahan");
   const [bahan, setBahan] = useState<Bahan[]>([]);
   const [ringkasan, setRingkasan] = useState<{ jumlah: number; menipis: number; nilai: number; terbesar: { id: number; nama: string; nilai: number }[] } | null>(null);
+  const [filterBahan, setFilterBahan] = useState("");
   const [pergerakan, setPergerakan] = useState<Pergerakan[]>([]);
   const [pembelian, setPembelian] = useState<Pembelian[]>([]);
   const [supplier, setSupplier] = useState<Supplier[]>([]);
@@ -46,14 +47,14 @@ export default function HalamanStok() {
           bahan: Bahan[];
           ringkasan: { jumlah: number; menipis: number; nilai: number; terbesar: { id: number; nama: string; nilai: number }[] };
         }>),
-        fetch("/api/stok").then(ambilJson<{ pergerakan: Pergerakan[] }>),
+        fetch(`/api/stok${filterBahan ? `?bahan=${filterBahan}` : ""}`).then(ambilJson<{ pergerakan: Pergerakan[] }>),
         fetch("/api/pembelian").then(ambilJson<{ pembelian: Pembelian[]; supplier: Supplier[] }>),
         fetch("/api/opname").then(ambilJson<{ opname: Opname[] }>),
       ]);
       setBahan(b.bahan ?? []); setRingkasan(b.ringkasan ?? null); setPergerakan(p.pergerakan ?? []);
       setPembelian(pb.pembelian ?? []); setSupplier(pb.supplier ?? []); setOpname(op.opname ?? []);
     } catch { /* abaikan */ }
-  }, []);
+  }, [filterBahan]);
   useEffect(() => { void muat(); }, [muat]);
 
   function gagal(e: unknown) {
@@ -158,7 +159,7 @@ export default function HalamanStok() {
 
       {tab === "Bahan" && (
         <div className="space-y-5">
-          <Kartu>
+          {pemilik && <Kartu>
             <h2 className="text-lg font-semibold">Nilai stok</h2>
             <div className="mt-3 flex flex-wrap items-end gap-x-8 gap-y-3">
               <div>
@@ -183,7 +184,7 @@ export default function HalamanStok() {
                 ))}
               </ul>
             )}
-          </Kartu>
+          </Kartu>}
           <Tabel>
           <KepalaTabel><tr>
             <SelKepala>Nama</SelKepala><SelKepala>Satuan</SelKepala><SelKepala>Stok</SelKepala>
@@ -215,7 +216,15 @@ export default function HalamanStok() {
       )}
 
       {tab === "Pergerakan" && (
-        <Tabel>
+        <div className="space-y-4">
+          <div className="max-w-sm">
+            <label htmlFor="filter-pergerakan">Filter bahan</label>
+            <select id="filter-pergerakan" value={filterBahan} onChange={(e) => setFilterBahan(e.target.value)}>
+              <option value="">Semua bahan</option>
+              {bahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}
+            </select>
+          </div>
+          <Tabel>
           <KepalaTabel><tr>
             <SelKepala>Waktu</SelKepala><SelKepala>Bahan</SelKepala><SelKepala>Jenis</SelKepala>
             <SelKepala>Jumlah</SelKepala><SelKepala>Stok sebelum</SelKepala><SelKepala>Stok sesudah</SelKepala><SelKepala>Referensi</SelKepala>
@@ -234,7 +243,8 @@ export default function HalamanStok() {
             ))}
             {pergerakan.length === 0 && <BarisKosong kolom={7} teks="Belum ada pergerakan stok." />}
           </tbody>
-        </Tabel>
+          </Tabel>
+        </div>
       )}
 
       {tab === "Pembelian" && (

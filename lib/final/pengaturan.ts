@@ -3,13 +3,16 @@
 import { denganTransaksi, jalankan, query, querySatu } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
 import { hashKataSandi } from "../auth.ts";
+import { catatAudit } from "../audit.ts";
 
 export async function ambilPengaturan(): Promise<Record<string, string>> {
   const baris = await query<{ kunci: string; nilai: string }>("SELECT kunci, nilai FROM pengaturan");
   return Object.fromEntries(baris.map((b) => [b.kunci, b.nilai]));
 }
 
-export async function simpanPengaturan(nilai: Record<string, string>): Promise<void> {
+export async function simpanPengaturan(
+  nilai: Record<string, string>, actorId?: number,
+): Promise<void> {
   await denganTransaksi(async () => {
     for (const [kunci, isi] of Object.entries(nilai)) {
       await jalankan(
@@ -17,6 +20,7 @@ export async function simpanPengaturan(nilai: Record<string, string>): Promise<v
         [kunci, isi],
       );
     }
+    await catatAudit(actorId ? { id: actorId } : null, "ubah", "pengaturan", "Identitas dan jam operasional diperbarui");
   });
 }
 
@@ -36,6 +40,7 @@ export async function simpanPengguna(input: PenggunaInput, id?: number, actorId?
   const email = input.email.trim().toLowerCase();
   await denganTransaksi(async () => {
     await query("SELECT pg_advisory_xact_lock(818881)");
+    const pelaku = actorId ? { id: actorId } : null;
     if (id !== undefined) {
       const ada = await querySatu<{ id: number; peran: string }>(
         "SELECT id, peran FROM pengguna WHERE id = $1", [id],
@@ -63,13 +68,15 @@ export async function simpanPengguna(input: PenggunaInput, id?: number, actorId?
           [email, input.nama, input.peran, input.aktif, id],
         );
       }
+      await catatAudit(pelaku, "ubah", "pengguna", `id ${id} diperbarui`);
       return;
     }
     if (!input.kata_sandi) throw new GalatBisnis("Kata sandi wajib diisi");
-    await jalankan(
-      "INSERT INTO pengguna (email, nama, kata_sandi, peran, aktif) VALUES ($1,$2,$3,$4,$5)",
+    const baris = await querySatu<{ id: number }>(
+      "INSERT INTO pengguna (email, nama, kata_sandi, peran, aktif) VALUES ($1,$2,$3,$4,$5) RETURNING id",
       [email, input.nama, hashKataSandi(input.kata_sandi), input.peran, input.aktif],
     );
+    await catatAudit(pelaku, "tambah", "pengguna", `id ${baris?.id ?? 0} ditambahkan`);
   });
 }
 
@@ -96,11 +103,14 @@ export async function hapusPengguna(id: number, actorId?: number): Promise<void>
             + (SELECT COUNT(*) FROM tutup_kasir WHERE kasir_id = $1) AS jumlah`,
       [id],
     );
+    const pelaku = actorId ? { id: actorId } : null;
     if (Number(riwayat?.jumlah ?? 0) > 0) {
       await jalankan("UPDATE pengguna SET aktif = FALSE WHERE id = $1", [id]);
+      await catatAudit(pelaku, "hapus", "pengguna", `id ${id} dinonaktifkan`);
       return;
     }
     await jalankan("DELETE FROM pengguna WHERE id = $1", [id]);
+    await catatAudit(pelaku, "hapus", "pengguna", `id ${id} dihapus`);
   });
 }
 

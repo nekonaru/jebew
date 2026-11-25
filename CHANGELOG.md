@@ -1,5 +1,27 @@
 # Riwayat Perubahan
 
+## final-v1.16.0
+
+Audit putaran kelima belas dan kerapian data master.
+
+### Fitur baru
+
+- **Filter pergerakan stok.** Riwayat pergerakan bisa disaring berdasarkan bahan.
+
+### Perbaikan
+
+- **Nilai stok hanya pemilik.** Kasir tidak lagi menerima total dan rincian nilai bahan lewat API.
+- **Cadangan dapat dipulihkan.** Batas baris pemulihan dinaikkan agar cadangan dengan banyak entri audit tetap bisa dipakai.
+- **Jejak akun tercatat.** Perubahan pengguna dan pengaturan sekarang masuk log audit tanpa menyimpan kata sandi, dan filter audit menyediakan kedua nilai tersebut.
+- **Pencarian literal.** Karakter wildcard pada pencarian riwayat dan pre-order di-escape, seperti yang sudah berlaku pada audit.
+- **Perubahan master akurat.** Pemeriksaan supplier dan kategori berada dalam transaksi dengan kunci baris, sehingga tidak ada audit untuk perubahan yang gagal.
+- **Tutup kasir tepat.** Pembaruan dicatat sebagai "ubah", bukan "tambah".
+- **Tautan CSV laporan memakai aturan server.** Tanggal mustahil tidak lagi membuat tautan aktif.
+
+### Pengujian
+
+Ditambah skrip uji untuk peran, wildcard, duplikat kategori, id desimal, dan ekspor audit.
+
 ## final-v1.15.0
 
 Audit putaran keempat belas dan ringkasan nilai stok.

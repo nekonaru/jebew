@@ -126,6 +126,8 @@ export default function HalamanKeuangan() {
                   <option value="kategori_pengeluaran">Kategori pengeluaran</option>
                   <option value="tutup_kasir">Tutup kasir</option>
                   <option value="pulihkan">Pemulihan data</option>
+                  <option value="pengguna">Pengguna</option>
+                  <option value="pengaturan">Pengaturan</option>
                 </select>
               </div>
               <div>

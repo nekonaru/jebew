@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       if (!TABEL.includes(nama)) {
         return NextResponse.json({ pesan: `Tabel ${nama} tidak dikenal` }, { status: 400 });
       }
-      if (baris.length > 5000) {
+      if (baris.length > 50000) {
         return NextResponse.json({ pesan: `Jumlah baris ${nama} terlalu banyak` }, { status: 400 });
       }
     }

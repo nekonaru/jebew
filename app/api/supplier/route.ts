@@ -73,10 +73,14 @@ export async function DELETE(req: Request) {
     if (!/^\d+$/.test(teksId)) return NextResponse.json({ pesan: "Id tidak valid" }, { status: 400 });
     const id = Number(teksId);
     // Data lama tetap dipertahankan lewat penonaktifan agar riwayat pembelian utuh.
+    let tidakAda = false;
     await denganTransaksi(async () => {
+      const ada = await querySatu("SELECT id FROM supplier WHERE id = $1 FOR UPDATE", [id]);
+      if (!ada) { tidakAda = true; return; }
       await jalankan("UPDATE supplier SET aktif = FALSE WHERE id = $1", [id]);
       await catatAudit(pengguna, "hapus", "supplier", String(id));
     });
+    if (tidakAda) return NextResponse.json({ pesan: "Supplier tidak ditemukan" }, { status: 404 });
     return NextResponse.json({ berhasil: true });
   } catch (kesalahan) {
     return galat(kesalahan) as NextResponse;

@@ -7,7 +7,7 @@ import { batasiDiskon, cekStokCukup, hitungHpp, totalDenganDiskon } from "../int
 import type { PenggunaSesi } from "../auth.ts";
 import { ambilBahanTransaksi, ambilMenu } from "./menu.ts";
 import { catatAudit } from "../audit.ts";
-import { jamMenitWIB, tanggalHariIni } from "../format.ts";
+import { escapeLike, jamMenitWIB, tanggalHariIni } from "../format.ts";
 
 export type Barang = {
   menu_id: number;
@@ -224,8 +224,8 @@ export async function ambilPreorder(filter: FilterPreorder = {}) {
     syarat.push(`status = $${nilai.length}`);
   }
   if (filter.cari) {
-    nilai.push(`%${filter.cari}%`);
-    syarat.push(`(kode ILIKE $${nilai.length} OR nama_pelanggan ILIKE $${nilai.length})`);
+    nilai.push(`%${escapeLike(filter.cari)}%`);
+    syarat.push(`(kode ILIKE $${nilai.length} ESCAPE '\\' OR nama_pelanggan ILIKE $${nilai.length} ESCAPE '\\')`);
   }
   if (filter.dari) {
     nilai.push(filter.dari);

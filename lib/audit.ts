@@ -4,7 +4,7 @@ import { jalankan } from "./database.ts";
 import type { PenggunaSesi } from "./auth.ts";
 
 export async function catatAudit(
-  pengguna: PenggunaSesi | null,
+  pengguna: Pick<PenggunaSesi, "id"> | null,
   aksi: string,
   tabel: string,
   catatan: string,

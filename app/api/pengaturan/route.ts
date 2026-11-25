@@ -25,9 +25,9 @@ const skema = z.object({
 
 export async function PUT(req: Request) {
   try {
-    const { penolakan } = await aman(req, "pemilik");
+    const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    await simpanPengaturan(skema.parse(await req.json()));
+    await simpanPengaturan(skema.parse(await req.json()), pengguna?.id);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }
 }

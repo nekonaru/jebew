@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { aman, galat } from "@/lib/api-final.ts";
 import { query, querySatu } from "@/lib/database.ts";
-import { tanggalHariIni, tanggalParameter } from "@/lib/format.ts";
+import { escapeLike, tanggalHariIni, tanggalParameter } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
@@ -55,10 +55,10 @@ export async function GET(req: Request) {
     const per = csv ? 5000 : 12;
     const offset = (halaman - 1) * per;
     const syarat = `p.dibuat_pada::date BETWEEN $1::date AND $2::date
-      AND ($3 = '' OR p.nomor ILIKE '%' || $3 || '%'
+      AND ($3 = '' OR p.nomor ILIKE '%' || $3 || '%' ESCAPE '\\'
         OR EXISTS (SELECT 1 FROM item_penjualan i2
-                   WHERE i2.penjualan_id = p.id AND i2.nama_menu ILIKE '%' || $3 || '%'))`;
-    const nilai = [dari, sampai, cari];
+                   WHERE i2.penjualan_id = p.id AND i2.nama_menu ILIKE '%' || $3 || '%' ESCAPE '\\'))`;
+    const nilai = [dari, sampai, escapeLike(cari)];
 
     const [daftar, hitung] = await Promise.all([
       query<{

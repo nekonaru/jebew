@@ -140,6 +140,9 @@ export async function tutupKasir(
     const qris = Number(hasil?.qris ?? 0);
     const transfer = Number(hasil?.transfer ?? 0);
     const selisih = input.kas_fisik - tunai;
+    const lama = await querySatu<{ id: number }>(
+      "SELECT id FROM tutup_kasir WHERE tanggal = $1::date", [input.tanggal],
+    );
     await jalankan(
       `INSERT INTO tutup_kasir (tanggal, kasir_id, total_tunai, total_qris, total_transfer, kas_fisik, selisih, catatan)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
@@ -148,7 +151,7 @@ export async function tutupKasir(
          kas_fisik=EXCLUDED.kas_fisik, selisih=EXCLUDED.selisih, catatan=EXCLUDED.catatan`,
       [input.tanggal, pengguna?.id ?? null, tunai, qris, transfer, input.kas_fisik, selisih, input.catatan],
     );
-    await catatAudit(pengguna, "tambah", "tutup_kasir", `${input.tanggal}, selisih ${selisih}`);
+    await catatAudit(pengguna, lama ? "ubah" : "tambah", "tutup_kasir", `${input.tanggal}, selisih ${selisih}`);
   });
 }
 

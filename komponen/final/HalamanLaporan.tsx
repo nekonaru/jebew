@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
+import { formatRupiah, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Judul, Kartu, Pesan, Statistik, Tabel, KepalaTabel, SelKepala, BarisKosong, Tombol } from "./ui.tsx";
 
@@ -48,7 +48,7 @@ export default function HalamanLaporan() {
           <Tombol tipe="submit">Terapkan</Tombol>
           {(() => {
             const hariIni = tanggalHariIni();
-            const valid = dari <= sampai && sampai <= hariIni &&
+            const valid = tanggalValid(dari) && tanggalValid(sampai) && dari <= sampai && sampai <= hariIni &&
               (Date.parse(sampai) - Date.parse(dari)) <= 365 * 86400000;
             return valid ? (
               <a href={`/api/laporan?dari=${dari}&sampai=${sampai}&format=csv`}

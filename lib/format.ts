@@ -45,6 +45,11 @@ export function tanggalHariIni(): string {
   }).format(new Date());
 }
 
+/** Escape karakter khusus pola LIKE/ILIKE agar pencarian bersifat literal. */
+export function escapeLike(nilai: string): string {
+  return nilai.replace(/[\\%_]/g, "\\$&");
+}
+
 /** Nilai parameter tanggal: kosong memakai cadangan, tidak valid menghasilkan string kosong. */
 export function tanggalParameter(nilai: string | null, cadangan: string): string {
   if (nilai === null || nilai === "") return cadangan;

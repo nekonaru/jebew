@@ -55,12 +55,14 @@ export async function PUT(req: Request) {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     const badan = z.object({ id: z.number().int().positive(), nama: skema.shape.nama }).strict().parse(await req.json());
-    const ada = await querySatu("SELECT id FROM kategori_pengeluaran WHERE id = $1", [badan.id]);
-    if (!ada) return NextResponse.json({ pesan: "Kategori tidak ditemukan" }, { status: 404 });
+    let tidakAda = false;
     await denganTransaksi(async () => {
+      const ada = await querySatu("SELECT id FROM kategori_pengeluaran WHERE id = $1 FOR UPDATE", [badan.id]);
+      if (!ada) { tidakAda = true; return; }
       await jalankan("UPDATE kategori_pengeluaran SET nama = $1 WHERE id = $2", [badan.nama, badan.id]);
       await catatAudit(pengguna, "ubah", "kategori_pengeluaran", `${badan.id} menjadi ${badan.nama}`);
     });
+    if (tidakAda) return NextResponse.json({ pesan: "Kategori tidak ditemukan" }, { status: 404 });
     return NextResponse.json({ berhasil: true });
   } catch (kesalahan) {
     return galatSimpan(kesalahan);

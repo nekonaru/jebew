@@ -17,10 +17,12 @@ const skema = z.object({
 
 export async function GET() {
   try {
-    if (!(await penggunaSaatIni())) {
+    const pengguna = await penggunaSaatIni();
+    if (!pengguna) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
     const bahan = await ambilBahan();
+    if (pengguna.peran !== "pemilik") return NextResponse.json({ bahan });
     const aktif = bahan.filter((b) => b.aktif);
     return NextResponse.json({
       bahan,
