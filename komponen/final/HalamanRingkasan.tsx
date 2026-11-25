@@ -17,6 +17,8 @@ type Ringkasan = {
   bahanTipis: number;
   menuTotal: number;
   nilaiStok: number;
+  omzetKemarin: number;
+  transaksiKemarin: number;
   tren: TitikOmzet[];
   bahanMenipis: { id: number; nama: string; satuan: string; stok: number; stok_minimum: number }[];
   terlaris: { nama: string; varian: string; jumlah: number; omzet: number }[];
@@ -56,8 +58,10 @@ export default function HalamanRingkasan() {
       <Pesan teks={pesan} jenis="galat" />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {pemilik && <Statistik label="Omzet hari ini" nilai={gagal ? "-" : formatRupiah(statistik?.omzet ?? 0)} aksen />}
-        {pemilik && <Statistik label="Transaksi" nilai={gagal ? "-" : String(statistik?.transaksi ?? 0)} keterangan="Hari ini" />}
+        {pemilik && <Statistik label="Omzet hari ini" nilai={gagal ? "-" : formatRupiah(statistik?.omzet ?? 0)}
+          keterangan={gagal ? undefined : `Kemarin ${formatRupiah(statistik?.omzetKemarin ?? 0)}`} aksen />}
+        {pemilik && <Statistik label="Transaksi" nilai={gagal ? "-" : String(statistik?.transaksi ?? 0)}
+          keterangan={gagal ? undefined : `Kemarin ${statistik?.transaksiKemarin ?? 0} transaksi`} />}
         <Statistik label="Pre-order aktif" nilai={gagal ? "-" : String(statistik?.preorderAktif ?? 0)} keterangan="Perlu ditangani" />
         <Statistik label="Bahan menipis" nilai={gagal ? "-" : String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
         {pemilik && <Statistik label="Nilai stok" nilai={gagal ? "-" : formatRupiah(statistik?.nilaiStok ?? 0)} keterangan="Bahan aktif" />}

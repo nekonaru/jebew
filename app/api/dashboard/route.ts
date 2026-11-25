@@ -32,7 +32,7 @@ const dataPublik = unstable_cache(
     };
   },
   ["status-final"],
-  { revalidate: 30 },
+  { revalidate: 5 },
 );
 
 export async function GET() {

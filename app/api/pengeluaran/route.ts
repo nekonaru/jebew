@@ -3,7 +3,7 @@ import { z } from "zod";
 import { aman, galat } from "@/lib/api-final.ts";
 import { ambilKategoriPengeluaran, tambahPengeluaran } from "@/lib/final/laporan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
-import { tanggalValid } from "@/lib/format.ts";
+import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
@@ -20,7 +20,8 @@ const skema = z.object({
   kategori_id: z.number().int().positive(),
   nama: z.string().trim().min(1).max(100),
   jumlah: z.number().int().min(0).max(100000000),
-  tanggal: z.string().refine(tanggalValid, "Tanggal tidak valid"),
+  tanggal: z.string().refine(tanggalValid, "Tanggal tidak valid")
+    .refine((v) => v <= tanggalHariIni(), "Tanggal tidak boleh di masa depan"),
   catatan: z.string().trim().max(200),
 }).strict();
 

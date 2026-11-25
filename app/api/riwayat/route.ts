@@ -43,8 +43,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ detail: { ...header, items } });
     }
 
-    const dari = tanggalAman(p.get("dari"), mundur(29));
-    const sampai = tanggalAman(p.get("sampai"), tanggalHariIni());
+    const dari = p.get("dari") ? tanggalAman(p.get("dari"), "") : mundur(29);
+    const sampai = p.get("sampai") ? tanggalAman(p.get("sampai"), "") : tanggalHariIni();
+    if (!dari || !sampai) {
+      return NextResponse.json({ pesan: "Format tanggal tidak valid" }, { status: 400 });
+    }
     if (dari > sampai) {
       return NextResponse.json({ pesan: "Tanggal awal tidak boleh setelah tanggal akhir" }, { status: 400 });
     }

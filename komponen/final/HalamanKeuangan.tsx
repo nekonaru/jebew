@@ -150,7 +150,7 @@ export default function HalamanKeuangan() {
           <div><label htmlFor="e-nama">Nama</label><input id="e-nama" required value={formPengeluaran.nama} onChange={(e) => setFormPengeluaran({ ...formPengeluaran, nama: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-4">
             <div><label htmlFor="e-jumlah">Jumlah</label><input id="e-jumlah" type="number" min={0} required value={formPengeluaran.jumlah} onChange={(e) => setFormPengeluaran({ ...formPengeluaran, jumlah: e.target.value })} /></div>
-            <div><label htmlFor="e-tanggal">Tanggal</label><input id="e-tanggal" type="date" required value={formPengeluaran.tanggal} onChange={(e) => setFormPengeluaran({ ...formPengeluaran, tanggal: e.target.value })} /></div>
+            <div><label htmlFor="e-tanggal">Tanggal</label><input id="e-tanggal" type="date" required max={tanggalHariIni()} value={formPengeluaran.tanggal} onChange={(e) => setFormPengeluaran({ ...formPengeluaran, tanggal: e.target.value })} /></div>
           </div>
           <div><label htmlFor="e-catatan">Catatan</label><input id="e-catatan" value={formPengeluaran.catatan} onChange={(e) => setFormPengeluaran({ ...formPengeluaran, catatan: e.target.value })} /></div>
           <Tombol tipe="submit" kelas="w-full">Simpan</Tombol>
@@ -159,7 +159,7 @@ export default function HalamanKeuangan() {
 
       <Dialog terbuka={dialog === "tutup"} judul="Tutup kasir" padaTutup={() => setDialog(null)}>
         <form onSubmit={kirimTutup} className="space-y-4">
-          <div><label htmlFor="t-tanggal">Tanggal</label><input id="t-tanggal" type="date" required value={formTutup.tanggal} onChange={(e) => setFormTutup({ ...formTutup, tanggal: e.target.value })} /></div>
+          <div><label htmlFor="t-tanggal">Tanggal</label><input id="t-tanggal" type="date" required max={tanggalHariIni()} value={formTutup.tanggal} onChange={(e) => setFormTutup({ ...formTutup, tanggal: e.target.value })} /></div>
           <div><label htmlFor="t-kas">Kas fisik (Rp)</label><input id="t-kas" type="number" min={0} required value={formTutup.kas_fisik} onChange={(e) => setFormTutup({ ...formTutup, kas_fisik: e.target.value })} /></div>
           <div><label htmlFor="t-catatan">Catatan</label><input id="t-catatan" value={formTutup.catatan} onChange={(e) => setFormTutup({ ...formTutup, catatan: e.target.value })} /></div>
           <Tombol tipe="submit" kelas="w-full">Simpan tutup kasir</Tombol>

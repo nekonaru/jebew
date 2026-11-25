@@ -6,6 +6,12 @@ import { tanggalHariIni } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
+function hariLalu(): string {
+  const t = new Date(`${tanggalHariIni()}T00:00:00Z`);
+  t.setUTCDate(t.getUTCDate() - 1);
+  return t.toISOString().slice(0, 10);
+}
+
 /** Ringkasan untuk kasir. Data keuangan hanya dikirim ke pemilik. */
 export async function GET() {
   try {
@@ -42,7 +48,7 @@ export async function GET() {
 
     if (pengguna.peran !== "pemilik") return NextResponse.json(dasar);
 
-    const [penjualan, pengeluaran, tren, terlaris, nilaiStok] = await Promise.all([
+    const [penjualan, pengeluaran, tren, terlaris, nilaiStok, kemarin] = await Promise.all([
       querySatu<{ omzet: number; jumlah: number }>(
         "SELECT COALESCE(SUM(total),0) AS omzet, COUNT(*) AS jumlah FROM penjualan WHERE dibuat_pada::date = $1::date",
         [tanggalHariIni()],
@@ -61,15 +67,23 @@ export async function GET() {
         [tanggalHariIni()],
       ),
       query<{ nama: string; varian: string; jumlah: number; omzet: number }>(
-        `SELECT i.nama_menu AS nama, i.nama_varian AS varian,
-                SUM(i.jumlah) AS jumlah, SUM(i.subtotal) AS omzet
-         FROM item_penjualan i JOIN penjualan p ON p.id = i.penjualan_id
-         WHERE p.dibuat_pada::date BETWEEN ($1::date - INTERVAL '6 days') AND $1::date
-         GROUP BY i.nama_menu, i.nama_varian ORDER BY jumlah DESC LIMIT 5`,
+        `WITH bobot AS (
+           SELECT i.nama_menu, i.nama_varian, i.jumlah, i.subtotal,
+                  p.total / NULLIF(SUM(i.subtotal) OVER (PARTITION BY p.id), 0) AS faktor
+           FROM item_penjualan i JOIN penjualan p ON p.id = i.penjualan_id
+           WHERE p.dibuat_pada::date BETWEEN ($1::date - INTERVAL '6 days') AND $1::date
+         )
+         SELECT nama_menu AS nama, nama_varian AS varian,
+                SUM(jumlah) AS jumlah, SUM(subtotal * faktor) AS omzet
+         FROM bobot GROUP BY nama_menu, nama_varian ORDER BY jumlah DESC LIMIT 5`,
         [tanggalHariIni()],
       ),
       querySatu<{ nilai: number }>(
         "SELECT COALESCE(SUM(stok * harga_rata_rata),0) AS nilai FROM bahan WHERE aktif = TRUE",
+      ),
+      querySatu<{ omzet: number; jumlah: number }>(
+        "SELECT COALESCE(SUM(total),0) AS omzet, COUNT(*) AS jumlah FROM penjualan WHERE dibuat_pada::date = $1::date",
+        [hariLalu()],
       ),
     ]);
 
@@ -77,6 +91,8 @@ export async function GET() {
       ...dasar,
       omzet: Number(penjualan?.omzet ?? 0),
       transaksi: Number(penjualan?.jumlah ?? 0),
+      omzetKemarin: Number(kemarin?.omzet ?? 0),
+      transaksiKemarin: Number(kemarin?.jumlah ?? 0),
       pengeluaran: Number(pengeluaran?.jumlah ?? 0),
       nilaiStok: Number(nilaiStok?.nilai ?? 0),
       tren: tren.map((t) => ({

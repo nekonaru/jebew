@@ -1,5 +1,25 @@
 # Riwayat Perubahan
 
+## final-v1.10.0
+
+Audit putaran kesembilan dan perbandingan penjualan.
+
+### Perbaikan
+
+- **Omzet menu terlaris konsisten.** Omzet per menu kini memperhitungkan diskon secara proporsional, sehingga sama dengan omzet harian dan laporan.
+- **Batas berkas disamakan.** UI dan server sama-sama membatasi berkas cadangan 4 MB sesuai batas platform.
+- **Data dashboard lebih segar.** Cache status publik diperbarui tiap lima detik agar perubahan harga dan status toko lebih cepat terlihat.
+- **Riwayat menolak tanggal salah.** Format tanggal tidak valid kini menghasilkan respons 400, bukan filter diam-diam.
+- **Tanggal masa depan ditolak.** Pengeluaran dan tutup kasir tidak bisa dicatat melebihi hari ini.
+
+### Fitur baru
+
+- **Perbandingan kemarin.** Dashboard menampilkan omzet dan jumlah transaksi hari sebelumnya sebagai pembanding.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai. Untuk cadangan besar, tetap perhatikan batas ukuran dan durasi function pada paket Vercel yang dipakai.
+
 ## final-v1.9.0
 
 Audit putaran kedelapan dan penyelesaian pre-order.

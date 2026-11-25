@@ -81,8 +81,8 @@ export default function HalamanPengaturan() {
     const berkas = e.target.files?.[0];
     setCadangan(null); setKonfirmasi("");
     if (!berkas) return;
-    if (berkas.size > 8 * 1024 * 1024) {
-      setJenis("galat"); setPesan("Berkas terlalu besar. Maksimal 8 MB.");
+    if (berkas.size > 4 * 1024 * 1024) {
+      setJenis("galat"); setPesan("Berkas terlalu besar. Maksimal 4 MB.");
       return;
     }
     try {
