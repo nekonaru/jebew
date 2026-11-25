@@ -1,5 +1,25 @@
 # Riwayat Perubahan
 
+## final-v1.9.0
+
+Audit putaran kedelapan dan penyelesaian pre-order.
+
+### Perbaikan
+
+- **Pemulihan lebih cepat dan aman.** Penyisipan dikelompokkan per 200 baris, batas ukuran disesuaikan dengan batas platform, dan waktu eksekusi diperpanjang.
+- **Preorder tidak setengah tersimpan.** Nomor WhatsApp admin kini diperiksa sebelum pesanan dibuat.
+- **Metode bayar bisa dipilih.** Dialog penyelesaian pre-order menyediakan tunai, QRIS, dan transfer, serta tercatat di laporan dan tutup kasir.
+- **Cadangan lebih ringan.** Ekspor memiliki batas waktu eksekusi yang jelas dan atribusi operator dipertahankan bila akunnya masih ada.
+- **CSV riwayat jujur.** Berkas memberi catatan bila hasil dipotong pada 5.000 baris.
+- **Sumber nomor konsisten.** Prioritas nomor WhatsApp disamakan dan nilai tetap dihapus.
+- **Slot hari ini lebih akurat.** Slot dengan jam yang sudah lewat tidak lagi ditampilkan.
+- **Kolam koneksi sesuai serverless.** Jumlah koneksi per instance dikurangi agar tidak melebihi kuota database.
+- **Pengaman CSV diperluas.** Tab dan carriage return ikut ditangani.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.8.0
 
 Audit putaran ketujuh dan kerapian operasional.

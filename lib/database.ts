@@ -31,7 +31,8 @@ function dapatkanKumpulan(): pg.Pool {
   const lokal = /localhost|127\.0\.0\.1/.test(url);
   kumpulan = new Pool({
     connectionString: url,
-    max: 5,
+    // Tiap instance serverless memakai koneksi sedikit agar total tidak melebihi kuota pooler.
+    max: 2,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
     ssl: lokal ? undefined : { rejectUnauthorized: process.env.DATABASE_TLS_VERIFY !== "false" },

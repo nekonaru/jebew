@@ -80,6 +80,9 @@ export async function GET(req: Request) {
     const total = Number(hitung?.jumlah ?? 0);
     if (csv) {
       const baris = ["Nomor,Waktu,Sumber,Item,Porsi,Metode,Total"];
+      if (total > daftar.length) {
+        baris.push(`# Dipotong: menampilkan ${daftar.length} dari ${total} transaksi. Persempit rentang tanggal.`);
+      }
       for (const d of daftar) {
         baris.push([
           d.nomor,

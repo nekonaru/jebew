@@ -150,7 +150,7 @@ export function keCsv(laporan: Awaited<ReturnType<typeof ambilLaporan>>): string
   const baris = ["Nomor,Waktu,Menu,Jumlah,Metode,Omzet,HPP"];
   for (const transaksi of laporan.daftar) {
     const menu = transaksi.items.map((i) => `${i.nama} x${i.jumlah}`).join(" | ");
-    const amanCsv = /^[=+\-@]/.test(menu) ? `'${menu}` : menu;
+    const amanCsv = /^[=+\-@\t\r]/.test(menu) ? `'${menu}` : menu;
     baris.push([
       transaksi.nomor,
       `${transaksi.dibuat_pada} WIB`,

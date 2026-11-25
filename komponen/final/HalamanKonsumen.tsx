@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
+import { formatRupiah, jamMenitWIB, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Pesan, Tombol } from "./ui.tsx";
 
@@ -13,7 +13,7 @@ type Menu = {
 type Slot = { id: number; tanggal: string; jam: string; kuota: number; dipakai: number };
 type DataAwal = { menu: Menu[]; pengaturan: Record<string, string> };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
-type Hasil = { kode: string; kode_lacak: string; total: number; pesan: string; tautan: string };
+type Hasil = { kode: string; kode_lacak: string; total: number; pesan: string; tautan: string | null };
 
 const AKSESEN_KATEGORI: Record<string, { teks: string; garis: string; pinggir: string; ikon: string }> = {
   "Mie Jebew": {
@@ -448,8 +448,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             <label htmlFor="p-slot">Waktu ambil</label>
             <select id="p-slot" value={slotId} onChange={(e) => setSlotId(e.target.value)}>
               <option value="">Pilih slot yang tersedia</option>
-              {slot.filter((s) => s.tanggal >= tanggalHariIni() && s.dipakai < s.kuota)
-                .map((s) => <option key={s.id} value={s.id}>{s.tanggal} - {s.jam} (sisa {s.kuota - s.dipakai})</option>)}
+              {slot.filter((s) => {
+                if (s.dipakai >= s.kuota) return false;
+                if (s.tanggal > tanggalHariIni()) return true;
+                if (s.tanggal < tanggalHariIni()) return false;
+                const sekarang = jamMenitWIB();
+                const jamSlot = Number(s.jam.slice(0, 2)) * 60 + Number(s.jam.slice(3, 5));
+                return jamSlot > sekarang.jam * 60 + sekarang.menit;
+              }).map((s) => <option key={s.id} value={s.id}>{s.tanggal} - {s.jam} (sisa {s.kuota - s.dipakai})</option>)}
             </select>
             {!slotId && <div className="mt-2"><label htmlFor="p-waktu">Atau isi waktu manual</label><input id="p-waktu" value={waktu} onChange={(e) => setWaktu(e.target.value)} placeholder="2026-11-25 18:00" /></div>}
           </div>
@@ -464,7 +470,13 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           <div className="space-y-4">
             <Pesan teks={`Pesanan ${hasil.kode} berhasil. Simpan kode lacak ${hasil.kode_lacak} untuk mengecek status.`} jenis="sukses" />
             <pre className="overflow-x-auto rounded-xl bg-latar p-4 text-xs leading-relaxed">{hasil.pesan}</pre>
-            <a href={hasil.tautan} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-sukses px-4 text-sm font-semibold text-white hover:brightness-95">Kirim ke WhatsApp</a>
+            {hasil.tautan ? (
+              <a href={hasil.tautan} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-sukses px-4 text-sm font-semibold text-white hover:brightness-95">Kirim ke WhatsApp</a>
+            ) : (
+              <p className="rounded-xl bg-latar px-4 py-3 text-xs text-tinta-lemah">
+                Salin pesan di atas dan kirim manual. Nomor WhatsApp admin belum tersedia.
+              </p>
+            )}
           </div>
         )}
       </Dialog>

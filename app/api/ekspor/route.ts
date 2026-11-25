@@ -5,6 +5,7 @@ import { query } from "@/lib/database.ts";
 import { tanggalHariIni } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 function versiAplikasi(): string {
   try {

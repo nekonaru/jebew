@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
-import { Badge, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
+import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
 type Preorder = {
   id: number; kode: string; kode_lacak: string; nama_pelanggan: string; whatsapp: string;
@@ -22,6 +22,8 @@ export default function HalamanPreorder() {
   const [sampai, setSampai] = useState(tanggalHariIni());
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
+  const [aksi, setAksi] = useState<{ id: number; status: "diproses" | "selesai" | "batal" } | null>(null);
+  const [metode, setMetode] = useState<"tunai" | "qris" | "transfer">("tunai");
 
   const muat = useCallback(async () => {
     try {
@@ -32,17 +34,22 @@ export default function HalamanPreorder() {
   }, [cari, dari, sampai, filter]);
   useEffect(() => { void muat(); }, [muat]);
 
-  async function ubah(id: number, status: "diproses" | "selesai" | "batal") {
-    const teks = status === "selesai" ? "Tandai selesai? Penjualan akan dicatat dan stok dipotong."
-      : status === "batal" ? "Batalkan pesanan ini?" : "Lanjutkan ke diproses?";
-    if (!window.confirm(teks)) return;
+  function ubah(id: number, status: "diproses" | "selesai" | "batal") {
+    setMetode("tunai");
+    setAksi({ id, status });
+  }
+
+  async function kirimAksi() {
+    if (!aksi) return;
     try {
+      const badan = aksi.status === "selesai" ? { id: aksi.id, status: aksi.status, metode } : { ...aksi };
       const respons = await fetch("/api/preorder", {
         method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
+        body: JSON.stringify(badan),
       });
       await ambilJson(respons);
-      setJenis("sukses"); setPesan(`Status berhasil diubah menjadi ${status}.`);
+      setJenis("sukses"); setPesan(`Status berhasil diubah menjadi ${aksi.status}.`);
+      setAksi(null);
       void muat();
     } catch (e) { setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal mengubah status"); }
   }
@@ -129,6 +136,34 @@ export default function HalamanPreorder() {
           <li className="text-sm text-tinta-lemah">Tidak ada pre-order dengan status tersebut.</li>
         )}
       </ul>
+
+      <Dialog terbuka={aksi !== null} judul="Konfirmasi pre-order" padaTutup={() => setAksi(null)}>
+        {aksi && (
+          <div className="space-y-4">
+            <p className="text-sm text-tinta-lemah">
+              {aksi.status === "selesai"
+                ? "Penjualan akan dicatat dan stok dipotong sesuai resep."
+                : aksi.status === "batal"
+                  ? "Kuota slot akan dikembalikan dan pesanan tidak bisa diaktifkan lagi."
+                  : "Pesanan akan ditandai sedang diproses."}
+            </p>
+            {aksi.status === "selesai" && (
+              <div>
+                <label htmlFor="po-metode">Metode pembayaran</label>
+                <select id="po-metode" value={metode} onChange={(e) => setMetode(e.target.value as typeof metode)}>
+                  <option value="tunai">Tunai</option>
+                  <option value="qris">QRIS</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Tombol jenis="sekunder" kelas="flex-1" onClick={() => setAksi(null)}>Batal</Tombol>
+              <Tombol kelas="flex-1" onClick={() => void kirimAksi()}>Ya, lanjutkan</Tombol>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }

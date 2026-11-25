@@ -130,7 +130,9 @@ export async function ambilAudit(filter: FilterAudit = {}) {
   );
 }
 
-export async function ambilSlotWaktu() {
+export async function ambilSlotWaktu(): Promise<{
+  id: number; tanggal: string; jam: string; kuota: number; terisi: number; dipakai: number;
+}[]> {
   return query(
     `SELECT s.id, s.tanggal, s.jam, s.kuota, s.terisi,
             (SELECT COUNT(*) FROM preorder p WHERE p.slot_id = s.id AND p.status <> 'batal') AS dipakai

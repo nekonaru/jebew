@@ -66,6 +66,10 @@ export async function POST(req: Request) {
     if (pengaturan.toko_aktif === "false") {
       return NextResponse.json({ pesan: "Toko sedang tutup. Silakan coba lagi lain waktu." }, { status: 403 });
     }
+    const nomorAdmin = process.env.WHATSAPP_ADMIN ?? pengaturan.whatsapp_admin ?? "";
+    if (!nomorAdmin && process.env.NODE_ENV === "production") {
+      return NextResponse.json({ pesan: "Nomor WhatsApp admin belum dikonfigurasi" }, { status: 500 });
+    }
     const badan = skema.parse(await req.json());
     const hasil = await simpanPreorder(badan);
     const pesan = susunPesanWhatsApp({
@@ -81,12 +85,6 @@ export async function POST(req: Request) {
       })),
       namaUsaha: pengaturan.nama_usaha ?? "Warung Kak Ikaa",
     });
-    const nomorAdmin = process.env.WHATSAPP_ADMIN ?? pengaturan.whatsapp_admin ?? "";
-    if (!nomorAdmin && process.env.NODE_ENV === "production") {
-      return NextResponse.json({
-        pesan: "Nomor WhatsApp admin belum dikonfigurasi",
-      }, { status: 500 });
-    }
     return NextResponse.json({
       ...hasil,
       pesan,

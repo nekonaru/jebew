@@ -3,13 +3,22 @@ import { z } from "zod";
 import { aman, galat } from "@/lib/api-final.ts";
 import { ambilSlotWaktu, simpanSlotWaktu } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
-import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
+import { jamMenitWIB, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    return NextResponse.json({ slot: await ambilSlotWaktu() });
+    const semua = await ambilSlotWaktu();
+    const sekarang = jamMenitWIB();
+    const menitSekarang = sekarang.jam * 60 + sekarang.menit;
+    const hari = tanggalHariIni();
+    const slot = semua.filter((s) => {
+      if (s.tanggal > hari) return true;
+      if (s.tanggal < hari) return false;
+      return Number(s.jam.slice(0, 2)) * 60 + Number(s.jam.slice(3, 5)) > menitSekarang;
+    });
+    return NextResponse.json({ slot });
   } catch (e) { return galat(e) as NextResponse; }
 }
 
