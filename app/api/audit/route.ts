@@ -19,6 +19,7 @@ export async function GET(req: Request) {
       aksi: (p.get("aksi") ?? "").slice(0, 20),
       tabel: (p.get("tabel") ?? "").slice(0, 40),
       cari: (p.get("cari") ?? "").trim().slice(0, 60),
+      batas: p.get("format") === "csv" ? 5000 : 200,
     });
     if (p.get("format") === "csv") {
       const escape = (teks: string) => {

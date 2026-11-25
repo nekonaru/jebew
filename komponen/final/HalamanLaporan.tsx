@@ -46,10 +46,21 @@ export default function HalamanLaporan() {
           <div><label htmlFor="dari">Dari</label><input id="dari" type="date" max={tanggalHariIni()} value={dari} onChange={(e) => setDari(e.target.value)} /></div>
           <div><label htmlFor="sampai">Sampai</label><input id="sampai" type="date" max={tanggalHariIni()} value={sampai} onChange={(e) => setSampai(e.target.value)} /></div>
           <Tombol tipe="submit">Terapkan</Tombol>
-          <a href={`/api/laporan?dari=${dari}&sampai=${sampai}&format=csv`}
-            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">
-            Unduh CSV
-          </a>
+          {(() => {
+            const hariIni = tanggalHariIni();
+            const valid = dari <= sampai && sampai <= hariIni &&
+              (Date.parse(sampai) - Date.parse(dari)) <= 365 * 86400000;
+            return valid ? (
+              <a href={`/api/laporan?dari=${dari}&sampai=${sampai}&format=csv`}
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">
+                Unduh CSV
+              </a>
+            ) : (
+              <span role="status" className="inline-flex min-h-[44px] items-center rounded-xl bg-latar px-4 text-xs text-tinta-lemah">
+                Perbaiki rentang untuk mengunduh
+              </span>
+            );
+          })()}
         </form>
       </Kartu>
       <Pesan teks={pesan} jenis="galat" />

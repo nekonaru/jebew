@@ -20,7 +20,20 @@ export async function GET() {
     if (!(await penggunaSaatIni())) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    return NextResponse.json({ bahan: await ambilBahan() });
+    const bahan = await ambilBahan();
+    const aktif = bahan.filter((b) => b.aktif);
+    return NextResponse.json({
+      bahan,
+      ringkasan: {
+        jumlah: aktif.length,
+        menipis: aktif.filter((b) => b.menipis).length,
+        nilai: aktif.reduce((n, b) => n + b.stok * b.harga_rata_rata, 0),
+        terbesar: [...aktif]
+          .sort((a, b) => (b.stok * b.harga_rata_rata) - (a.stok * a.harga_rata_rata))
+          .slice(0, 5)
+          .map((b) => ({ id: b.id, nama: b.nama, nilai: b.stok * b.harga_rata_rata })),
+      },
+    });
   } catch (e) { return galat(e) as NextResponse; }
 }
 

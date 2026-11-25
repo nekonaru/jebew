@@ -1,5 +1,27 @@
 # Riwayat Perubahan
 
+## final-v1.15.0
+
+Audit putaran keempat belas dan ringkasan nilai stok.
+
+### Fitur baru
+
+- **Nilai stok.** Halaman Bahan & Stok menampilkan total nilai bahan aktif, jumlah bahan, bahan menipis, dan lima bahan bernilai terbesar.
+
+### Perbaikan
+
+- **Ekspor audit lengkap.** Unduhan CSV tidak lagi dibatasi 200 baris dan karakter wildcard pada kata kunci di-escape.
+- **Nama kategori duplikat jelas.** Konflik nama kini menghasilkan respons 400, bukan galat server umum.
+- **Master data konsisten.** Pemeriksaan keberadaan supplier dan kategori dilakukan di dalam transaksi yang sama dengan perubahan data.
+- **Id master ketat.** Parameter id desimal ditolak, sehingga log audit tidak mencatat penghapusan yang tidak terjadi.
+- **Unduh CSV laporan aman.** Tautan dinonaktifkan bila rentang tidak valid menurut aturan server.
+- **Batas satu tahun tepat.** Rentang laporan dibatasi 365 hari kalender.
+- **Dokumentasi.** README kini menyebut ekspor CSV jejak aktivitas.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.14.0
 
 Audit putaran ketiga belas dan ekspor jejak aktivitas.

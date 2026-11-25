@@ -48,15 +48,17 @@ export async function PUT(req: Request) {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     const badan = z.object({ id: z.number().int().positive(), ...skema.shape }).strict().parse(await req.json());
-    const ada = await querySatu("SELECT id FROM supplier WHERE id = $1", [badan.id]);
-    if (!ada) return NextResponse.json({ pesan: "Supplier tidak ditemukan" }, { status: 404 });
+    let tidakAda = false;
     await denganTransaksi(async () => {
+      const ada = await querySatu("SELECT id FROM supplier WHERE id = $1 FOR UPDATE", [badan.id]);
+      if (!ada) { tidakAda = true; return; }
       await jalankan(
         "UPDATE supplier SET nama=$1, kontak=$2, aktif=$3 WHERE id=$4",
         [badan.nama, badan.kontak, badan.aktif, badan.id],
       );
       await catatAudit(pengguna, "ubah", "supplier", `${badan.id} menjadi ${badan.nama}`);
     });
+    if (tidakAda) return NextResponse.json({ pesan: "Supplier tidak ditemukan" }, { status: 404 });
     return NextResponse.json({ berhasil: true });
   } catch (kesalahan) {
     return galat(kesalahan) as NextResponse;
@@ -67,8 +69,9 @@ export async function DELETE(req: Request) {
   try {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    const id = Number(new URL(req.url).searchParams.get("id") ?? 0);
-    if (!id) return NextResponse.json({ pesan: "Id tidak valid" }, { status: 400 });
+    const teksId = new URL(req.url).searchParams.get("id") ?? "";
+    if (!/^\d+$/.test(teksId)) return NextResponse.json({ pesan: "Id tidak valid" }, { status: 400 });
+    const id = Number(teksId);
     // Data lama tetap dipertahankan lewat penonaktifan agar riwayat pembelian utuh.
     await denganTransaksi(async () => {
       await jalankan("UPDATE supplier SET aktif = FALSE WHERE id = $1", [id]);

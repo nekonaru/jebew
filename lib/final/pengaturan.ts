@@ -104,11 +104,12 @@ export async function hapusPengguna(id: number, actorId?: number): Promise<void>
   });
 }
 
-export type FilterAudit = { aksi?: string; tabel?: string; cari?: string };
+export type FilterAudit = { aksi?: string; tabel?: string; cari?: string; batas?: number };
 
 export async function ambilAudit(filter: FilterAudit = {}): Promise<{
   id: number; aksi: string; tabel: string; catatan: string; dibuat_pada: string; nama_pengguna: string | null;
 }[]> {
+  const batas = Math.min(Math.max(1, filter.batas ?? 200), 5000);
   const syarat: string[] = [];
   const nilai: unknown[] = [];
   if (filter.aksi) {
@@ -120,14 +121,15 @@ export async function ambilAudit(filter: FilterAudit = {}): Promise<{
     syarat.push(`a.tabel = $${nilai.length}`);
   }
   if (filter.cari) {
-    nilai.push(`%${filter.cari}%`);
-    syarat.push(`(a.catatan ILIKE $${nilai.length} OR p.nama ILIKE $${nilai.length})`);
+    nilai.push(`%${filter.cari.replace(/[\\%_]/g, "\\$&")}%`);
+    syarat.push(`(a.catatan ILIKE $${nilai.length} ESCAPE '\\' OR p.nama ILIKE $${nilai.length} ESCAPE '\\')`);
   }
   const where = syarat.length > 0 ? `WHERE ${syarat.join(" AND ")}` : "";
+  nilai.push(batas);
   return query(
     `SELECT a.id, a.aksi, a.tabel, a.catatan, a.dibuat_pada, p.nama AS nama_pengguna
      FROM log_audit a LEFT JOIN pengguna p ON p.id = a.pengguna_id
-     ${where} ORDER BY a.id DESC LIMIT 200`,
+     ${where} ORDER BY a.id DESC LIMIT $${nilai.length}`,
     nilai,
   );
 }

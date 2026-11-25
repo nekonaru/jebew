@@ -19,6 +19,7 @@ export default function HalamanStok() {
   const pemilik = usePeran() === "pemilik";
   const [tab, setTab] = useState<Tab>("Bahan");
   const [bahan, setBahan] = useState<Bahan[]>([]);
+  const [ringkasan, setRingkasan] = useState<{ jumlah: number; menipis: number; nilai: number; terbesar: { id: number; nama: string; nilai: number }[] } | null>(null);
   const [pergerakan, setPergerakan] = useState<Pergerakan[]>([]);
   const [pembelian, setPembelian] = useState<Pembelian[]>([]);
   const [supplier, setSupplier] = useState<Supplier[]>([]);
@@ -41,12 +42,15 @@ export default function HalamanStok() {
   const muat = useCallback(async () => {
     try {
       const [b, p, pb, op] = await Promise.all([
-        fetch("/api/bahan").then(ambilJson<{ bahan: Bahan[] }>),
+        fetch("/api/bahan").then(ambilJson<{
+          bahan: Bahan[];
+          ringkasan: { jumlah: number; menipis: number; nilai: number; terbesar: { id: number; nama: string; nilai: number }[] };
+        }>),
         fetch("/api/stok").then(ambilJson<{ pergerakan: Pergerakan[] }>),
         fetch("/api/pembelian").then(ambilJson<{ pembelian: Pembelian[]; supplier: Supplier[] }>),
         fetch("/api/opname").then(ambilJson<{ opname: Opname[] }>),
       ]);
-      setBahan(b.bahan ?? []); setPergerakan(p.pergerakan ?? []);
+      setBahan(b.bahan ?? []); setRingkasan(b.ringkasan ?? null); setPergerakan(p.pergerakan ?? []);
       setPembelian(pb.pembelian ?? []); setSupplier(pb.supplier ?? []); setOpname(op.opname ?? []);
     } catch { /* abaikan */ }
   }, []);
@@ -153,7 +157,34 @@ export default function HalamanStok() {
       </div>
 
       {tab === "Bahan" && (
-        <Tabel>
+        <div className="space-y-5">
+          <Kartu>
+            <h2 className="text-lg font-semibold">Nilai stok</h2>
+            <div className="mt-3 flex flex-wrap items-end gap-x-8 gap-y-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-tinta-lemah">Total nilai</p>
+                <p className="font-judul text-2xl font-semibold">{formatRupiah(ringkasan?.nilai ?? 0)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-tinta-lemah">Bahan aktif</p>
+                <p className="font-judul text-2xl font-semibold">{ringkasan?.jumlah ?? 0}</p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-tinta-lemah">Menipis</p>
+                <p className="font-judul text-2xl font-semibold text-bahaya">{ringkasan?.menipis ?? 0}</p>
+              </div>
+            </div>
+            {(ringkasan?.terbesar ?? []).length > 0 && (
+              <ul className="mt-4 flex flex-wrap gap-2 border-t border-garis pt-4 text-xs">
+                {ringkasan?.terbesar.map((b) => (
+                  <li key={b.id} className="rounded-full bg-latar px-3 py-1.5">
+                    {b.nama}: <strong>{formatRupiah(b.nilai)}</strong>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Kartu>
+          <Tabel>
           <KepalaTabel><tr>
             <SelKepala>Nama</SelKepala><SelKepala>Satuan</SelKepala><SelKepala>Stok</SelKepala>
             <SelKepala>Minimum</SelKepala><SelKepala>Harga rata rata</SelKepala><SelKepala>Status</SelKepala><SelKepala>Aksi</SelKepala>
@@ -180,6 +211,7 @@ export default function HalamanStok() {
             {bahan.length === 0 && <BarisKosong kolom={7} teks="Belum ada bahan." />}
           </tbody>
         </Tabel>
+        </div>
       )}
 
       {tab === "Pergerakan" && (

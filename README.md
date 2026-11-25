@@ -83,7 +83,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Dua peran** | Pemilik mengelola seluruh data dan keuangan, Kasir memakai kasir serta melihat stok, pre-order, dan riwayat transaksi |
 | **Sesi selalu segar** | Status dan peran pengguna diperiksa ulang dari database pada setiap permintaan |
 | **Row Level Security** | Aktif pada semua tabel. Akses aplikasi memakai peran server, jadi aturan akses utama ada di lapisan API |
-| **Audit log** | Setiap perubahan menu, stok, uang, master data, dan transaksi tercatat, dengan filter aksi, data, dan kata kunci |
+| **Audit log** | Setiap perubahan menu, stok, uang, master data, dan transaksi tercatat, dengan filter aksi, data, kata kunci, dan unduhan CSV |
 
 ### Stok dan pembelian
 

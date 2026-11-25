@@ -13,7 +13,7 @@ const skema = z.object({
   sampai: z.string().refine(batasTanggal, "Tanggal tidak valid atau di masa depan"),
 }).strict()
   .refine((v) => v.dari <= v.sampai, { message: "Tanggal awal harus sebelum tanggal akhir" })
-  .refine((v) => (Date.parse(v.sampai) - Date.parse(v.dari)) <= 366 * 86400000,
+  .refine((v) => (Date.parse(v.sampai) - Date.parse(v.dari)) <= 365 * 86400000,
     { message: "Rentang laporan maksimal satu tahun" });
 
 export async function GET(req: Request) {
