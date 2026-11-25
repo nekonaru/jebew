@@ -1,4 +1,6 @@
-# Panduan Demo Prototipe
+# Panduan Demo Prototipe (Tahap 1)
+
+Berkas ini khusus cabang `main` yang memakai PIN dan alur lama. Jangan dipakai untuk mendemokan cabang `final`. Untuk produk jadi, buka `http://localhost:3000/login`, masuk dengan email dan kata sandi, lalu ikuti alur keranjang pada website konsumen.
 
 Panduan ini dipakai untuk menunjukkan alur utama Jebew dalam waktu lima menit. Semua langkah memakai data contoh yang dipasang lewat `npm run siap:supabase` atau `npm run muat:contoh`.
 

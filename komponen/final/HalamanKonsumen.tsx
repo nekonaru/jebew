@@ -411,14 +411,15 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                       <p className="text-sm font-semibold">{item.menu?.nama}</p>
                       {item.varian && <p className="text-xs text-tinta-lemah">{item.varian.nama}</p>}
                     </div>
-                    <button type="button" onClick={() => setKeranjang((l) => l.filter((_, j) => j !== i))}
+                    <button type="button" aria-label={`Hapus ${item.menu?.nama ?? "menu"} dari pesanan`}
+                      onClick={() => setKeranjang((l) => l.filter((_, j) => j !== i))}
                       className="text-xs font-semibold text-bahaya hover:underline">Hapus</button>
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <button type="button" aria-label="Kurangi jumlah" onClick={() => ubahJumlah(i, -1)} className="h-11 w-11 rounded-lg border border-garis">-</button>
+                      <button type="button" aria-label={`Kurangi ${item.menu?.nama ?? "menu"}`} onClick={() => ubahJumlah(i, -1)} className="h-11 w-11 rounded-lg border border-garis">-</button>
                       <span className="w-6 text-center text-sm font-semibold">{item.jumlah}</span>
-                      <button type="button" aria-label="Tambah jumlah" onClick={() => ubahJumlah(i, 1)} className="h-11 w-11 rounded-lg border border-garis">+</button>
+                      <button type="button" aria-label={`Tambah ${item.menu?.nama ?? "menu"}`} onClick={() => ubahJumlah(i, 1)} className="h-11 w-11 rounded-lg border border-garis">+</button>
                     </div>
                     <span className="text-sm font-semibold">{formatRupiah(item.subtotal)}</span>
                   </div>

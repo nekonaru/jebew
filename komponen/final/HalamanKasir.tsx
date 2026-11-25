@@ -23,6 +23,7 @@ export default function HalamanKasir() {
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
   const [loading, setLoading] = useState(false);
+  const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
   const [hasil, setHasil] = useState<{
     nomor: string; total: number; dibuat_pada: string;
     items: { nama_menu: string; nama_varian: string; harga_satuan: number; jumlah: number; subtotal: number }[];
@@ -35,6 +36,12 @@ export default function HalamanKasir() {
     } catch { /* abaikan */ }
   }, []);
   useEffect(() => { void muat(); }, [muat]);
+
+  useEffect(() => {
+    void fetch("/api/dashboard").then(ambilJson<{ pengaturan: Record<string, string> }>)
+      .then((d) => setNamaUsaha(d.pengaturan.nama_usaha ?? "Warung Kak Ikaa"))
+      .catch(() => {});
+  }, []);
 
   const menuPilih = useMemo(() => menu.find((m) => m.id === Number(pilihMenu)), [menu, pilihMenu]);
   const tersedia = useMemo(() => menu.filter((m) => m.tersedia), [menu]);
@@ -155,7 +162,8 @@ export default function HalamanKasir() {
                         <p className="text-sm font-semibold">{b.menu.nama}</p>
                         {b.varianId && <p className="text-xs text-tinta-lemah">{b.menu.varian.find((v) => v.id === b.varianId)?.nama}</p>}
                       </div>
-                      <button onClick={() => setKeranjang((l) => l.filter((x) => x.kunci !== b.kunci))}
+                      <button type="button" aria-label={`Hapus ${b.menu.nama} dari keranjang`}
+                        onClick={() => setKeranjang((l) => l.filter((x) => x.kunci !== b.kunci))}
                         className="text-xs font-semibold text-bahaya hover:underline">Hapus</button>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
@@ -212,7 +220,7 @@ export default function HalamanKasir() {
         {hasil && (
           <div id="struk-kasir" className="space-y-4">
             <div className="text-center">
-              <p className="font-judul text-lg font-semibold">Mie Jebew</p>
+              <p className="font-judul text-lg font-semibold">{namaUsaha}</p>
               <p className="text-xs text-tinta-lemah">{hasil.nomor} · {formatWaktu(hasil.dibuat_pada)}</p>
             </div>
             <ul className="divide-y divide-garis text-sm">

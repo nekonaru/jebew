@@ -5,7 +5,7 @@ import { ambilPreorder, selesaikanPreorder, simpanPreorder, ubahStatusPreorder }
 import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa.ts";
-import { tanggalValid } from "@/lib/format.ts";
+import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
@@ -36,7 +36,9 @@ const skema = z.object({
   items: z.array(item).min(1).max(30),
   nama_pelanggan: z.string().trim().min(1).max(100),
   whatsapp: z.string().trim().regex(/^[0-9+\-() ]{8,20}$/),
-  waktu_ambil: z.string().trim().min(4).max(100),
+  waktu_ambil: z.string().trim().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/, "Format waktu ambil: YYYY-MM-DD HH:mm")
+    .refine((v) => v.slice(0, 10) >= tanggalHariIni(), "Waktu ambil tidak boleh lampau")
+    .refine((v) => { const h = Number(v.slice(11, 13)); return h >= 0 && h < 24; }, "Jam tidak valid"),
   slot_id: z.number().int().positive().nullable(),
   catatan: z.string().trim().max(300),
 }).strict();

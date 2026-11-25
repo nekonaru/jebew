@@ -1,6 +1,7 @@
 // Uji asap seluruh endpoint. Jalankan setelah server berjalan:
 // npm run uji:api URL_UJI=http://localhost:3000
 const dasar = process.env.URL_UJI ?? "http://localhost:3000";
+const waktuAmbil = `${new Date(Date.now() + 86400000).toISOString().slice(0, 10)} 18:00`;
 const hasil = [];
 const catat = (nama, status, aman = true) => hasil.push(`${aman ? "OK" : "??"} ${nama}: ${status}`);
 
@@ -50,7 +51,7 @@ const jualEkstra = await api("/api/kasir", { method: "POST", headers: H, body: J
 catat("kasir field ekstra", jualEkstra.status, jualEkstra.status === 400);
 
 // Preorder
-const po = await api("/api/preorder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: [{ menu_id: 28, varian_id: null, jumlah: 1 }], nama_pelanggan: "Audit", whatsapp: "081234567890", waktu_ambil: "2026-11-26 18:00", slot_id: null, catatan: "" }) });
+const po = await api("/api/preorder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: [{ menu_id: 28, varian_id: null, jumlah: 1 }], nama_pelanggan: "Audit", whatsapp: "081234567890", waktu_ambil: waktuAmbil, slot_id: null, catatan: "" }) });
 catat("preorder", po.status, po.status === 201);
 if (po.status === 201) {
   const data = JSON.parse(po.isi);

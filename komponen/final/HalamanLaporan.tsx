@@ -18,6 +18,7 @@ export default function HalamanLaporan() {
   const [sampai, setSampai] = useState(tanggalHariIni());
   const [data, setData] = useState<Laporan | null>(null);
   const [pesan, setPesan] = useState("");
+  const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
 
   const muat = useCallback(async (a: string, b: string) => {
     try {
@@ -26,6 +27,12 @@ export default function HalamanLaporan() {
     } catch (e) { setPesan(e instanceof Error ? e.message : "Gagal memuat laporan"); }
   }, []);
   useEffect(() => { const h = tanggalHariIni(); void muat(h, h); }, [muat]);
+
+  useEffect(() => {
+    void fetch("/api/dashboard").then(ambilJson<{ pengaturan: Record<string, string> }>)
+      .then((d) => setNamaUsaha(d.pengaturan.nama_usaha ?? "Warung Kak Ikaa"))
+      .catch(() => {});
+  }, []);
 
   const maks = Math.max(1, ...(data?.harian.map((h) => h.omzet) ?? [1]));
 
@@ -56,10 +63,10 @@ export default function HalamanLaporan() {
       <Kartu kelas="mt-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">Ringkasan untuk dicetak</h2>
-          <Tombol jenis="sekunder" kelas="min-h-[38px] px-3 text-xs tidak-cetak" onClick={() => window.print()}>Cetak ringkasan</Tombol>
+          <Tombol jenis="sekunder" kelas="min-h-[38px] px-3 text-xs tidak-cetak" nonaktif={!data} onClick={() => window.print()}>Cetak ringkasan</Tombol>
         </div>
         <div id="laporan-cetak" className="mt-4 rounded-xl border border-garis p-4 text-sm">
-          <p className="font-judul text-lg font-semibold">Mie Jebew</p>
+          <p className="font-judul text-lg font-semibold">{namaUsaha}</p>
           <p className="text-xs text-tinta-lemah">{dari} sampai {sampai} · WIB</p>
           <dl className="mt-4 grid gap-2 sm:grid-cols-2">
             <div className="flex justify-between gap-3"><dt>Omzet</dt><dd className="font-semibold">{formatRupiah(data?.ringkasan.omzet ?? 0)}</dd></div>

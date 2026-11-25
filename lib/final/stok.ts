@@ -37,7 +37,7 @@ export type BahanInput = {
 export async function simpanBahan(input: BahanInput, id?: number): Promise<number> {
   return denganTransaksi(async () => {
     if (id !== undefined) {
-      const lama = await querySatu<{ stok: number }>("SELECT stok FROM bahan WHERE id = $1", [id]);
+      const lama = await querySatu<{ stok: number }>("SELECT stok FROM bahan WHERE id = $1 FOR UPDATE", [id]);
       if (!lama) throw new GalatBisnis("Bahan tidak ditemukan");
       await jalankan(
         `UPDATE bahan SET nama=$1, satuan=$2, stok=$3, stok_minimum=$4, harga_rata_rata=$5, aktif=$6 WHERE id=$7`,

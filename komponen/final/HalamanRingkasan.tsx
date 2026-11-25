@@ -32,10 +32,14 @@ export default function HalamanRingkasan() {
   const [statistik, setStatistik] = useState<Ringkasan | null>(null);
   const [publik, setPublik] = useState<Publik | null>(null);
   const [pesan, setPesan] = useState("");
+  const [gagal, setGagal] = useState(false);
 
   useEffect(() => {
     void fetch("/api/statistik").then(ambilJson<Ringkasan>).then(setStatistik)
-      .catch(() => setPesan("Ringkasan tidak berhasil dimuat. Muat ulang halaman untuk mencoba lagi."));
+      .catch(() => {
+        setGagal(true);
+        setPesan("Ringkasan tidak berhasil dimuat. Muat ulang halaman untuk mencoba lagi.");
+      });
     void fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik).catch(() => {});
   }, []);
 
@@ -48,15 +52,15 @@ export default function HalamanRingkasan() {
       <Pesan teks={pesan} jenis="galat" />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Statistik label="Omzet hari ini" nilai={formatRupiah(statistik?.omzet ?? 0)} aksen />
-        <Statistik label="Transaksi" nilai={String(statistik?.transaksi ?? 0)} keterangan="Hari ini" />
-        <Statistik label="Pre-order aktif" nilai={String(statistik?.preorderAktif ?? 0)} keterangan="Perlu ditangani" />
-        <Statistik label="Bahan menipis" nilai={String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
+        <Statistik label="Omzet hari ini" nilai={gagal ? "-" : formatRupiah(statistik?.omzet ?? 0)} aksen />
+        <Statistik label="Transaksi" nilai={gagal ? "-" : String(statistik?.transaksi ?? 0)} keterangan="Hari ini" />
+        <Statistik label="Pre-order aktif" nilai={gagal ? "-" : String(statistik?.preorderAktif ?? 0)} keterangan="Perlu ditangani" />
+        <Statistik label="Bahan menipis" nilai={gagal ? "-" : String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
       </div>
 
-      <Kartu>
+      {!gagal && <Kartu>
         <GrafikOmzet data={statistik?.tren ?? []} />
-      </Kartu>
+      </Kartu>}
 
       <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
         <Kartu>

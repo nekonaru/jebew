@@ -1,5 +1,33 @@
 # Riwayat Perubahan
 
+## final-v1.5.0
+
+Audit putaran keempat dan pemulihan cadangan.
+
+### Perbaikan
+
+- **Preorder lama tetap selesai.** Id varian dipertahankan saat menu diedit, bahan nonaktif tetap ikut dihitung, dan varian yang sudah hilang memakai resep dasar.
+- **Pengguna bisa dihapus.** Akun yang punya riwayat kini dinonaktifkan, bukan dihapus paksa, sehingga tidak lagi menimbulkan galat kunci asing.
+- **Pemilik terlindungi.** Pemilik tidak bisa menurunkan peran atau menonaktifkan akunnya sendiri, dan pemilik aktif terakhir tidak bisa diturunkan.
+- **Risiko deadlock dikurangi.** Kunci barang bahan diambil dengan urutan konsisten dan bentrok transaksi diberi pesan yang jelas.
+- **Stok edit terkunci.** Pembacaan stok sebelum penyesuaian memakai kunci baris agar tidak tertimpa transaksi bersamaan.
+- **Struk dan laporan mengikuti pengaturan.** Nama usaha di kedua cetakan diambil dari pengaturan.
+- **Waktu ambil divalidasi.** Format dan tanggal waktu ambil diperiksa di server.
+- **Angka gagal muat tidak ditampilkan.** Ringkasan memakai tanda pengganti dan tombol cetak laporan dinonaktifkan bila data belum tersedia.
+- **Aksesibilitas.** Tombol hapus dan penambah jumlah menyebut nama menu untuk pembaca layar.
+
+### Fitur baru
+
+- **Pulihkan cadangan.** Pemilik bisa mengembalikan seluruh data dari berkas JSON dengan konfirmasi eksplisit. Akun pengguna sengaja tidak diubah.
+
+### Dokumentasi
+
+- Panduan demo ditandai khusus prototipe, daftar variabel lingkungan diselaraskan, dan klaim Row Level Security dirinci agar tidak menyesatkan.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai. Simpan berkas cadangan dari halaman Pengaturan sebelum memakai fitur pemulihan.
+
 ## final-v1.4.0
 
 Audit putaran ketiga dan penyempurnaan alur kerja.
@@ -54,7 +82,7 @@ Audit putaran kedua dan pengembangan lanjutan.
 
 ### Peningkatan
 
-- **Pembatasan laju adil.** Hanya percobaan login gagal yang dihitung dan kuncinya memakai alamat dari platform serta email.
+- **Pembatasan laju adil.** Percobaan gagal dihitung per alamat dan email. Lapisan kasar menambah batas total permintaan login sebelum komputasi kata sandi.
 - **Aksesibilitas.** Grafik memberi label pembaca layar, tombol jumlah keranjang punya nama dan ukuran sentuh yang cukup.
 - **Pemberitahuan bersih.** Pesan galat pada riwayat hilang setelah permintaan berikutnya berhasil.
 

@@ -1,5 +1,6 @@
 // Uji regresi audit putaran ketiga dan fitur v1.4.0.
 const dasar = process.env.URL_UJI ?? "http://localhost:7100";
+const waktuAmbil = `${new Date(Date.now() + 86400000).toISOString().slice(0, 10)} 18:00`;
 const hasil = [];
 const catat = (nama, lulus, rincian = "") => hasil.push(`${lulus ? "OK" : "??"} ${nama}${rincian ? ": " + rincian : ""}`);
 const hari = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -41,7 +42,7 @@ if (pilih.length === 2) {
 const nama = `UjiCari${Date.now()}`;
 const po = await api("/api/preorder", json({
   items: [{ menu_id: pilih[0]?.id ?? menu[0]?.id, varian_id: null, jumlah: 1 }],
-  nama_pelanggan: nama, whatsapp: "081234567890", waktu_ambil: "2026-11-26 18:00", slot_id: null, catatan: "",
+  nama_pelanggan: nama, whatsapp: "081234567890", waktu_ambil: waktuAmbil, slot_id: null, catatan: "",
 }, cookie));
 catat("buat preorder uji", po.status === 201, String(po.status));
 if (po.status === 201) {

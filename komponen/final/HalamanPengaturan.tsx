@@ -17,6 +17,9 @@ export default function HalamanPengaturan() {
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
   const [formP, setFormP] = useState({ email: "", nama: "", kata_sandi: "", peran: "kasir", aktif: true });
   const [formS, setFormS] = useState({ tanggal: "", jam: "12:00", kuota: "10" });
+  const [cadangan, setCadangan] = useState<Record<string, unknown[]> | null>(null);
+  const [konfirmasi, setKonfirmasi] = useState("");
+  const [memulihkan, setMemulihkan] = useState(false);
 
   const muat = useCallback(async () => {
     try {
@@ -74,6 +77,42 @@ export default function HalamanPengaturan() {
     } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); }
   }
 
+  async function pilihBerkas(e: React.ChangeEvent<HTMLInputElement>) {
+    const berkas = e.target.files?.[0];
+    setCadangan(null); setKonfirmasi("");
+    if (!berkas) return;
+    try {
+      const isi = JSON.parse(await berkas.text()) as { aplikasi?: string; data?: Record<string, unknown[]> };
+      if (isi.aplikasi !== "Jebew" || !isi.data || typeof isi.data !== "object") {
+        throw new Error("Berkas bukan cadangan Jebew yang valid");
+      }
+      setCadangan(isi.data);
+      setJenis("info"); setPesan("Berkas terbaca. Periksa jumlah baris sebelum memulihkan.");
+    } catch (err) {
+      setJenis("galat"); setPesan(err instanceof Error ? err.message : "Berkas tidak valid");
+    }
+  }
+
+  async function pulihkan() {
+    if (!cadangan) return;
+    if (konfirmasi !== "PULIHKAN") {
+      setJenis("galat"); setPesan("Ketik PULIHKAN untuk mengonfirmasi."); return;
+    }
+    setMemulihkan(true);
+    try {
+      const respons = await fetch("/api/pulihkan", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ konfirmasi, data: cadangan }),
+      });
+      const hasil = await ambilJson<{ jumlahBaris?: number }>(respons);
+      setJenis("sukses"); setPesan(`Data berhasil dipulihkan (${hasil.jumlahBaris ?? 0} baris).`);
+      setCadangan(null); setKonfirmasi("");
+      void muat();
+    } catch (err) {
+      setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal memulihkan data");
+    } finally { setMemulihkan(false); }
+  }
+
   return (
     <div>
       <Judul anak="Pengaturan" sub="Identitas usaha, jam operasional, pengguna, dan slot pre-order." />
@@ -92,6 +131,30 @@ export default function HalamanPengaturan() {
             <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v3h16v-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
             Unduh cadangan
           </a>
+        </div>
+        <div className="mt-5 border-t border-garis pt-5">
+          <h3 className="text-sm font-semibold">Pulihkan dari cadangan</h3>
+          <p className="mt-1 text-xs text-tinta-lemah">
+            Mengganti seluruh data usaha dengan isi berkas. Akun pengguna tidak diubah. Tindakan ini tidak bisa dibatalkan.
+          </p>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <div className="min-w-[220px] flex-1">
+              <label htmlFor="berkas-cadangan">Berkas JSON</label>
+              <input id="berkas-cadangan" type="file" accept="application/json,.json" onChange={(e) => void pilihBerkas(e)} />
+            </div>
+            <div className="min-w-[180px]">
+              <label htmlFor="konfirmasi-pulihkan">Ketik PULIHKAN</label>
+              <input id="konfirmasi-pulihkan" value={konfirmasi} onChange={(e) => setKonfirmasi(e.target.value)} placeholder="PULIHKAN" />
+            </div>
+            <Tombol onClick={() => void pulihkan()} nonaktif={!cadangan || konfirmasi !== "PULIHKAN" || memulihkan}>
+              {memulihkan ? "Memulihkan..." : "Pulihkan data"}
+            </Tombol>
+          </div>
+          {cadangan && (
+            <p className="mt-3 text-xs text-tinta-lemah" role="status">
+              {Object.keys(cadangan).length} tabel, {Object.values(cadangan).reduce((n, b) => n + b.length, 0)} baris siap dipulihkan.
+            </p>
+          )}
         </div>
       </Kartu>
 

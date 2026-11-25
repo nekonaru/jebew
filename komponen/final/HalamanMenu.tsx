@@ -17,7 +17,7 @@ type Bahan = { id: number; nama: string; satuan: string };
 type Form = {
   nama: string; harga: string; deskripsi: string; kategori: string; foto: string; aktif: boolean;
   resep: { bahan_id: string; jumlah_per_porsi: string }[];
-  varian: { nama: string; harga_tambahan: string; aktif: boolean; resep: { bahan_id: string; jumlah_per_porsi: string }[] }[];
+  varian: { id?: number; nama: string; harga_tambahan: string; aktif: boolean; resep: { bahan_id: string; jumlah_per_porsi: string }[] }[];
 };
 
 const kosong = (): Form => ({
@@ -54,7 +54,7 @@ export default function HalamanMenu() {
       foto: m.foto ?? "", aktif: m.aktif,
       resep: m.resep.map((r) => ({ bahan_id: String(r.bahan_id), jumlah_per_porsi: String(r.jumlah_per_porsi) })),
       varian: m.varian.map((v) => ({
-        nama: v.nama, harga_tambahan: String(v.harga_tambahan), aktif: v.aktif,
+        id: v.id, nama: v.nama, harga_tambahan: String(v.harga_tambahan), aktif: v.aktif,
         resep: v.resep.map((r) => ({ bahan_id: String(r.bahan_id), jumlah_per_porsi: String(r.jumlah_per_porsi) })),
       })),
     } : kosong());
@@ -69,7 +69,7 @@ export default function HalamanMenu() {
         foto: form.foto.trim() || null, aktif: form.aktif,
         resep: form.resep.map((r) => ({ bahan_id: Number(r.bahan_id), jumlah_per_porsi: Number(r.jumlah_per_porsi) })),
         varian: form.varian.map((v) => ({
-          nama: v.nama, harga_tambahan: Number(v.harga_tambahan), aktif: v.aktif,
+          id: v.id, nama: v.nama, harga_tambahan: Number(v.harga_tambahan), aktif: v.aktif,
           resep: v.resep.map((r) => ({ bahan_id: Number(r.bahan_id), jumlah_per_porsi: Number(r.jumlah_per_porsi) })),
         })),
       };

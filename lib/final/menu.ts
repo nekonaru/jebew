@@ -45,6 +45,13 @@ export async function ambilBahanSemua(): Promise<InfoBahan[]> {
   );
 }
 
+/** Bahan untuk transaksi, termasuk yang sudah dinonaktifkan agar pesanan lama tetap bisa diproses. */
+export async function ambilBahanTransaksi(): Promise<InfoBahan[]> {
+  return query<InfoBahan>(
+    "SELECT id, nama, satuan, stok, harga_rata_rata FROM bahan ORDER BY nama",
+  );
+}
+
 async function ambilSemuaResep(): Promise<ResepBaris[]> {
   return query<ResepBaris>(
     `SELECT r.menu_id, r.bahan_id, r.jumlah_per_porsi,
@@ -161,12 +168,13 @@ export type MenuInput = {
   foto: string | null;
   aktif: boolean;
   resep: { bahan_id: number; jumlah_per_porsi: number }[];
-  varian: { nama: string; harga_tambahan: number; aktif: boolean; resep: { bahan_id: number; jumlah_per_porsi: number }[] }[];
+  varian: { id?: number; nama: string; harga_tambahan: number; aktif: boolean; resep: { bahan_id: number; jumlah_per_porsi: number }[] }[];
 };
 
 export async function simpanMenu(input: MenuInput, id?: number): Promise<number> {
   return denganTransaksi(async () => {
     let menuId: number;
+    const varianLama = new Set<number>();
     if (id !== undefined) {
       const ada = await querySatu("SELECT id FROM menu WHERE id = $1", [id]);
       if (!ada) throw new GalatBisnis("Menu tidak ditemukan");
@@ -175,7 +183,9 @@ export async function simpanMenu(input: MenuInput, id?: number): Promise<number>
         [input.nama, input.harga, input.deskripsi, input.kategori, input.foto, input.aktif, id],
       );
       await jalankan("DELETE FROM resep WHERE menu_id = $1", [id]);
-      await jalankan("DELETE FROM varian WHERE menu_id = $1", [id]);
+      // Id varian dipertahankan agar preorder lama tetap bisa diselesaikan.
+      const lama = await query<{ id: number }>("SELECT id FROM varian WHERE menu_id = $1", [id]);
+      for (const v of lama) varianLama.add(v.id);
       menuId = id;
     } else {
       const baris = await querySatu<{ id: number }>(
@@ -192,16 +202,35 @@ export async function simpanMenu(input: MenuInput, id?: number): Promise<number>
         [menuId, r.bahan_id, r.jumlah_per_porsi],
       );
     }
+    const dipakai = new Set<number>();
     for (const v of input.varian) {
-      const barisV = await querySatu<{ id: number }>(
-        "INSERT INTO varian (menu_id, nama, harga_tambahan, aktif) VALUES ($1,$2,$3,$4) RETURNING id",
-        [menuId, v.nama, v.harga_tambahan, v.aktif],
-      );
+      let varianId: number;
+      if (v.id && varianLama.has(v.id)) {
+        varianId = v.id;
+        dipakai.add(v.id);
+        await jalankan(
+          "UPDATE varian SET nama=$1, harga_tambahan=$2, aktif=$3 WHERE id=$4",
+          [v.nama, v.harga_tambahan, v.aktif, v.id],
+        );
+        await jalankan("DELETE FROM item_varian WHERE varian_id = $1", [v.id]);
+      } else {
+        const barisV = await querySatu<{ id: number }>(
+          "INSERT INTO varian (menu_id, nama, harga_tambahan, aktif) VALUES ($1,$2,$3,$4) RETURNING id",
+          [menuId, v.nama, v.harga_tambahan, v.aktif],
+        );
+        varianId = barisV!.id;
+      }
       for (const r of v.resep) {
         await jalankan(
           "INSERT INTO item_varian (varian_id, bahan_id, jumlah_per_porsi) VALUES ($1,$2,$3)",
-          [barisV!.id, r.bahan_id, r.jumlah_per_porsi],
+          [varianId, r.bahan_id, r.jumlah_per_porsi],
         );
+      }
+    }
+    for (const lamaId of varianLama) {
+      if (!dipakai.has(lamaId)) {
+        await jalankan("DELETE FROM item_varian WHERE varian_id = $1", [lamaId]);
+        await jalankan("DELETE FROM varian WHERE id = $1", [lamaId]);
       }
     }
     return menuId;

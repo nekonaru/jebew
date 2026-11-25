@@ -35,20 +35,20 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const { penolakan } = await aman(req, "pemilik");
+    const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     const badan = z.object({ id: z.number().int().positive(), data: skema }).strict().parse(await req.json());
-    await simpanPengguna(badan.data, badan.id);
+    await simpanPengguna(badan.data, badan.id, pengguna?.id);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }
 }
 
 export async function DELETE(req: Request) {
   try {
-    const { penolakan } = await aman(req, "pemilik");
+    const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     const badan = z.object({ id: z.number().int().positive() }).strict().parse(await req.json());
-    await hapusPengguna(badan.id);
+    await hapusPengguna(badan.id, pengguna?.id);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }
 }

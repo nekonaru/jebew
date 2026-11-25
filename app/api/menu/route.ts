@@ -17,6 +17,7 @@ const skema = z.object({
   aktif: z.boolean(),
   resep: z.array(itemResep).min(1).max(20),
   varian: z.array(z.object({
+    id: z.number().int().positive().optional(),
     nama: z.string().trim().min(1).max(50),
     harga_tambahan: z.number().int().min(0).max(10000000),
     aktif: z.boolean(),

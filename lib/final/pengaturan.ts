@@ -32,12 +32,25 @@ export type PenggunaInput = {
   aktif: boolean;
 };
 
-export async function simpanPengguna(input: PenggunaInput, id?: number): Promise<void> {
+export async function simpanPengguna(input: PenggunaInput, id?: number, actorId?: number): Promise<void> {
   const email = input.email.trim().toLowerCase();
   await denganTransaksi(async () => {
     if (id !== undefined) {
-      const ada = await querySatu("SELECT id FROM pengguna WHERE id = $1", [id]);
+      const ada = await querySatu<{ id: number; peran: string }>(
+        "SELECT id, peran FROM pengguna WHERE id = $1", [id],
+      );
       if (!ada) throw new GalatBisnis("Pengguna tidak ditemukan");
+      if (id === actorId && (input.peran !== "pemilik" || !input.aktif)) {
+        throw new GalatBisnis("Anda tidak bisa menurunkan peran atau menonaktifkan akun sendiri");
+      }
+      if (ada.peran === "pemilik" && (input.peran !== "pemilik" || !input.aktif)) {
+        const pemilik = await querySatu<{ jumlah: number }>(
+          "SELECT COUNT(*) AS jumlah FROM pengguna WHERE peran = 'pemilik' AND aktif = TRUE",
+        );
+        if (Number(pemilik?.jumlah ?? 0) <= 1) {
+          throw new GalatBisnis("Tidak bisa menurunkan satu-satunya pemilik aktif");
+        }
+      }
       if (input.kata_sandi) {
         await jalankan(
           "UPDATE pengguna SET email=$1, nama=$2, kata_sandi=$3, peran=$4, aktif=$5 WHERE id=$6",
@@ -59,10 +72,32 @@ export async function simpanPengguna(input: PenggunaInput, id?: number): Promise
   });
 }
 
-export async function hapusPengguna(id: number): Promise<void> {
+export async function hapusPengguna(id: number, actorId?: number): Promise<void> {
   await denganTransaksi(async () => {
-    const jumlah = await querySatu<{ jumlah: number }>("SELECT COUNT(*) AS jumlah FROM pengguna");
-    if (Number(jumlah?.jumlah ?? 0) <= 1) throw new GalatBisnis("Tidak bisa menghapus satu-satunya pengguna");
+    if (id === actorId) throw new GalatBisnis("Anda tidak bisa menghapus akun sendiri");
+    const pengguna = await querySatu<{ peran: string; aktif: boolean }>(
+      "SELECT peran, aktif FROM pengguna WHERE id = $1", [id],
+    );
+    if (!pengguna) throw new GalatBisnis("Pengguna tidak ditemukan");
+    if (pengguna.peran === "pemilik" && pengguna.aktif) {
+      const jumlah = await querySatu<{ jumlah: number }>(
+        "SELECT COUNT(*) AS jumlah FROM pengguna WHERE peran = 'pemilik' AND aktif = TRUE",
+      );
+      if (Number(jumlah?.jumlah ?? 0) <= 1) throw new GalatBisnis("Tidak bisa menghapus satu-satunya pemilik aktif");
+    }
+    const riwayat = await querySatu<{ jumlah: number }>(
+      `SELECT (SELECT COUNT(*) FROM log_audit WHERE pengguna_id = $1)
+            + (SELECT COUNT(*) FROM penjualan WHERE kasir_id = $1)
+            + (SELECT COUNT(*) FROM pembelian WHERE pengguna_id = $1)
+            + (SELECT COUNT(*) FROM pengeluaran WHERE pengguna_id = $1)
+            + (SELECT COUNT(*) FROM pergerakan_stok WHERE pengguna_id = $1)
+            + (SELECT COUNT(*) FROM tutup_kasir WHERE kasir_id = $1) AS jumlah`,
+      [id],
+    );
+    if (Number(riwayat?.jumlah ?? 0) > 0) {
+      await jalankan("UPDATE pengguna SET aktif = FALSE WHERE id = $1", [id]);
+      return;
+    }
     await jalankan("DELETE FROM pengguna WHERE id = $1", [id]);
   });
 }

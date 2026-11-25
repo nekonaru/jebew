@@ -82,7 +82,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Login email dan sandi** | Kata sandi di-hash dengan scrypt, sesi ditandatangani HMAC |
 | **Dua peran** | Pemilik mengelola seluruh data, Kasir memakai kasir dan melihat stok serta pre-order |
 | **Sesi selalu segar** | Status dan peran pengguna diperiksa ulang dari database pada setiap permintaan |
-| **Row Level Security** | Aktif pada semua tabel sebagai pertahanan tambahan |
+| **Row Level Security** | Aktif pada semua tabel. Akses aplikasi memakai peran server, jadi aturan akses utama ada di lapisan API |
 | **Audit log** | Setiap perubahan menu, stok, uang, master data, dan transaksi tercatat, dengan filter aksi, data, dan kata kunci |
 
 ### Stok dan pembelian
@@ -106,7 +106,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Omzet 7 hari** | Grafik batang di dashboard tanpa pustaka grafik tambahan |
 | **Menu paling laku** | Lima menu terlaris tujuh hari terakhir beserta omzetnya |
 | **Ekspor CSV** | Unduh rincian transaksi untuk rentang tanggal tertentu |
-| **Cadangan JSON** | Unduh seluruh data induk dan turunan tanpa kata sandi pengguna |
+| **Cadangan JSON** | Unduh dan pulihkan seluruh data induk serta turunan tanpa kata sandi pengguna |
 | **Tutup kasir** | Rekonsiliasi kas fisik terhadap tunai, QRIS, dan transfer |
 
 ### Penjualan dan pre-order
@@ -170,7 +170,7 @@ Buka `http://localhost:3000` untuk website konsumen dan `http://localhost:3000/l
 
 ### Deploy ke Vercel
 
-Buat project Vercel baru yang menarik repo ini dengan branch produksi `final`. Isi environment variables `DATABASE_URL`, `RAHASIA_SESI`, `WHATSAPP_ADMIN`, dan `NAMA_USAHA`. Project lama tetap memantau `main` untuk prototipe.
+Buat project Vercel baru yang menarik repo ini dengan branch produksi `final`. Isi environment variables `DATABASE_URL`, `RAHASIA_SESI`, dan `WHATSAPP_ADMIN`. Nama usaha diatur lewat halaman Pengaturan. Project lama tetap memantau `main` untuk prototipe.
 
 ---
 
@@ -232,7 +232,7 @@ jebew/
 
 Sesi disimpan dalam cookie HttpOnly bertanda tangan HMAC. Kata sandi memakai scrypt dengan garam acak. Setiap endpoint admin memeriksa sesi dan peran di server. Semua kueri Postgres memakai parameter, dan perubahan stok berjalan dalam transaksi dengan pembaruan bersyarat.
 
-Akses database hanya dari server lewat `DATABASE_URL`. Tidak ada kunci database di browser. RLS aktif pada semua tabel. Cara melaporkan kerentanan ada di [`SECURITY.md`](SECURITY.md).
+Akses database hanya dari server lewat `DATABASE_URL`. Tidak ada kunci database di browser. RLS aktif pada semua tabel dan aplikasi memakai peran server, sehingga pemeriksaan akses dilakukan di API. Cara melaporkan kerentanan ada di [`SECURITY.md`](SECURITY.md).
 
 > [!NOTE]
 > Mode notifikasi WhatsApp dan pembayaran QRIS memakai simulasi untuk keperluan demo. Alur dan datanya berjalan, tetapi tidak terhubung ke penyedia berbayar.
@@ -262,6 +262,7 @@ URL_UJI=http://localhost:3000 npm run uji:api
 URL_UJI=http://localhost:3000 node scripts/uji-fitur-baru.mjs
 URL_UJI=http://localhost:3000 node scripts/uji-putaran-2.mjs
 URL_UJI=http://localhost:3000 node scripts/uji-putaran-3.mjs
+URL_UJI=http://localhost:3000 node scripts/uji-putaran-4.mjs
 ```
 
 Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo.

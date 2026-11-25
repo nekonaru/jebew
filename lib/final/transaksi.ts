@@ -5,8 +5,9 @@ import { denganTransaksi, jalankan, query, querySatu } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
 import { batasiDiskon, cekStokCukup, hitungHpp, totalDenganDiskon } from "../inti-final.ts";
 import type { PenggunaSesi } from "../auth.ts";
-import { ambilBahanSemua, ambilMenu } from "./menu.ts";
+import { ambilBahanTransaksi, ambilMenu } from "./menu.ts";
 import { catatAudit } from "../audit.ts";
+import { tanggalHariIni } from "../format.ts";
 
 export type Barang = {
   menu_id: number;
@@ -31,7 +32,7 @@ type ResepDipakai = { menuId: number; varianId: number | null; jumlah: number; i
 /** Validasi stok dan susun barang. Semua menu, varian, dan resep dimuat sekali, lalu diindeks. */
 async function siapkanBarang(items: KasirInput["items"]): Promise<{ barang: Barang[]; resepDipakai: ResepDipakai[] }> {
   // Di dalam transaksi semua kueri memakai satu koneksi, jadi dijalankan berurutan.
-  const bahan = await ambilBahanSemua();
+  const bahan = await ambilBahanTransaksi();
   const daftarMenu = await ambilMenu();
   const petaMenu = new Map(daftarMenu.map((m) => [m.id, m]));
   const barang: Barang[] = [];
@@ -83,7 +84,11 @@ async function siapkanBarang(items: KasirInput["items"]): Promise<{ barang: Bara
 }
 
 async function potongStok(resepDipakai: ResepDipakai[], referensi: string, pengguna: PenggunaSesi | null): Promise<void> {
-  for (const entri of resepDipakai) {
+  // Urutan kunci yang konsisten mencegah deadlock antar transaksi paralel.
+  const entriTerurut = resepDipakai.map((entri) => ({
+    ...entri, item: [...entri.item].sort((a, b) => a.bahanId - b.bahanId),
+  })).sort((a, b) => (a.item[0]?.bahanId ?? 0) - (b.item[0]?.bahanId ?? 0));
+  for (const entri of entriTerurut) {
     for (const r of entri.item) {
       const bahan = await querySatu<{ stok: number; nama: string }>(
         "SELECT stok, nama FROM bahan WHERE id = $1 FOR UPDATE", [r.bahanId],
@@ -164,6 +169,10 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
   kode: string; kode_lacak: string; total: number; items: Barang[];
 }> {
   return denganTransaksi(async () => {
+    if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(input.waktu_ambil)
+      || input.waktu_ambil.slice(0, 10) < tanggalHariIni()) {
+      throw new GalatBisnis("Waktu ambil tidak valid atau sudah lewat");
+    }
     const { barang } = await siapkanBarang(input.items);
     const total = barang.reduce((n, b) => n + b.subtotal, 0);
     const kode = `JBW-${kodePendek(3)}`;
@@ -275,8 +284,18 @@ export async function selesaikanPreorder(id: number, pengguna: PenggunaSesi | nu
     );
     if (snapshot.length === 0) throw new GalatBisnis("Preorder tidak punya item");
 
+    // Varian lama bisa hilang bila menu diedit. Pakai resep dasar agar pesanan lama tetap selesai.
+    const varianIds = new Set<number>();
+    for (const s of snapshot) {
+      if (s.varian_id) {
+        const v = await querySatu<{ id: number }>(
+          "SELECT id FROM varian WHERE id = $1 AND menu_id = $2", [s.varian_id, s.menu_id],
+        );
+        if (v) varianIds.add(s.varian_id);
+      }
+    }
     const mangsa: KasirInput["items"] = snapshot.map((s) => ({
-      menu_id: s.menu_id, varian_id: s.varian_id, jumlah: s.jumlah,
+      menu_id: s.menu_id, varian_id: s.varian_id && varianIds.has(s.varian_id) ? s.varian_id : null, jumlah: s.jumlah,
     }));
     const { resepDipakai } = await siapkanBarang(mangsa);
     const total = snapshot.reduce((n, b) => n + b.subtotal, 0);
