@@ -134,6 +134,12 @@ export default function HalamanKeuangan() {
                   onChange={(e) => setAuditFilter({ ...auditFilter, cari: e.target.value })} />
               </div>
             </div>
+            <a
+              href={`/api/audit?${new URLSearchParams({ ...auditFilter, format: "csv" })}`}
+              className="mt-3 inline-flex min-h-[40px] items-center justify-center rounded-xl border border-garis px-4 text-xs font-semibold hover:bg-latar"
+            >
+              Unduh CSV jejak aktivitas
+            </a>
           </Kartu>
           <Kartu>
             {audit.length === 0 && <p className="py-4 text-center text-sm text-tinta-lemah">Tidak ada aktivitas yang cocok.</p>}

@@ -166,7 +166,9 @@ export default function HalamanLaporan() {
                     <span className="font-semibold">{formatRupiah(k.jumlah)}</span>
                   </div>
                   <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-latar">
-                    <div className="h-full rounded-full bg-aksen" style={{ width: `${persen}%` }} />
+                    <div role="progressbar" aria-valuenow={persen} aria-valuemin={0} aria-valuemax={100}
+                      aria-label={`Proporsi pengeluaran kategori ${k.kategori}`}
+                      className="h-full rounded-full bg-aksen" style={{ width: `${persen}%` }} />
                   </div>
                 </li>
               );

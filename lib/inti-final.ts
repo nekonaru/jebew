@@ -84,6 +84,16 @@ export function hppBaris(hppPerPorsi: number, jumlah: number): number {
   return Math.max(0, hppPerPorsi) * Math.max(0, jumlah);
 }
 
+/** Agregasi jumlah per kategori untuk ringkasan pengeluaran. */
+export function jumlahPerKategori(baris: { kategori: string; jumlah: number }[]): {
+  kategori: string; jumlah: number;
+}[] {
+  const peta = new Map<string, number>();
+  for (const b of baris) peta.set(b.kategori, (peta.get(b.kategori) ?? 0) + b.jumlah);
+  return [...peta.entries()].map(([kategori, jumlah]) => ({ kategori, jumlah }))
+    .sort((a, b) => b.jumlah - a.jumlah);
+}
+
 /** Harga rata rata tertimbang. Bila stok lama habis, pakai harga pembelian baru. */
 export function hargaRataRata(stokLama: number, rataLama: number, jumlahBaru: number, hargaBaru: number): number {
   if (stokLama <= 0) return Math.max(0, hargaBaru);

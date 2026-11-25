@@ -106,7 +106,9 @@ export async function hapusPengguna(id: number, actorId?: number): Promise<void>
 
 export type FilterAudit = { aksi?: string; tabel?: string; cari?: string };
 
-export async function ambilAudit(filter: FilterAudit = {}) {
+export async function ambilAudit(filter: FilterAudit = {}): Promise<{
+  id: number; aksi: string; tabel: string; catatan: string; dibuat_pada: string; nama_pengguna: string | null;
+}[]> {
   const syarat: string[] = [];
   const nilai: unknown[] = [];
   if (filter.aksi) {

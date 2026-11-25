@@ -15,12 +15,31 @@ export async function GET(req: Request) {
       return NextResponse.json({ pesan: "Hanya pemilik yang bisa melihat audit" }, { status: 403 });
     }
     const p = new URL(req.url).searchParams;
-    return NextResponse.json({
-      audit: await ambilAudit({
-        aksi: (p.get("aksi") ?? "").slice(0, 20),
-        tabel: (p.get("tabel") ?? "").slice(0, 40),
-        cari: (p.get("cari") ?? "").trim().slice(0, 60),
-      }),
+    const daftar = await ambilAudit({
+      aksi: (p.get("aksi") ?? "").slice(0, 20),
+      tabel: (p.get("tabel") ?? "").slice(0, 40),
+      cari: (p.get("cari") ?? "").trim().slice(0, 60),
     });
+    if (p.get("format") === "csv") {
+      const escape = (teks: string) => {
+        const aman = /^[=+\-@\t\r]/.test(teks) ? `'${teks}` : teks;
+        return `"${aman.replace(/"/g, '""')}"`;
+      };
+      const baris = ["Waktu,Aksi,Data,Catatan,Pengguna"];
+      for (const a of daftar) {
+        baris.push([
+          `${a.dibuat_pada} WIB`, a.aksi, a.tabel,
+          escape(a.catatan ?? ""), escape(a.nama_pengguna ?? "Sistem"),
+        ].join(","));
+      }
+      return new Response("\uFEFF" + baris.join("\r\n"), {
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": "attachment; filename=\"jebew-aktivitas.csv\"",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+    return NextResponse.json({ audit: daftar });
   } catch (e) { return galat(e) as NextResponse; }
 }

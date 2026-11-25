@@ -7,10 +7,14 @@ import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
+const batasTanggal = (v: string) => tanggalValid(v) && v <= tanggalHariIni();
 const skema = z.object({
-  dari: z.string().refine(tanggalValid, "Tanggal tidak valid"),
-  sampai: z.string().refine(tanggalValid, "Tanggal tidak valid"),
-}).strict().refine((v) => v.dari <= v.sampai, { message: "Tanggal awal harus sebelum tanggal akhir" });
+  dari: z.string().refine(batasTanggal, "Tanggal tidak valid atau di masa depan"),
+  sampai: z.string().refine(batasTanggal, "Tanggal tidak valid atau di masa depan"),
+}).strict()
+  .refine((v) => v.dari <= v.sampai, { message: "Tanggal awal harus sebelum tanggal akhir" })
+  .refine((v) => (Date.parse(v.sampai) - Date.parse(v.dari)) <= 366 * 86400000,
+    { message: "Rentang laporan maksimal satu tahun" });
 
 export async function GET(req: Request) {
   try {

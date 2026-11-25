@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  batasiDiskon, cekStokCukup, hargaRataRata, hitungHpp, hitungPorsi, hppBaris, hppPerTransaksi, margin, ringkasKeuangan, totalDenganDiskon,
+  batasiDiskon, cekStokCukup, hargaRataRata, hitungHpp, hitungPorsi, hppBaris, hppPerTransaksi,
+  jumlahPerKategori, margin, ringkasKeuangan, totalDenganDiskon,
   type InfoBahan, type ItemResep,
 } from "../lib/inti-final.ts";
 import { formatRupiah, tanggalHariIni, tanggalParameter, tanggalValid } from "../lib/format.ts";
@@ -67,6 +68,18 @@ test("hpp baris dikalikan jumlah porsi", () => {
   assert.equal(hppBaris(5000, 5), 25000);
   assert.equal(hppBaris(5000, 1), 5000);
   assert.equal(hppBaris(-1, 5), 0);
+});
+
+test("pengeluaran dikelompokkan per kategori", () => {
+  const hasil = jumlahPerKategori([
+    { kategori: "Gas", jumlah: 100 },
+    { kategori: "Listrik", jumlah: 200 },
+    { kategori: "Gas", jumlah: 50 },
+  ]);
+  assert.deepEqual(hasil, [
+    { kategori: "Listrik", jumlah: 200 },
+    { kategori: "Gas", jumlah: 150 },
+  ]);
 });
 
 test("harga rata rata memakai bobot stok nyata", () => {

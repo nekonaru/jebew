@@ -1,5 +1,23 @@
 # Riwayat Perubahan
 
+## final-v1.14.0
+
+Audit putaran ketiga belas dan ekspor jejak aktivitas.
+
+### Fitur baru
+
+- **Unduh CSV jejak aktivitas.** Log audit bisa diekspor sesuai filter aksi, data, dan kata kunci yang sedang dipakai.
+
+### Perbaikan
+
+- **Rentang laporan dibatasi.** Tanggal masa depan dan rentang lebih dari satu tahun ditolak di server, bukan hanya di tampilan.
+- **Proporsi pengeluaran terbaca.** Batang kategori laporan memberi nilai dan label untuk pembaca layar.
+- **Agregasi kategori teruji.** Pengelompokan pengeluaran kini berupa fungsi murni dengan pengujian regresi.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.13.0
 
 Audit putaran kedua belas dan rincian pembelian.

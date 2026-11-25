@@ -2,7 +2,7 @@
 
 import { query, querySatu, denganTransaksi, jalankan } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
-import { hppBaris, hppPerTransaksi, ringkasKeuangan } from "../inti-final.ts";
+import { hppBaris, hppPerTransaksi, jumlahPerKategori, ringkasKeuangan } from "../inti-final.ts";
 import type { PenggunaSesi } from "../auth.ts";
 import { catatAudit } from "../audit.ts";
 
@@ -89,10 +89,9 @@ export async function ambilLaporan(dari: string, sampai: string) {
      WHERE e.tanggal::date BETWEEN $1::date AND $2::date ORDER BY e.tanggal DESC`,
     [dari, sampai],
   );
-  const pengeluaranPerKategori = new Map<string, number>();
-  for (const e of pengeluaranList) {
-    pengeluaranPerKategori.set(e.kategori, (pengeluaranPerKategori.get(e.kategori) ?? 0) + Number(e.jumlah));
-  }
+  const pengeluaranPerKategori = jumlahPerKategori(pengeluaranList.map((e) => ({
+    kategori: e.kategori, jumlah: Number(e.jumlah),
+  })));
 
   return {
     daftar,
@@ -100,9 +99,7 @@ export async function ambilLaporan(dari: string, sampai: string) {
     menuTerlaris: terlaris,
     harian: [...harian.entries()].map(([tanggal, omzet]) => ({ tanggal, omzet })).sort((a, b) => a.tanggal.localeCompare(b.tanggal)),
     pengeluaranList,
-    pengeluaranPerKategori: [...pengeluaranPerKategori.entries()]
-      .map(([kategori, jumlah]) => ({ kategori, jumlah }))
-      .sort((a, b) => b.jumlah - a.jumlah),
+    pengeluaranPerKategori,
   };
 }
 
