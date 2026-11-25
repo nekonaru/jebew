@@ -241,9 +241,10 @@ export async function ambilPreorder(filter: FilterPreorder = {}) {
     waktu_ambil: string; catatan: string; status: string; penjualan_id: number | null; dibuat_pada: string;
   }>(`SELECT id, kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, catatan, status, penjualan_id, dibuat_pada
       FROM preorder ${where} ORDER BY id DESC`, nilai);
-  const semuaItem = await query<Barang & { preorder_id: number }>(
+  const ids = daftar.map((p) => p.id);
+  const semuaItem = ids.length === 0 ? [] : await query<Barang & { preorder_id: number }>(
     `SELECT preorder_id, menu_id, varian_id, nama_menu, nama_varian, harga_satuan, jumlah, subtotal, hpp
-     FROM item_preorder ORDER BY id`,
+     FROM item_preorder WHERE preorder_id = ANY($1::int[]) ORDER BY id`, [ids],
   );
   const peta = new Map<number, Barang[]>();
   for (const item of semuaItem) {

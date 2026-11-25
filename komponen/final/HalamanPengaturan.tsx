@@ -212,12 +212,22 @@ export default function HalamanPengaturan() {
               <Tombol onClick={() => setDialog("slot")} kelas="min-h-[38px] px-3 text-xs">Tambah slot</Tombol>
             </div>
             <ul className="mt-4 space-y-2">
-              {slot.map((s) => (
-                <li key={s.id} className="flex items-center justify-between rounded-xl border border-garis p-3 text-sm">
-                  <span>{s.tanggal} - {s.jam}</span>
-                  <Badge warna={s.dipakai >= s.kuota ? "bahaya" : "sukses"}>{s.dipakai}/{s.kuota}</Badge>
-                </li>
-              ))}
+              {slot.map((s) => {
+                const persen = s.kuota > 0 ? Math.min(100, Math.round((s.dipakai / s.kuota) * 100)) : 0;
+                return (
+                  <li key={s.id} className="rounded-xl border border-garis p-3 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span>{s.tanggal} - {s.jam}</span>
+                      <Badge warna={s.dipakai >= s.kuota ? "bahaya" : "sukses"}>{s.dipakai}/{s.kuota}</Badge>
+                    </div>
+                    <div role="progressbar" aria-valuenow={persen} aria-valuemin={0} aria-valuemax={100}
+                      aria-label={`Kuota terpakai ${s.tanggal} ${s.jam}`}
+                      className="mt-2 h-1.5 overflow-hidden rounded-full bg-latar">
+                      <div className="h-full rounded-full bg-utama" style={{ width: `${persen}%` }} />
+                    </div>
+                  </li>
+                );
+              })}
               {slot.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada slot. Tambahkan kuota waktu ambil.</li>}
             </ul>
           </Kartu>

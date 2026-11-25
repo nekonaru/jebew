@@ -26,10 +26,20 @@ const skema = z.object({
 
 export async function GET() {
   try {
-    if (!(await penggunaSaatIni())) {
+    const pengguna = await penggunaSaatIni();
+    if (!pengguna) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    return NextResponse.json({ menu: await ambilMenu() });
+    const daftar = await ambilMenu();
+    if (pengguna.peran !== "pemilik") {
+      return NextResponse.json({
+        menu: daftar.map(({ hpp: _hpp, resep: _resep, ...m }) => ({
+          ...m,
+          varian: m.varian.map(({ resep: _r, ...v }) => v),
+        })),
+      });
+    }
+    return NextResponse.json({ menu: daftar });
   } catch (e) { return galat(e) as NextResponse; }
 }
 

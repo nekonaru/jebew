@@ -8,9 +8,9 @@ import { usePeran } from "./Panel.tsx";
 
 type Menu = {
   id: number; nama: string; harga: number; deskripsi: string; kategori: string; foto: string | null;
-  aktif: boolean; porsi: number; penghambat: string | null; hpp: number; tersedia: boolean;
-  resep: { bahan_id: number; nama_bahan: string; satuan: string; jumlah_per_porsi: number; stok: number }[];
-  varian: { id: number; nama: string; harga_tambahan: number; aktif: boolean; resep: { bahan_id: number; jumlah_per_porsi: number; nama_bahan: string; satuan: string }[] }[];
+  aktif: boolean; porsi: number; penghambat: string | null; hpp?: number; tersedia: boolean;
+  resep?: { bahan_id: number; nama_bahan: string; satuan: string; jumlah_per_porsi: number; stok: number }[];
+  varian: { id: number; nama: string; harga_tambahan: number; aktif: boolean; resep?: { bahan_id: number; jumlah_per_porsi: number; nama_bahan: string; satuan: string }[] }[];
 };
 type Bahan = { id: number; nama: string; satuan: string };
 
@@ -52,10 +52,10 @@ export default function HalamanMenu() {
     setForm(m ? {
       nama: m.nama, harga: String(m.harga), deskripsi: m.deskripsi, kategori: m.kategori,
       foto: m.foto ?? "", aktif: m.aktif,
-      resep: m.resep.map((r) => ({ bahan_id: String(r.bahan_id), jumlah_per_porsi: String(r.jumlah_per_porsi) })),
+      resep: (m.resep ?? []).map((r) => ({ bahan_id: String(r.bahan_id), jumlah_per_porsi: String(r.jumlah_per_porsi) })),
       varian: m.varian.map((v) => ({
         id: v.id, nama: v.nama, harga_tambahan: String(v.harga_tambahan), aktif: v.aktif,
-        resep: v.resep.map((r) => ({ bahan_id: String(r.bahan_id), jumlah_per_porsi: String(r.jumlah_per_porsi) })),
+        resep: (v.resep ?? []).map((r) => ({ bahan_id: String(r.bahan_id), jumlah_per_porsi: String(r.jumlah_per_porsi) })),
       })),
     } : kosong());
     setPesan(""); setDialog(true);
@@ -121,12 +121,12 @@ export default function HalamanMenu() {
               <p className="mt-2 min-h-[40px] text-sm text-tinta-lemah">{m.deskripsi}</p>
               <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-latar p-3 text-sm">
                 <div><p className="text-[11px] text-tinta-lemah">Harga</p><p className="font-semibold">{formatRupiah(m.harga)}</p></div>
-                <div><p className="text-[11px] text-tinta-lemah">HPP / porsi</p><p className="font-semibold">{formatRupiah(m.hpp)}</p></div>
+                {pemilik && <div><p className="text-[11px] text-tinta-lemah">HPP / porsi</p><p className="font-semibold">{formatRupiah(m.hpp ?? 0)}</p></div>}
               </div>
               <details className="mt-3 text-sm">
-                <summary className="cursor-pointer text-xs font-semibold text-utama">Resep ({m.resep.length})</summary>
+                <summary className="cursor-pointer text-xs font-semibold text-utama">Resep ({(m.resep ?? []).length})</summary>
                 <ul className="mt-2 space-y-1 text-xs text-tinta-lemah">
-                  {m.resep.map((r) => (
+                  {(m.resep ?? []).map((r) => (
                     <li key={r.bahan_id} className="flex justify-between gap-2">
                       <span>{r.nama_bahan}</span><span>{formatAngka(r.jumlah_per_porsi)} {r.satuan}</span>
                     </li>

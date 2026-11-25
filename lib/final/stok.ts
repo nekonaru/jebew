@@ -47,9 +47,9 @@ export async function simpanBahan(
       );
       if (input.stok !== lama.stok) {
         await jalankan(
-          `INSERT INTO pergerakan_stok (bahan_id, jenis, jumlah, stok_sebelum, stok_sesudah, referensi, catatan)
-           VALUES ($1,'penyesuaian',$2,$3,$4,'MANUAL','Perubahan lewat pengelolaan bahan')`,
-          [id, input.stok - lama.stok, lama.stok, input.stok],
+          `INSERT INTO pergerakan_stok (bahan_id, jenis, jumlah, stok_sebelum, stok_sesudah, referensi, catatan, pengguna_id)
+           VALUES ($1,'penyesuaian',$2,$3,$4,'MANUAL','Perubahan lewat pengelolaan bahan',$5)`,
+          [id, input.stok - lama.stok, lama.stok, input.stok, pengguna?.id ?? null],
         );
       }
       await catatAudit(pengguna, "ubah", "bahan", `id ${id}`);
@@ -61,9 +61,9 @@ export async function simpanBahan(
       [input.nama, input.satuan, input.stok, input.stok_minimum, input.harga_rata_rata, input.aktif],
     );
     await jalankan(
-      `INSERT INTO pergerakan_stok (bahan_id, jenis, jumlah, stok_sebelum, stok_sesudah, referensi, catatan)
-       VALUES ($1,'masuk',$2,0,$3,'AWAL','Stok awal bahan baru')`,
-      [baris!.id, input.stok, input.stok],
+      `INSERT INTO pergerakan_stok (bahan_id, jenis, jumlah, stok_sebelum, stok_sesudah, referensi, catatan, pengguna_id)
+       VALUES ($1,'masuk',$2,0,$3,'AWAL','Stok awal bahan baru',$4)`,
+      [baris!.id, input.stok, input.stok, pengguna?.id ?? null],
     );
     await catatAudit(pengguna, "tambah", "bahan", `id ${baris!.id}`);
     return baris!.id;
@@ -187,7 +187,7 @@ export async function ambilPembelian() {
   return query(
     `SELECT p.id, p.nomor, p.total, p.tanggal, p.catatan, s.nama AS supplier,
             (SELECT COUNT(*) FROM item_pembelian ip WHERE ip.pembelian_id = p.id) AS jumlah_item
-     FROM pembelian p LEFT JOIN supplier s ON s.id = p.supplier_id ORDER BY p.id DESC`,
+     FROM pembelian p LEFT JOIN supplier s ON s.id = p.supplier_id ORDER BY p.id DESC LIMIT 500`,
   );
 }
 
@@ -242,7 +242,7 @@ export async function ambilOpname() {
   return query(
     `SELECT o.id, o.nomor, o.tanggal, o.catatan,
             (SELECT COUNT(*) FROM item_opname io WHERE io.opname_id = o.id) AS jumlah_item
-     FROM stok_opname o ORDER BY o.id DESC`,
+     FROM stok_opname o ORDER BY o.id DESC LIMIT 500`,
   );
 }
 

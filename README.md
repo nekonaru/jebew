@@ -108,7 +108,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Menu paling laku** | Lima menu terlaris tujuh hari terakhir beserta omzetnya |
 | **Ekspor CSV** | Unduh rincian transaksi untuk rentang tanggal tertentu |
 | **Cadangan JSON** | Unduh dan pulihkan seluruh data induk serta turunan tanpa kata sandi pengguna |
-| **Tutup kasir** | Rekonsiliasi kas fisik terhadap tunai, QRIS, dan transfer |
+| **Tutup kasir** | Selisih kas fisik terhadap total tunai, dengan QRIS dan transfer sebagai informasi |
 
 ### Penjualan dan pre-order
 

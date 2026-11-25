@@ -129,6 +129,7 @@ export async function tutupKasir(
   pengguna: PenggunaSesi | null,
 ): Promise<void> {
   await denganTransaksi(async () => {
+    await query("SELECT pg_advisory_xact_lock(hashtext('tutup-kasir'))");
     const hasil = await querySatu<{ tunai: number; qris: number; transfer: number }>(
       `SELECT
         COALESCE(SUM(CASE WHEN metode='tunai' THEN total ELSE 0 END),0) AS tunai,

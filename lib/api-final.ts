@@ -15,7 +15,10 @@ export function galat(kesalahan: unknown): Response {
     return Response.json({ pesan: kesalahan.issues[0]?.message ?? "Data tidak valid" }, { status: 400 });
   }
   if (typeof kesalahan === "object" && kesalahan !== null && "code" in kesalahan && kesalahan.code === "23505") {
-    return Response.json({ pesan: "Email sudah dipakai" }, { status: 400 });
+    const nama = "constraint" in kesalahan ? String(kesalahan.constraint) : "";
+    return Response.json({
+      pesan: nama.includes("pengguna_email") ? "Email sudah dipakai" : "Data dengan nilai tersebut sudah ada",
+    }, { status: 400 });
   }
   if (typeof kesalahan === "object" && kesalahan !== null && "code" in kesalahan && kesalahan.code === "40P01") {
     return Response.json({ pesan: "Transaksi bentrok dengan permintaan lain. Coba lagi sebentar." }, { status: 400 });

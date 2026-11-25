@@ -115,26 +115,24 @@ export default function HalamanMaster() {
           <Tombol kelas="min-h-[38px] px-3 text-xs" onClick={() => buka()}>Tambah</Tombol>
         </div>
 
-        {tab === "Supplier" ? (
-          <div className="space-y-4">
-            <div className="overflow-x-auto">
-              <Tabel>
-                <KepalaTabel>
-                  <tr><SelKepala>Supplier</SelKepala><SelKepala>Pembelian</SelKepala><SelKepala>Total</SelKepala></tr>
-                </KepalaTabel>
-                <tbody className="divide-y divide-garis">
-                  {ringkasanSupplier.length === 0 ? <BarisKosong kolom={3} teks="Belum ada pembelian." /> : ringkasanSupplier.map((s) => (
-                    <tr key={s.id}>
-                      <td className="px-4 py-2.5 font-medium">{s.nama}</td>
-                      <td className="px-4 py-2.5 text-xs">{s.jumlah_pembelian}</td>
-                      <td className="px-4 py-2.5">{formatRupiah(s.total)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Tabel>
-            </div>
+        {tab === "Supplier" && ringkasanSupplier.length > 0 && (
+          <div className="mb-4 overflow-x-auto">
+            <Tabel>
+              <KepalaTabel>
+                <tr><SelKepala>Supplier</SelKepala><SelKepala>Pembelian</SelKepala><SelKepala>Total</SelKepala></tr>
+              </KepalaTabel>
+              <tbody className="divide-y divide-garis">
+                {ringkasanSupplier.map((s) => (
+                  <tr key={s.id}>
+                    <td className="px-4 py-2.5 font-medium">{s.nama}</td>
+                    <td className="px-4 py-2.5 text-xs">{s.jumlah_pembelian}</td>
+                    <td className="px-4 py-2.5">{formatRupiah(s.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Tabel>
           </div>
-        ) : null}
+        )}
 
         {tab === "Supplier" ? (
           <Tabel>

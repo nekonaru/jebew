@@ -1,5 +1,25 @@
 # Riwayat Perubahan
 
+## final-v2.1.0
+
+Audit putaran ketujuh belas dan penguatan pembatasan data.
+
+### Fitur baru
+
+- **Indikator kuota slot.** Pengaturan menampilkan progress bar pemakaian kuota setiap slot.
+
+### Perbaikan
+
+- **HPP benar-benar private.** Endpoint menu tidak lagi mengirim HPP dan harga rata rata resep kepada kasir, dan kolom HPP disembunyikan di tampilan.
+- **Preorder lama tetap aman.** Menu yang masih dipakai preorder aktif tidak bisa dihapus.
+- **Pesan checkout muncul.** Kekurangan waktu ambil kini memakai pemberitahuan yang terlihat.
+- **Respons dibatasi.** Pembelian, opname, dan item preorder tidak lagi memuat seluruh riwayat tanpa batas.
+- **Pesan duplikat tepat.** Konflik unik dibedakan berdasarkan constraint, bukan selalu "Email sudah dipakai".
+- **Mutasi stok berpelaku.** Penyesuaian dan stok awal menyimpan id pengguna.
+- **Validasi master.** Parameter id bahan yang bukan digit ditolak.
+- **Tutup kasir dikunci.** Pemeriksaan pembaruan memakai kunci advisory agar aksi audit konsisten.
+- **Dokumentasi.** Rekonsiliasi kas diperjelas hanya membandingkan uang tunai.
+
 ## final-v2.0.0
 
 Pembaruan besar: analitik master data dan kerapian kebijakan data.

@@ -244,6 +244,14 @@ export async function simpanMenu(
 
 export async function hapusMenu(id: number, pengguna: PenggunaSesi | null = null): Promise<void> {
   await denganTransaksi(async () => {
+    const aktif = await querySatu<{ jumlah: number }>(
+      `SELECT COUNT(*) AS jumlah FROM preorder p
+       JOIN item_preorder i ON i.preorder_id = p.id
+       WHERE i.menu_id = $1 AND p.status IN ('baru','diproses')`, [id],
+    );
+    if (Number(aktif?.jumlah ?? 0) > 0) {
+      throw new GalatBisnis("Menu masih dipakai preorder aktif. Selesaikan atau batalkan dulu.");
+    }
     await jalankan("DELETE FROM menu WHERE id = $1", [id]);
     await catatAudit(pengguna, "hapus", "menu", `id ${id}`);
   });

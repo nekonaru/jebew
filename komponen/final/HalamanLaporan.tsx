@@ -54,7 +54,7 @@ export default function HalamanLaporan() {
             return valid ? (
               <a href={`/api/laporan?dari=${rentangAktif.dari}&sampai=${rentangAktif.sampai}&format=csv`}
                 className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">
-                Unduh CSV
+                Unduh CSV ({rentangAktif.dari} s/d {rentangAktif.sampai})
               </a>
             ) : (
               <span role="status" className="inline-flex min-h-[44px] items-center rounded-xl bg-latar px-4 text-xs text-tinta-lemah">
