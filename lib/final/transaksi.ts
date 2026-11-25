@@ -7,7 +7,7 @@ import { batasiDiskon, cekStokCukup, hitungHpp, totalDenganDiskon } from "../int
 import type { PenggunaSesi } from "../auth.ts";
 import { ambilBahanTransaksi, ambilMenu } from "./menu.ts";
 import { catatAudit } from "../audit.ts";
-import { tanggalHariIni } from "../format.ts";
+import { jamMenitWIB, tanggalHariIni } from "../format.ts";
 
 export type Barang = {
   menu_id: number;
@@ -173,6 +173,13 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
       || input.waktu_ambil.slice(0, 10) < tanggalHariIni()) {
       throw new GalatBisnis("Waktu ambil tidak valid atau sudah lewat");
     }
+    if (input.waktu_ambil.slice(0, 10) === tanggalHariIni()) {
+      const sekarang = jamMenitWIB();
+      const diminta = Number(input.waktu_ambil.slice(11, 13)) * 60 + Number(input.waktu_ambil.slice(14, 16));
+      if (diminta <= sekarang.jam * 60 + sekarang.menit) {
+        throw new GalatBisnis("Waktu ambil sudah lewat");
+      }
+    }
     const { barang } = await siapkanBarang(input.items);
     const total = barang.reduce((n, b) => n + b.subtotal, 0);
     const kode = `JBW-${kodePendek(3)}`;
@@ -271,7 +278,9 @@ export async function lacakPreorder(kode: string) {
   return { ...hasil, items, total: items.reduce((n, i) => n + i.subtotal, 0) };
 }
 
-export async function selesaikanPreorder(id: number, pengguna: PenggunaSesi | null): Promise<void> {
+export async function selesaikanPreorder(
+  id: number, pengguna: PenggunaSesi | null, metode: "tunai" | "qris" | "transfer" = "tunai",
+): Promise<void> {
   await denganTransaksi(async () => {
     const preorder = await querySatu<{ id: number; status: string; catatan: string; penjualan_id: number | null }>(
       "SELECT id, status, catatan, penjualan_id FROM preorder WHERE id = $1 FOR UPDATE", [id],
@@ -306,8 +315,8 @@ export async function selesaikanPreorder(id: number, pengguna: PenggunaSesi | nu
 
     const baris = await querySatu<{ id: number }>(
       `INSERT INTO penjualan (nomor, total, diskon, metode, catatan, sumber, kasir_id, preorder_id)
-       VALUES ($1,$2,0,'tunai',$3,'preorder',$4,$5) RETURNING id`,
-      [nomor, total, preorder.catatan, pengguna?.id ?? null, id],
+       VALUES ($1,$2,0,$3,$4,'preorder',$5,$6) RETURNING id`,
+      [nomor, total, metode, preorder.catatan, pengguna?.id ?? null, id],
     );
     for (const item of snapshot) {
       await jalankan(

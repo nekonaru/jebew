@@ -58,6 +58,17 @@ if (slot) {
   catat("slot sesuai diterima", benar.status === 201, String(benar.status));
 }
 
+const jamSlot = await api("/api/slot", {
+  method: "POST", headers: { "Content-Type": "application/json", Cookie: cp },
+  body: JSON.stringify({ tanggal: besok, jam: "9:00", kuota: 5 }),
+});
+catat("format jam slot valid", jamSlot.status === 400, String(jamSlot.status));
+const slotLampau = await api("/api/slot", {
+  method: "POST", headers: { "Content-Type": "application/json", Cookie: cp },
+  body: JSON.stringify({ tanggal: new Date(Date.now() - 86400000).toISOString().slice(0, 10), jam: "10:00", kuota: 5 }),
+});
+catat("tanggal slot lampau ditolak", slotLampau.status === 400, String(slotLampau.status));
+
 const menit = await api("/api/preorder", {
   method: "POST", headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ items: [{ menu_id: 28, varian_id: null, jumlah: 1 }], nama_pelanggan: "Uji Menit", whatsapp: "081234567890", waktu_ambil: `${besok} 12:99`, slot_id: null, catatan: "" }),

@@ -81,10 +81,16 @@ export async function POST(req: Request) {
       })),
       namaUsaha: pengaturan.nama_usaha ?? "Warung Kak Ikaa",
     });
+    const nomorAdmin = process.env.WHATSAPP_ADMIN ?? pengaturan.whatsapp_admin ?? "";
+    if (!nomorAdmin && process.env.NODE_ENV === "production") {
+      return NextResponse.json({
+        pesan: "Nomor WhatsApp admin belum dikonfigurasi",
+      }, { status: 500 });
+    }
     return NextResponse.json({
       ...hasil,
       pesan,
-      tautan: tautanWhatsApp(process.env.WHATSAPP_ADMIN ?? pengaturan.whatsapp_admin ?? "6282173282591", pesan),
+      tautan: nomorAdmin ? tautanWhatsApp(nomorAdmin, pesan) : null,
     }, { status: 201 });
   } catch (e) { return galat(e) as NextResponse; }
 }
@@ -96,8 +102,9 @@ export async function PUT(req: Request) {
     const badan = z.object({
       id: z.number().int().positive(),
       status: z.enum(["diproses", "selesai", "batal"]),
+      metode: z.enum(["tunai", "qris", "transfer"]).optional(),
     }).strict().parse(await req.json());
-    if (badan.status === "selesai") await selesaikanPreorder(badan.id, pengguna);
+    if (badan.status === "selesai") await selesaikanPreorder(badan.id, pengguna, badan.metode ?? "tunai");
     else await ubahStatusPreorder(badan.id, badan.status, pengguna);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }

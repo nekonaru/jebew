@@ -142,7 +142,8 @@ export async function simpanSlotWaktu(input: { tanggal: string; jam: string; kuo
   await jalankan(
     `INSERT INTO slot_waktu (tanggal, jam, kuota) VALUES ($1,$2,$3)
      ON CONFLICT (tanggal, jam) DO UPDATE SET kuota = EXCLUDED.kuota,
-     terisi = LEAST(slot_waktu.terisi, EXCLUDED.kuota)`,
+     terisi = (SELECT COUNT(*) FROM preorder p
+               WHERE p.slot_id = slot_waktu.id AND p.status <> 'batal')`,
     [input.tanggal, input.jam, input.kuota],
   );
 }

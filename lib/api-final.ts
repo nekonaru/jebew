@@ -2,7 +2,7 @@
 
 import { ZodError } from "zod";
 import { GalatBisnis } from "./final/galat.ts";
-import { querySatu } from "./database.ts";
+import { query, querySatu } from "./database.ts";
 import { penggunaSaatIni, type PenggunaSesi } from "./auth.ts";
 
 const BATAS_UKURAN = 128 * 1024;
@@ -36,6 +36,10 @@ export function asalValid(permintaan: Request): boolean {
 /** Pembatasan laju atomik: satu pernyataan SQL, aman untuk permintaan paralel. */
 export async function izinLaju(kunci: string, batas: number, jendelaMs: number): Promise<boolean> {
   const sekarang = Date.now();
+  // Bersihkan baris kedaluwarsa secara berkala tanpa menambah kueri pada setiap permintaan.
+  if (Math.random() < 0.02) {
+    await query("DELETE FROM pembatasan_laju WHERE reset_pada < $1", [sekarang]);
+  }
   const baris = await querySatu<{ boleh: boolean }>(
     `INSERT INTO pembatasan_laju (kunci, jumlah, reset_pada) VALUES ($1, 1, $2)
      ON CONFLICT (kunci) DO UPDATE SET

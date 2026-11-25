@@ -51,7 +51,7 @@ export async function GET(req: Request) {
     const cari = (p.get("cari") ?? "").trim().slice(0, 60);
     const csv = p.get("format") === "csv";
     const halaman = csv ? 1 : Math.max(1, Number(p.get("halaman") ?? 1) || 1);
-    const per = csv ? 100000 : 12;
+    const per = csv ? 5000 : 12;
     const offset = (halaman - 1) * per;
     const syarat = `p.dibuat_pada::date BETWEEN $1::date AND $2::date
       AND ($3 = '' OR p.nomor ILIKE '%' || $3 || '%'

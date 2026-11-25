@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { formatRupiah } from "@/lib/format.ts";
+import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Pesan, Tombol } from "./ui.tsx";
 
@@ -448,7 +448,8 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             <label htmlFor="p-slot">Waktu ambil</label>
             <select id="p-slot" value={slotId} onChange={(e) => setSlotId(e.target.value)}>
               <option value="">Pilih slot yang tersedia</option>
-              {slot.filter((s) => s.dipakai < s.kuota).map((s) => <option key={s.id} value={s.id}>{s.tanggal} - {s.jam} (sisa {s.kuota - s.dipakai})</option>)}
+              {slot.filter((s) => s.tanggal >= tanggalHariIni() && s.dipakai < s.kuota)
+                .map((s) => <option key={s.id} value={s.id}>{s.tanggal} - {s.jam} (sisa {s.kuota - s.dipakai})</option>)}
             </select>
             {!slotId && <div className="mt-2"><label htmlFor="p-waktu">Atau isi waktu manual</label><input id="p-waktu" value={waktu} onChange={(e) => setWaktu(e.target.value)} placeholder="2026-11-25 18:00" /></div>}
           </div>

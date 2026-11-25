@@ -1,5 +1,25 @@
 # Riwayat Perubahan
 
+## final-v1.8.0
+
+Audit putaran ketujuh dan kerapian operasional.
+
+### Perbaikan
+
+- **Slot tidak bisa dipesan tetapi tampil.** Format jam kini wajib HH:mm dan tanggal slot tidak boleh lampau, sehingga slot tidak lagi tampil tetapi ditolak saat dipesan.
+- **Kuota slot konsisten.** Jumlah terisi dihitung ulang dari preorder aktif setiap kali kuota diubah, sehingga tampilan dan server tidak bertolak belakang.
+- **Waktu ambil diperiksa ulang.** Pemeriksaan WIB dilakukan lagi di dalam transaksi sebelum preorder disimpan.
+- **Pembatasan laju dibersihkan.** Baris kedaluwarsa dihapus secara berkala agar tabel tidak tumbuh terus.
+- **Nomor WhatsApp tidak jatuh ke nilai tetap.** Di produksi, preorder gagal keras bila nomor admin belum dikonfigurasi.
+- **CSV aman dibuka di spreadsheet.** Nama menu yang diawali simbol rumus diberi tanda pengaman.
+- **Metode bayar preorder mengikuti pilihan.** Penyelesaian preorder tidak lagi memaksa tunai.
+- **Ekspor CSV riwayat dibatasi.** Maksimal 5.000 baris per unduhan agar tidak membebani serverless.
+- **Checkout lebih bersih.** Slot kadaluarsa tidak lagi ditampilkan pada daftar pilihan.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai. Pastikan `WHATSAPP_ADMIN` terisi di produksi sebelum menerima preorder.
+
 ## final-v1.7.0
 
 Audit putaran keenam dan pembatasan data keuangan.

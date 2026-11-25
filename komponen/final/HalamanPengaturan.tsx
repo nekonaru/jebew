@@ -235,7 +235,7 @@ export default function HalamanPengaturan() {
       <Dialog terbuka={dialog === "slot"} judul="Tambah slot waktu" padaTutup={() => setDialog(null)}>
         <form onSubmit={simpanSlot} className="space-y-4">
           <div><label htmlFor="sl-tanggal">Tanggal</label><input id="sl-tanggal" type="date" required value={formS.tanggal} onChange={(e) => setFormS({ ...formS, tanggal: e.target.value })} /></div>
-          <div><label htmlFor="sl-jam">Jam</label><input id="sl-jam" required value={formS.jam} onChange={(e) => setFormS({ ...formS, jam: e.target.value })} /></div>
+          <div><label htmlFor="sl-jam">Jam</label><input id="sl-jam" type="time" required value={formS.jam} onChange={(e) => setFormS({ ...formS, jam: e.target.value })} /></div>
           <div><label htmlFor="sl-kuota">Kuota</label><input id="sl-kuota" type="number" min={1} required value={formS.kuota} onChange={(e) => setFormS({ ...formS, kuota: e.target.value })} /></div>
           <Tombol tipe="submit" kelas="w-full">Simpan slot</Tombol>
         </form>
