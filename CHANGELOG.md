@@ -1,5 +1,27 @@
 # Riwayat Perubahan
 
+## final-v1.7.0
+
+Audit putaran keenam dan pembatasan data keuangan.
+
+### Perbaikan
+
+- **Keuangan khusus pemilik.** Kasir tidak lagi bisa melihat omzet, laba, nilai stok, pengeluaran, atau rincian pembelian lewat API. Halaman Laporan dan Keuangan juga diblokir untuk kasir baik lewat menu maupun URL langsung.
+- **Dashboard sesuai peran.** Kasir melihat pre-order, stok, dan aksi cepat tanpa angka keuangan.
+- **Waktu ambil memakai WIB.** Perbandingan jam tidak lagi mengikuti UTC server, sehingga preorder tidak ditolak karena selisih tujuh jam.
+- **Slot harus cocok.** Tanggal dan jam pada waktu ambil harus sama dengan slot yang dipilih.
+- **Omzet per menu setelah diskon.** Diskon dialokasikan proporsional sehingga total omzet per menu sama dengan omzet ringkasan.
+- **Sequence cadangan rapi.** Tabel kosong pasca-pemulihan mulai dari id 1.
+- **Aksesibilitas.** Batang grafik laporan tidak lagi menjadi titik fokus keyboard tanpa fungsi.
+
+### Fitur baru
+
+- **Ekspor CSV riwayat.** Unduh transaksi pada rentang tanggal dan kata kunci yang sedang dipakai.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai.
+
 ## final-v1.6.0
 
 Audit putaran kelima dan analitik operasional.

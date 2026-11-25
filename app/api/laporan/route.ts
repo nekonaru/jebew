@@ -14,8 +14,12 @@ const skema = z.object({
 
 export async function GET(req: Request) {
   try {
-    if (!(await penggunaSaatIni())) {
+    const pengguna = await penggunaSaatIni();
+    if (!pengguna) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
+    }
+    if (pengguna.peran !== "pemilik") {
+      return NextResponse.json({ pesan: "Hanya pemilik yang bisa melihat laporan" }, { status: 403 });
     }
     const p = new URL(req.url).searchParams;
     const hari = tanggalHariIni();

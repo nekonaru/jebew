@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { tautanWhatsApp } from "@/lib/wa.ts";
+import { usePeran } from "./Panel.tsx";
 import { Badge, Judul, Kartu, Pesan, Statistik } from "./ui.tsx";
 import GrafikOmzet, { type TitikOmzet } from "./GrafikOmzet.tsx";
 
@@ -31,6 +32,7 @@ const PINTASAN = [
 ];
 
 export default function HalamanRingkasan() {
+  const pemilik = usePeran() === "pemilik";
   const [statistik, setStatistik] = useState<Ringkasan | null>(null);
   const [publik, setPublik] = useState<Publik | null>(null);
   const [pesan, setPesan] = useState("");
@@ -54,14 +56,14 @@ export default function HalamanRingkasan() {
       <Pesan teks={pesan} jenis="galat" />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Statistik label="Omzet hari ini" nilai={gagal ? "-" : formatRupiah(statistik?.omzet ?? 0)} aksen />
-        <Statistik label="Transaksi" nilai={gagal ? "-" : String(statistik?.transaksi ?? 0)} keterangan="Hari ini" />
+        {pemilik && <Statistik label="Omzet hari ini" nilai={gagal ? "-" : formatRupiah(statistik?.omzet ?? 0)} aksen />}
+        {pemilik && <Statistik label="Transaksi" nilai={gagal ? "-" : String(statistik?.transaksi ?? 0)} keterangan="Hari ini" />}
         <Statistik label="Pre-order aktif" nilai={gagal ? "-" : String(statistik?.preorderAktif ?? 0)} keterangan="Perlu ditangani" />
         <Statistik label="Bahan menipis" nilai={gagal ? "-" : String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
-        <Statistik label="Nilai stok" nilai={gagal ? "-" : formatRupiah(statistik?.nilaiStok ?? 0)} keterangan="Bahan aktif" />
+        {pemilik && <Statistik label="Nilai stok" nilai={gagal ? "-" : formatRupiah(statistik?.nilaiStok ?? 0)} keterangan="Bahan aktif" />}
       </div>
 
-      {!gagal && <Kartu>
+      {pemilik && !gagal && <Kartu>
         <GrafikOmzet data={statistik?.tren ?? []} />
       </Kartu>}
 
@@ -127,7 +129,7 @@ export default function HalamanRingkasan() {
         </Kartu>
       </div>
 
-      <Kartu>
+      {pemilik && <Kartu>
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h2 className="text-lg font-semibold">Menu paling laku</h2>
@@ -152,7 +154,7 @@ export default function HalamanRingkasan() {
             ))}
           </ol>
         )}
-      </Kartu>
+      </Kartu>}
     </div>
   );
 }

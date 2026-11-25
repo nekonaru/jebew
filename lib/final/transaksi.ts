@@ -179,10 +179,13 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
     const kodeLacak = kodePendek(4);
 
     if (input.slot_id) {
-      const slot = await querySatu<{ kuota: number; terisi: number }>(
-        "SELECT kuota, terisi FROM slot_waktu WHERE id = $1 FOR UPDATE", [input.slot_id],
+      const slot = await querySatu<{ kuota: number; terisi: number; tanggal: string; jam: string }>(
+        "SELECT kuota, terisi, tanggal, jam FROM slot_waktu WHERE id = $1 FOR UPDATE", [input.slot_id],
       );
       if (!slot) throw new GalatBisnis("Slot waktu tidak ditemukan");
+      if (slot.tanggal !== input.waktu_ambil.slice(0, 10) || slot.jam !== input.waktu_ambil.slice(11, 16)) {
+        throw new GalatBisnis("Waktu ambil tidak cocok dengan slot yang dipilih");
+      }
       if (slot.terisi >= slot.kuota) throw new GalatBisnis("Slot waktu sudah penuh");
       await jalankan("UPDATE slot_waktu SET terisi = terisi + 1 WHERE id = $1", [input.slot_id]);
     }

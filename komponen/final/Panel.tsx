@@ -37,7 +37,7 @@ export default function Panel({
     router.refresh();
   }
 
-  const hanyaPemilik = ["/admin/master", "/admin/pengaturan"];
+  const hanyaPemilik = ["/admin/master", "/admin/pengaturan", "/admin/laporan", "/admin/keuangan"];
   const item = NAV.filter((n) => !hanyaPemilik.includes(n.href) || peran === "pemilik");
 
   return (

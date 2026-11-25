@@ -45,6 +45,14 @@ export function tanggalHariIni(): string {
   }).format(new Date());
 }
 
+/** Jam dan menit saat ini dalam WIB, bukan jam UTC server. */
+export function jamMenitWIB(): { jam: number; menit: number } {
+  const bagian = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(new Date()).split(":");
+  return { jam: Number(bagian[0]), menit: Number(bagian[1]) };
+}
+
 /** Tanggal kalender yang benar, bukan sekadar pola YYYY-MM-DD. */
 export function tanggalValid(nilai: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(nilai)) return false;

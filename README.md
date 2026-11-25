@@ -80,7 +80,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | Fitur | Deskripsi |
 |-------|-----------|
 | **Login email dan sandi** | Kata sandi di-hash dengan scrypt, sesi ditandatangani HMAC |
-| **Dua peran** | Pemilik mengelola seluruh data, Kasir memakai kasir dan melihat stok serta pre-order |
+| **Dua peran** | Pemilik mengelola seluruh data dan keuangan, Kasir memakai kasir serta melihat stok, pre-order, dan riwayat transaksi |
 | **Sesi selalu segar** | Status dan peran pengguna diperiksa ulang dari database pada setiap permintaan |
 | **Row Level Security** | Aktif pada semua tabel. Akses aplikasi memakai peran server, jadi aturan akses utama ada di lapisan API |
 | **Audit log** | Setiap perubahan menu, stok, uang, master data, dan transaksi tercatat, dengan filter aksi, data, dan kata kunci |
@@ -117,7 +117,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Kasir** | Pilih menu dan varian, diskon, metode bayar, catatan, dan struk yang bisa dicetak |
 | **Varian** | Level pedas dan topping punya harga dan resep sendiri |
 | **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, dan saring pesanan berdasarkan status, nama, atau tanggal |
-| **Riwayat transaksi** | Cari berdasarkan nomor atau menu, lalu lihat dan cetak rinciannya |
+| **Riwayat transaksi** | Cari berdasarkan nomor atau menu, lihat dan cetak rinciannya, serta unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
 
@@ -264,6 +264,7 @@ URL_UJI=http://localhost:3000 node scripts/uji-fitur-baru.mjs
 URL_UJI=http://localhost:3000 node scripts/uji-putaran-2.mjs
 URL_UJI=http://localhost:3000 node scripts/uji-putaran-3.mjs
 URL_UJI=http://localhost:3000 node scripts/uji-putaran-4.mjs
+URL_UJI=http://localhost:3000 node scripts/uji-putaran-5.mjs
 ```
 
 Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo.

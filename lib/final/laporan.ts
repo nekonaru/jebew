@@ -61,10 +61,13 @@ export async function ambilLaporan(dari: string, sampai: string) {
 
   const menuTerlaris = new Map<string, { jumlah: number; omzet: number; hpp: number }>();
   for (const transaksi of daftar) {
+    const subtotalItem = transaksi.items.reduce((n, i) => n + i.omzet, 0);
+    // Diskon transaksi dialokasikan proporsional agar omzet per menu sama dengan omzet ringkasan.
+    const faktor = subtotalItem > 0 ? transaksi.total / subtotalItem : 1;
     for (const item of transaksi.items) {
       const nilai = menuTerlaris.get(item.nama) ?? { jumlah: 0, omzet: 0, hpp: 0 };
       nilai.jumlah += item.jumlah;
-      nilai.omzet += item.omzet;
+      nilai.omzet += item.omzet * faktor;
       nilai.hpp += item.hpp;
       menuTerlaris.set(item.nama, nilai);
     }

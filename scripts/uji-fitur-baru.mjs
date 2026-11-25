@@ -39,6 +39,9 @@ if (id) {
 const buruk = await api("/api/riwayat?dari=2010-01-01&sampai=1999-01-01", { headers: H });
 catat("riwayat tanggal terbalik", buruk.status, buruk.status === 400);
 
+const csv = await api("/api/riwayat?format=csv", { headers: H });
+catat("ekspor CSV riwayat", csv.status === 200 && csv.teks.includes("Nomor,Waktu,Sumber"), String(csv.status));
+
 const ex = await api("/api/ekspor", { headers: H });
 catat("ekspor cadangan", ex.status, ex.status === 200 && ex.teks.includes('"pengguna"') && !ex.teks.includes("kata_sandi"));
 

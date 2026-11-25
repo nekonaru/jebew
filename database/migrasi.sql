@@ -23,7 +23,7 @@ BEGIN
       WHERE table_name = nama_tabel AND column_name = 'id' AND is_identity = 'YES'
     ) THEN
       EXECUTE format(
-        'SELECT setval(pg_get_serial_sequence(%L, %L), GREATEST(COALESCE(MAX(id), 0), 1), true) FROM %I',
+        'SELECT setval(pg_get_serial_sequence(%L, %L), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM %I',
         nama_tabel, 'id', nama_tabel
       );
     END IF;

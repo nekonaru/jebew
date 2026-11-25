@@ -5,7 +5,7 @@ import { ambilPreorder, selesaikanPreorder, simpanPreorder, ubahStatusPreorder }
 import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa.ts";
-import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
+import { jamMenitWIB, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
@@ -45,10 +45,10 @@ const skema = z.object({
     }, "Jam atau menit tidak valid")
     .refine((v) => {
       if (v.slice(0, 10) > tanggalHariIni()) return true;
-      const sekarang = new Date();
+      const sekarang = jamMenitWIB();
       const jam = Number(v.slice(11, 13));
       const menit = Number(v.slice(14, 16));
-      return jam * 60 + menit > sekarang.getHours() * 60 + sekarang.getMinutes();
+      return jam * 60 + menit > sekarang.jam * 60 + sekarang.menit;
     }, "Waktu ambil sudah lewat"),
   slot_id: z.number().int().positive().nullable(),
   catatan: z.string().trim().max(300),

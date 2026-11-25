@@ -89,7 +89,9 @@ export async function POST(req: Request) {
     for (const tabel of TABEL) {
       if (!petaKolom.get(tabel)!.has("id")) continue;
       await jalankan(
-        `SELECT setval(pg_get_serial_sequence($1, 'id'), GREATEST(COALESCE((SELECT MAX(id) FROM ${tabel}), 0), 1), true)`,
+        `SELECT setval(pg_get_serial_sequence($1, 'id'),
+           COALESCE((SELECT MAX(id) FROM ${tabel}), 1),
+           (SELECT MAX(id) FROM ${tabel}) IS NOT NULL)`,
         [tabel],
       );
     }

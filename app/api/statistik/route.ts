@@ -6,21 +6,15 @@ import { tanggalHariIni } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
-/** Ringkasan keuangan hari ini. Hanya untuk pengguna yang sudah masuk. */
+/** Ringkasan untuk kasir. Data keuangan hanya dikirim ke pemilik. */
 export async function GET() {
   try {
-    if (!(await penggunaSaatIni())) {
+    const pengguna = await penggunaSaatIni();
+    if (!pengguna) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    const [penjualan, pengeluaran, preorder, bahan, menu, tren, menipis, terlaris, nilaiStok] = await Promise.all([
-      querySatu<{ omzet: number; jumlah: number }>(
-        "SELECT COALESCE(SUM(total),0) AS omzet, COUNT(*) AS jumlah FROM penjualan WHERE dibuat_pada::date = $1::date",
-        [tanggalHariIni()],
-      ),
-      querySatu<{ jumlah: number }>(
-        "SELECT COALESCE(SUM(jumlah),0) AS jumlah FROM pengeluaran WHERE tanggal::date = $1::date",
-        [tanggalHariIni()],
-      ),
+
+    const [preorder, bahan, menu, menipis] = await Promise.all([
       querySatu<{ jumlah: number }>(
         "SELECT COUNT(*) AS jumlah FROM preorder WHERE status IN ('baru','diproses')",
       ),
@@ -30,6 +24,33 @@ export async function GET() {
       querySatu<{ total: number }>(
         "SELECT COUNT(*) AS total FROM menu WHERE aktif = TRUE",
       ),
+      query<{ id: number; nama: string; satuan: string; stok: number; stok_minimum: number }>(
+        `SELECT id, nama, satuan, stok, stok_minimum FROM bahan
+         WHERE aktif = TRUE AND stok <= stok_minimum ORDER BY stok ASC LIMIT 6`,
+      ),
+    ]);
+
+    const dasar = {
+      preorderAktif: Number(preorder?.jumlah ?? 0),
+      bahanTipis: Number(bahan?.jumlah ?? 0),
+      menuTotal: Number(menu?.total ?? 0),
+      bahanMenipis: menipis.map((b) => ({
+        id: b.id, nama: b.nama, satuan: b.satuan,
+        stok: Number(b.stok), stok_minimum: Number(b.stok_minimum),
+      })),
+    };
+
+    if (pengguna.peran !== "pemilik") return NextResponse.json(dasar);
+
+    const [penjualan, pengeluaran, tren, terlaris, nilaiStok] = await Promise.all([
+      querySatu<{ omzet: number; jumlah: number }>(
+        "SELECT COALESCE(SUM(total),0) AS omzet, COUNT(*) AS jumlah FROM penjualan WHERE dibuat_pada::date = $1::date",
+        [tanggalHariIni()],
+      ),
+      querySatu<{ jumlah: number }>(
+        "SELECT COALESCE(SUM(jumlah),0) AS jumlah FROM pengeluaran WHERE tanggal::date = $1::date",
+        [tanggalHariIni()],
+      ),
       query<{ tanggal: string; omzet: number; transaksi: number }>(
         `SELECT d.hari::date AS tanggal,
                 COALESCE(SUM(p.total),0) AS omzet,
@@ -38,10 +59,6 @@ export async function GET() {
          LEFT JOIN penjualan p ON p.dibuat_pada::date = d.hari::date
          GROUP BY d.hari::date ORDER BY d.hari::date`,
         [tanggalHariIni()],
-      ),
-      query<{ id: number; nama: string; satuan: string; stok: number; stok_minimum: number }>(
-        `SELECT id, nama, satuan, stok, stok_minimum FROM bahan
-         WHERE aktif = TRUE AND stok <= stok_minimum ORDER BY stok ASC LIMIT 6`,
       ),
       query<{ nama: string; varian: string; jumlah: number; omzet: number }>(
         `SELECT i.nama_menu AS nama, i.nama_varian AS varian,
@@ -55,22 +72,17 @@ export async function GET() {
         "SELECT COALESCE(SUM(stok * harga_rata_rata),0) AS nilai FROM bahan WHERE aktif = TRUE",
       ),
     ]);
+
     return NextResponse.json({
+      ...dasar,
       omzet: Number(penjualan?.omzet ?? 0),
       transaksi: Number(penjualan?.jumlah ?? 0),
       pengeluaran: Number(pengeluaran?.jumlah ?? 0),
-      preorderAktif: Number(preorder?.jumlah ?? 0),
-      bahanTipis: Number(bahan?.jumlah ?? 0),
-      menuTotal: Number(menu?.total ?? 0),
       nilaiStok: Number(nilaiStok?.nilai ?? 0),
       tren: tren.map((t) => ({
         tanggal: String(t.tanggal).slice(0, 10),
         omzet: Number(t.omzet),
         transaksi: Number(t.transaksi),
-      })),
-      bahanMenipis: menipis.map((b) => ({
-        id: b.id, nama: b.nama, satuan: b.satuan,
-        stok: Number(b.stok), stok_minimum: Number(b.stok_minimum),
       })),
       terlaris: terlaris.map((t) => ({
         nama: t.nama, varian: t.varian,

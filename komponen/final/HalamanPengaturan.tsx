@@ -158,7 +158,10 @@ export default function HalamanPengaturan() {
           </div>
           {cadangan && (
             <p className="mt-3 text-xs text-tinta-lemah" role="status">
-              {Object.keys(cadangan).length} tabel, {Object.values(cadangan).reduce((n, b) => n + b.length, 0)} baris siap dipulihkan.
+              {Object.keys(cadangan).filter((k) => k !== "pengguna" && k !== "pembatasan_laju").length} tabel, {" "}
+              {Object.entries(cadangan)
+                .filter(([k]) => k !== "pengguna" && k !== "pembatasan_laju")
+                .reduce((n, [, b]) => n + b.length, 0)} baris siap dipulihkan.
             </p>
           )}
         </div>

@@ -49,8 +49,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ pesan: "Tanggal awal tidak boleh setelah tanggal akhir" }, { status: 400 });
     }
     const cari = (p.get("cari") ?? "").trim().slice(0, 60);
-    const halaman = Math.max(1, Number(p.get("halaman") ?? 1) || 1);
-    const per = 12;
+    const csv = p.get("format") === "csv";
+    const halaman = csv ? 1 : Math.max(1, Number(p.get("halaman") ?? 1) || 1);
+    const per = csv ? 100000 : 12;
     const offset = (halaman - 1) * per;
     const syarat = `p.dibuat_pada::date BETWEEN $1::date AND $2::date
       AND ($3 = '' OR p.nomor ILIKE '%' || $3 || '%'
@@ -77,6 +78,27 @@ export async function GET(req: Request) {
     ]);
 
     const total = Number(hitung?.jumlah ?? 0);
+    if (csv) {
+      const baris = ["Nomor,Waktu,Sumber,Item,Porsi,Metode,Total"];
+      for (const d of daftar) {
+        baris.push([
+          d.nomor,
+          `${d.dibuat_pada} WIB`,
+          d.sumber,
+          d.jumlah_item,
+          d.porsi,
+          d.metode,
+          d.total,
+        ].join(","));
+      }
+      return new Response(baris.join("\r\n"), {
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="riwayat-${dari}-${sampai}.csv"`,
+          "Cache-Control": "no-store",
+        },
+      });
+    }
     return NextResponse.json({
       daftar,
       total,

@@ -9,8 +9,12 @@ export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   try {
-    if (!(await penggunaSaatIni())) {
+    const pengguna = await penggunaSaatIni();
+    if (!pengguna) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
+    }
+    if (pengguna.peran !== "pemilik") {
+      return NextResponse.json({ pembelian: [], supplier: await ambilSupplier() });
     }
     const id = Number(new URL(req.url).searchParams.get("id") ?? 0);
     if (id) return NextResponse.json({ items: await ambilItemPembelian(id) });
