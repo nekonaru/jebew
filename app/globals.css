@@ -155,18 +155,19 @@ dialog[open]::backdrop {
   white-space: nowrap !important;
 }
 
-/* Cetak rincian transaksi hanya menampilkan isi struk. */
+/* Cetak hanya area yang ditandai, bukan seluruh panel admin. */
 @media print {
   body * { visibility: hidden !important; }
-  #struk, #struk * { visibility: visible !important; }
-  #struk {
+  #struk, #struk *, #struk-kasir, #struk-kasir *, #laporan-cetak, #laporan-cetak * { visibility: visible !important; }
+  #struk, #struk-kasir, #laporan-cetak {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     padding: 16px;
   }
-  #struk button { display: none !important; }
+  #struk button, #struk-kasir button, #laporan-cetak button,
+  #struk .tidak-cetak, #struk-kasir .tidak-cetak, #laporan-cetak .tidak-cetak { display: none !important; }
 }
 
 /* Pengguna yang meminta pengurangan gerak mendapat versi statis. */

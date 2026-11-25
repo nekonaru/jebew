@@ -26,6 +26,10 @@ export async function POST(permintaan: Request) {
       ?? permintaan.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim()
       ?? "lokal";
     const kunci = `login:${alamat}:${email}`;
+    const kunciKasar = `login-kasar:${alamat}`;
+    if (!(await izinLaju(kunciKasar, 20, 10 * 60 * 1000))) {
+      return NextResponse.json({ pesan: "Terlalu banyak percobaan. Coba lagi beberapa menit." }, { status: 429 });
+    }
 
     const pengguna = await verifikasiLogin(email, badan.kata_sandi);
     if (!pengguna) {

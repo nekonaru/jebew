@@ -83,7 +83,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Dua peran** | Pemilik mengelola seluruh data, Kasir memakai kasir dan melihat stok serta pre-order |
 | **Sesi selalu segar** | Status dan peran pengguna diperiksa ulang dari database pada setiap permintaan |
 | **Row Level Security** | Aktif pada semua tabel sebagai pertahanan tambahan |
-| **Audit log** | Setiap perubahan menu, stok, uang, master data, dan transaksi tercatat dengan nama pengguna |
+| **Audit log** | Setiap perubahan menu, stok, uang, master data, dan transaksi tercatat, dengan filter aksi, data, dan kata kunci |
 
 ### Stok dan pembelian
 
@@ -102,7 +102,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 |-------|-----------|
 | **HPP dan margin** | Dihitung otomatis dari resep dan harga bahan, lalu disimpan per transaksi |
 | **Pengeluaran** | Kategori gas, listrik, sewa, gaji, dan lainnya |
-| **Laporan** | Omzet, HPP, laba kotor, laba bersih, dan grafik harian |
+| **Laporan** | Omzet, HPP, laba kotor, laba bersih, grafik harian, dan ringkasan yang bisa dicetak |
 | **Omzet 7 hari** | Grafik batang di dashboard tanpa pustaka grafik tambahan |
 | **Menu paling laku** | Lima menu terlaris tujuh hari terakhir beserta omzetnya |
 | **Ekspor CSV** | Unduh rincian transaksi untuk rentang tanggal tertentu |
@@ -113,9 +113,9 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 
 | Fitur | Deskripsi |
 |-------|-----------|
-| **Kasir** | Pilih menu dan varian, diskon, metode bayar, dan catatan |
+| **Kasir** | Pilih menu dan varian, diskon, metode bayar, catatan, dan struk yang bisa dicetak |
 | **Varian** | Level pedas dan topping punya harga dan resep sendiri |
-| **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai |
+| **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, dan saring pesanan berdasarkan status, nama, atau tanggal |
 | **Riwayat transaksi** | Cari berdasarkan nomor atau menu, lalu lihat dan cetak rinciannya |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
@@ -156,7 +156,7 @@ npm ci
 cp .env.example .env.local
 ```
 
-Isi `DATABASE_URL` dari Supabase project final, `RAHASIA_SESI`, dan `WHATSAPP_ADMIN`. Lalu:
+Isi `DATABASE_URL` dari Supabase project final, `RAHASIA_SESI`, dan `WHATSAPP_ADMIN`. Verifikasi sertifikat TLS database aktif secara bawaan. Bila lingkungan lokal memakai proksi dengan sertifikat mandiri, tambahkan `DATABASE_TLS_VERIFY=false` pada `.env.local`. Lalu:
 
 ```bash
 npm run siap:supabase
@@ -261,6 +261,7 @@ Uji seluruh endpoint dengan server berjalan:
 URL_UJI=http://localhost:3000 npm run uji:api
 URL_UJI=http://localhost:3000 node scripts/uji-fitur-baru.mjs
 URL_UJI=http://localhost:3000 node scripts/uji-putaran-2.mjs
+URL_UJI=http://localhost:3000 node scripts/uji-putaran-3.mjs
 ```
 
 Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo.

@@ -5,17 +5,30 @@ import { ambilPreorder, selesaikanPreorder, simpanPreorder, ubahStatusPreorder }
 import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa.ts";
+import { tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
 const item = z.object({ menu_id: z.number().int().positive(), varian_id: z.number().int().positive().nullable(), jumlah: z.number().int().positive().max(100) }).strict();
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     if (!(await penggunaSaatIni())) {
       return NextResponse.json({ pesan: "Silakan masuk" }, { status: 401 });
     }
-    return NextResponse.json({ preorder: await ambilPreorder() });
+    const p = new URL(req.url).searchParams;
+    const dari = p.get("dari") ?? "";
+    const sampai = p.get("sampai") ?? "";
+    if ((dari && !tanggalValid(dari)) || (sampai && !tanggalValid(sampai)) || (dari && sampai && dari > sampai)) {
+      return NextResponse.json({ pesan: "Rentang tanggal tidak valid" }, { status: 400 });
+    }
+    const filter = {
+      cari: (p.get("cari") ?? "").trim().slice(0, 60),
+      status: p.get("status") ?? "semua",
+      dari,
+      sampai,
+    };
+    return NextResponse.json({ preorder: await ambilPreorder(filter) });
   } catch (e) { return galat(e) as NextResponse; }
 }
 

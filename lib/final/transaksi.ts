@@ -117,7 +117,9 @@ async function nomorPenjualan(): Promise<string> {
   return `JW-${hari}-${String((hasil?.jumlah ?? 0) + 1).padStart(4, "0")}`;
 }
 
-export async function catatPenjualan(input: KasirInput, pengguna: PenggunaSesi | null): Promise<{ id: number; nomor: string; total: number }> {
+export async function catatPenjualan(input: KasirInput, pengguna: PenggunaSesi | null): Promise<{
+  id: number; nomor: string; total: number; dibuat_pada: string; items: Barang[];
+}> {
   return denganTransaksi(async () => {
     const { barang, resepDipakai } = await siapkanBarang(input.items);
     const subtotal = barang.reduce((n, b) => n + b.subtotal, 0);
@@ -125,9 +127,9 @@ export async function catatPenjualan(input: KasirInput, pengguna: PenggunaSesi |
     const total = totalDenganDiskon(subtotal, diskon);
     const nomor = await nomorPenjualan();
 
-    const baris = await querySatu<{ id: number }>(
+    const baris = await querySatu<{ id: number; dibuat_pada: string }>(
       `INSERT INTO penjualan (nomor, total, diskon, metode, catatan, sumber, kasir_id)
-       VALUES ($1,$2,$3,$4,$5,'kasir',$6) RETURNING id`,
+       VALUES ($1,$2,$3,$4,$5,'kasir',$6) RETURNING id, dibuat_pada`,
       [nomor, total, diskon, input.metode, input.catatan, pengguna?.id ?? null],
     );
 
@@ -141,7 +143,7 @@ export async function catatPenjualan(input: KasirInput, pengguna: PenggunaSesi |
     }
     await potongStok(resepDipakai, nomor, pengguna);
     await catatAudit(pengguna, "tambah", "penjualan", `${nomor}, total ${total}`);
-    return { id: baris!.id, nomor, total };
+    return { id: baris!.id, nomor, total, dibuat_pada: baris!.dibuat_pada, items: barang };
   });
 }
 
@@ -193,11 +195,33 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
   });
 }
 
-export async function ambilPreorder() {
+export type FilterPreorder = { cari?: string; dari?: string; sampai?: string; status?: string };
+
+export async function ambilPreorder(filter: FilterPreorder = {}) {
+  const syarat: string[] = [];
+  const nilai: unknown[] = [];
+  if (filter.status && filter.status !== "semua") {
+    nilai.push(filter.status);
+    syarat.push(`status = $${nilai.length}`);
+  }
+  if (filter.cari) {
+    nilai.push(`%${filter.cari}%`);
+    syarat.push(`(kode ILIKE $${nilai.length} OR nama_pelanggan ILIKE $${nilai.length})`);
+  }
+  if (filter.dari) {
+    nilai.push(filter.dari);
+    syarat.push(`dibuat_pada::date >= $${nilai.length}::date`);
+  }
+  if (filter.sampai) {
+    nilai.push(filter.sampai);
+    syarat.push(`dibuat_pada::date <= $${nilai.length}::date`);
+  }
+  const where = syarat.length > 0 ? `WHERE ${syarat.join(" AND ")}` : "";
   const daftar = await query<{
     id: number; kode: string; kode_lacak: string; nama_pelanggan: string; whatsapp: string;
     waktu_ambil: string; catatan: string; status: string; penjualan_id: number | null; dibuat_pada: string;
-  }>("SELECT id, kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, catatan, status, penjualan_id, dibuat_pada FROM preorder ORDER BY id DESC");
+  }>(`SELECT id, kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, catatan, status, penjualan_id, dibuat_pada
+      FROM preorder ${where} ORDER BY id DESC`, nilai);
   const semuaItem = await query<Barang & { preorder_id: number }>(
     `SELECT preorder_id, menu_id, varian_id, nama_menu, nama_varian, harga_satuan, jumlah, subtotal, hpp
      FROM item_preorder ORDER BY id`,

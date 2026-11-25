@@ -26,6 +26,7 @@ export async function GET(req: Request) {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
           "Content-Disposition": `attachment; filename="laporan-${rentang.dari}-${rentang.sampai}.csv"`,
+          "Cache-Control": "no-store",
         },
       });
     }

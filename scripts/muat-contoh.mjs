@@ -22,7 +22,10 @@ if (!url) {
 }
 
 const lokal = /localhost|127\.0\.0\.1/.test(url);
-const klien = new pg.Client({ connectionString: url, ssl: lokal ? undefined : { rejectUnauthorized: false } });
+const klien = new pg.Client({
+  connectionString: url,
+  ssl: lokal ? undefined : { rejectUnauthorized: process.env.DATABASE_TLS_VERIFY !== "false" },
+});
 
 const URUTAN_HAPUS = [
   "item_penjualan", "item_preorder", "item_pembelian", "item_opname", "item_varian",

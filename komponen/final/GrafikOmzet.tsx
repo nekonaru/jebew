@@ -35,7 +35,6 @@ export default function GrafikOmzet({ data }: { data: TitikOmzet[] }) {
               </span>
               <div
                 role="img"
-                tabIndex={0}
                 aria-label={`${d.tanggal}: ${formatRupiah(d.omzet)}, ${d.transaksi} transaksi`}
                 className="w-full max-w-12 rounded-t-lg bg-gradient-to-t from-utama to-utama-terang transition-[height] duration-500 ease-[var(--ease-halus)]"
                 style={{ height: `${persen}%` }}

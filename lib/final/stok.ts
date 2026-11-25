@@ -2,6 +2,7 @@
 
 import { denganTransaksi, jalankan, query, querySatu } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
+import { hargaRataRata } from "../inti-final.ts";
 import type { PenggunaSesi } from "../auth.ts";
 import { catatAudit } from "../audit.ts";
 
@@ -153,10 +154,7 @@ export async function simpanPembelian(input: PembelianInput, pengguna: PenggunaS
       );
       if (!bahan) throw new GalatBisnis("Bahan tidak ditemukan");
       const stokBaru = bahan.stok + item.jumlah;
-      const rata = Math.round(
-        (bahan.harga_rata_rata * Math.max(1, bahan.stok) + item.harga_satuan * item.jumlah) /
-        Math.max(1, stokBaru),
-      );
+      const rata = hargaRataRata(bahan.stok, bahan.harga_rata_rata, item.jumlah, item.harga_satuan);
       await jalankan(
         "UPDATE bahan SET stok = $1, harga_rata_rata = $2 WHERE id = $3",
         [stokBaru, rata, item.bahan_id],

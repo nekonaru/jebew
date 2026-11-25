@@ -67,11 +67,29 @@ export async function hapusPengguna(id: number): Promise<void> {
   });
 }
 
-export async function ambilAudit() {
+export type FilterAudit = { aksi?: string; tabel?: string; cari?: string };
+
+export async function ambilAudit(filter: FilterAudit = {}) {
+  const syarat: string[] = [];
+  const nilai: unknown[] = [];
+  if (filter.aksi) {
+    nilai.push(filter.aksi);
+    syarat.push(`a.aksi = $${nilai.length}`);
+  }
+  if (filter.tabel) {
+    nilai.push(filter.tabel);
+    syarat.push(`a.tabel = $${nilai.length}`);
+  }
+  if (filter.cari) {
+    nilai.push(`%${filter.cari}%`);
+    syarat.push(`(a.catatan ILIKE $${nilai.length} OR p.nama ILIKE $${nilai.length})`);
+  }
+  const where = syarat.length > 0 ? `WHERE ${syarat.join(" AND ")}` : "";
   return query(
     `SELECT a.id, a.aksi, a.tabel, a.catatan, a.dibuat_pada, p.nama AS nama_pengguna
      FROM log_audit a LEFT JOIN pengguna p ON p.id = a.pengguna_id
-     ORDER BY a.id DESC LIMIT 200`,
+     ${where} ORDER BY a.id DESC LIMIT 200`,
+    nilai,
   );
 }
 

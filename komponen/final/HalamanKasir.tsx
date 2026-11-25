@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { formatRupiah } from "@/lib/format.ts";
+import { formatRupiah, formatWaktu } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
@@ -23,7 +23,10 @@ export default function HalamanKasir() {
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
   const [loading, setLoading] = useState(false);
-  const [hasil, setHasil] = useState<{ nomor: string; total: number } | null>(null);
+  const [hasil, setHasil] = useState<{
+    nomor: string; total: number; dibuat_pada: string;
+    items: { nama_menu: string; nama_varian: string; harga_satuan: number; jumlah: number; subtotal: number }[];
+  } | null>(null);
 
   const muat = useCallback(async () => {
     try {
@@ -72,8 +75,11 @@ export default function HalamanKasir() {
           catatan,
         }),
       });
-      const data = await ambilJson<{ nomor: string; total: number; pesan?: string }>(respons);
-      setHasil({ nomor: data.nomor, total: data.total });
+      const data = await ambilJson<{
+        nomor: string; total: number; dibuat_pada: string;
+        items: { nama_menu: string; nama_varian: string; harga_satuan: number; jumlah: number; subtotal: number }[];
+      }>(respons);
+      setHasil({ nomor: data.nomor, total: data.total, dibuat_pada: data.dibuat_pada, items: data.items ?? [] });
       setJenis("sukses");
       setPesan(`Transaksi ${data.nomor} berhasil. Stok sudah berkurang otomatis.`);
       setKeranjang([]); setDiskon("0"); setCatatan("");
@@ -204,11 +210,26 @@ export default function HalamanKasir() {
 
       <Dialog terbuka={Boolean(hasil)} judul="Transaksi berhasil" padaTutup={() => setHasil(null)}>
         {hasil && (
-          <div className="space-y-4">
-            <p className="text-sm">Nomor transaksi</p>
-            <p className="font-judul text-2xl font-semibold">{hasil.nomor}</p>
-            <p className="text-sm text-tinta-lemah">Total {formatRupiah(hasil.total)}</p>
-            <Tombol onClick={() => setHasil(null)} kelas="w-full">Selesai</Tombol>
+          <div id="struk-kasir" className="space-y-4">
+            <div className="text-center">
+              <p className="font-judul text-lg font-semibold">Mie Jebew</p>
+              <p className="text-xs text-tinta-lemah">{hasil.nomor} · {formatWaktu(hasil.dibuat_pada)}</p>
+            </div>
+            <ul className="divide-y divide-garis text-sm">
+              {hasil.items.map((i, n) => (
+                <li key={n} className="flex items-start justify-between gap-3 py-2">
+                  <span>{i.nama_menu}{i.nama_varian ? ` (${i.nama_varian})` : ""} · {i.jumlah}x</span>
+                  <span className="font-semibold">{formatRupiah(i.subtotal)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="border-t border-garis pt-3 text-right font-judul text-lg font-semibold">
+              Total {formatRupiah(hasil.total)}
+            </p>
+            <div className="flex gap-2">
+              <Tombol jenis="sekunder" kelas="flex-1" onClick={() => window.print()}>Cetak struk</Tombol>
+              <Tombol kelas="flex-1" onClick={() => setHasil(null)}>Selesai</Tombol>
+            </div>
           </div>
         )}
       </Dialog>

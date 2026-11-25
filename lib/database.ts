@@ -32,7 +32,7 @@ function dapatkanKumpulan(): pg.Pool {
     max: 5,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
-    ssl: lokal ? undefined : { rejectUnauthorized: false },
+    ssl: lokal ? undefined : { rejectUnauthorized: process.env.DATABASE_TLS_VERIFY !== "false" },
   });
 
   return kumpulan;

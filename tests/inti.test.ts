@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  batasiDiskon, cekStokCukup, hitungHpp, hitungPorsi, hppBaris, margin, ringkasKeuangan, totalDenganDiskon,
+  batasiDiskon, cekStokCukup, hargaRataRata, hitungHpp, hitungPorsi, hppBaris, hppPerTransaksi, margin, ringkasKeuangan, totalDenganDiskon,
   type InfoBahan, type ItemResep,
 } from "../lib/inti-final.ts";
 import { formatRupiah, tanggalHariIni, tanggalValid } from "../lib/format.ts";
@@ -67,6 +67,21 @@ test("hpp baris dikalikan jumlah porsi", () => {
   assert.equal(hppBaris(5000, 5), 25000);
   assert.equal(hppBaris(5000, 1), 5000);
   assert.equal(hppBaris(-1, 5), 0);
+});
+
+test("harga rata rata memakai bobot stok nyata", () => {
+  assert.equal(hargaRataRata(10, 1000, 10, 2000), 1500);
+  assert.equal(hargaRataRata(0, 9000, 5, 2000), 2000);
+});
+
+test("hpp transaksi menjumlahkan semua item", () => {
+  const hasil = hppPerTransaksi([
+    { id: 1, hpp: 5000, jumlah: 2 },
+    { id: 1, hpp: 3000, jumlah: 1 },
+    { id: 2, hpp: 2000, jumlah: 3 },
+  ]);
+  assert.equal(hasil.get(1), 13000);
+  assert.equal(hasil.get(2), 6000);
 });
 
 test("diskon dibatasi sampai subtotal", () => {

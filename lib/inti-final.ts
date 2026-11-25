@@ -84,6 +84,23 @@ export function hppBaris(hppPerPorsi: number, jumlah: number): number {
   return Math.max(0, hppPerPorsi) * Math.max(0, jumlah);
 }
 
+/** Harga rata rata tertimbang. Bila stok lama habis, pakai harga pembelian baru. */
+export function hargaRataRata(stokLama: number, rataLama: number, jumlahBaru: number, hargaBaru: number): number {
+  if (stokLama <= 0) return Math.max(0, hargaBaru);
+  const total = stokLama + jumlahBaru;
+  if (total <= 0) return Math.max(0, hargaBaru);
+  return Math.round((rataLama * stokLama + hargaBaru * jumlahBaru) / total);
+}
+
+/** Akumulasi HPP per transaksi, termasuk semua item dalam transaksi tersebut. */
+export function hppPerTransaksi(baris: { id: number; hpp: number; jumlah: number }[]): Map<number, number> {
+  const peta = new Map<number, number>();
+  for (const b of baris) {
+    peta.set(b.id, (peta.get(b.id) ?? 0) + hppBaris(b.hpp, b.jumlah));
+  }
+  return peta;
+}
+
 /** Diskon tidak boleh melebihi subtotal agar ringkasan keuangan tetap masuk akal. */
 export function batasiDiskon(subtotal: number, diskon: number): number {
   return Math.min(Math.max(0, diskon), Math.max(0, subtotal));

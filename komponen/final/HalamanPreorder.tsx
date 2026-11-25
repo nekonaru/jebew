@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { formatRupiah } from "@/lib/format.ts";
+import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
@@ -17,15 +17,19 @@ const STATUS = ["semua", "baru", "diproses", "selesai", "batal"] as const;
 export default function HalamanPreorder() {
   const [daftar, setDaftar] = useState<Preorder[]>([]);
   const [filter, setFilter] = useState<string>("semua");
+  const [cari, setCari] = useState("");
+  const [dari, setDari] = useState(tanggalHariIni());
+  const [sampai, setSampai] = useState(tanggalHariIni());
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
 
   const muat = useCallback(async () => {
     try {
-      const data = await fetch("/api/preorder").then(ambilJson<{ preorder: Preorder[] }>);
+      const p = new URLSearchParams({ cari, dari, sampai, status: filter });
+      const data = await fetch(`/api/preorder?${p}`).then(ambilJson<{ preorder: Preorder[] }>);
       setDaftar(data.preorder ?? []);
     } catch { /* abaikan */ }
-  }, []);
+  }, [cari, dari, sampai, filter]);
   useEffect(() => { void muat(); }, [muat]);
 
   async function ubah(id: number, status: "diproses" | "selesai" | "batal") {
@@ -43,13 +47,33 @@ export default function HalamanPreorder() {
     } catch (e) { setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal mengubah status"); }
   }
 
-  const tampil = filter === "semua" ? daftar : daftar.filter((p) => p.status === filter);
+  const tampil = daftar;
   const warna = { baru: "peringatan", diproses: "info", selesai: "sukses", batal: "bahaya" } as const;
 
   return (
     <div>
       <Judul anak="Pre-order" sub="Pesanan masuk dari website. Stok dipotong saat pesanan ditandai selesai." />
       <Pesan teks={pesan} jenis={jenis} />
+
+      <Kartu kelas="mb-5">
+        <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr_1fr]">
+          <div>
+            <label htmlFor="po-cari">Cari kode atau pelanggan</label>
+            <input id="po-cari" type="search" value={cari} placeholder="Contoh: JBW-ABC atau Siti"
+              onChange={(e) => setCari(e.target.value)} />
+          </div>
+          <div>
+            <label htmlFor="po-dari">Dari</label>
+            <input id="po-dari" type="date" value={dari} max={sampai}
+              onChange={(e) => { setDari(e.target.value); }} />
+          </div>
+          <div>
+            <label htmlFor="po-sampai">Sampai</label>
+            <input id="po-sampai" type="date" value={sampai} min={dari}
+              onChange={(e) => { setSampai(e.target.value); }} />
+          </div>
+        </div>
+      </Kartu>
 
       <div className="mb-5 flex flex-wrap gap-2" role="group" aria-label="Filter status">
         {STATUS.map((s) => (
@@ -64,7 +88,7 @@ export default function HalamanPreorder() {
             <Kartu>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-judul text-lg font-semibold">{p.kode}</h3>
+                  <h2 className="font-judul text-lg font-semibold">{p.kode}</h2>
                   <p className="text-xs text-tinta-lemah">Lacak: {p.kode_lacak}</p>
                 </div>
                 <Badge warna={warna[p.status as keyof typeof warna] ?? "netral"}>{p.status}</Badge>

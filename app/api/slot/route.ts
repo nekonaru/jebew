@@ -3,6 +3,7 @@ import { z } from "zod";
 import { aman, galat } from "@/lib/api-final.ts";
 import { ambilSlotWaktu, simpanSlotWaktu } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
+import { tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
@@ -13,7 +14,7 @@ export async function GET() {
 }
 
 const skema = z.object({
-  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  tanggal: z.string().refine(tanggalValid, "Tanggal tidak valid"),
   jam: z.string().trim().min(3).max(20),
   kuota: z.number().int().positive().max(1000),
 }).strict();

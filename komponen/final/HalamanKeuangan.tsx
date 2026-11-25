@@ -15,6 +15,7 @@ export default function HalamanKeuangan() {
   const [kategori, setKategori] = useState<Kategori[]>([]);
   const [tutup, setTutup] = useState<Tutup[]>([]);
   const [audit, setAudit] = useState<Audit[]>([]);
+  const [auditFilter, setAuditFilter] = useState({ aksi: "", tabel: "", cari: "" });
   const [dialog, setDialog] = useState<"pengeluaran" | "tutup" | null>(null);
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
@@ -28,13 +29,19 @@ export default function HalamanKeuangan() {
         fetch("/api/tutup-kasir").then(ambilJson<{ daftar: Tutup[] }>),
       ]);
       setKategori(k.kategori ?? []); setTutup(t.daftar ?? []);
-      try {
-        const a = await fetch("/api/audit").then(ambilJson<{ audit: Audit[] }>);
-        setAudit(a.audit ?? []);
-      } catch { /* kasir tidak bisa melihat audit */ }
     } catch { /* abaikan */ }
   }, []);
   useEffect(() => { void muat(); }, [muat]);
+
+  const muatAudit = useCallback(async () => {
+    if (!pemilik) return;
+    try {
+      const p = new URLSearchParams(auditFilter);
+      const a = await fetch(`/api/audit?${p}`).then(ambilJson<{ audit: Audit[] }>);
+      setAudit(a.audit ?? []);
+    } catch { /* abaikan */ }
+  }, [pemilik, auditFilter]);
+  useEffect(() => { void muatAudit(); }, [muatAudit]);
 
   async function kirimPengeluaran(e: React.FormEvent) {
     e.preventDefault();
@@ -89,10 +96,41 @@ export default function HalamanKeuangan() {
         </Tabel>
       </div>
 
-      {audit.length > 0 && (
+      {pemilik && (
         <div>
           <h2 className="mb-3 text-lg font-semibold">Jejak aktivitas</h2>
+          <Kartu kelas="mb-3">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <label htmlFor="au-aksi">Aksi</label>
+                <select id="au-aksi" value={auditFilter.aksi} onChange={(e) => setAuditFilter({ ...auditFilter, aksi: e.target.value })}>
+                  <option value="">Semua aksi</option>
+                  <option value="tambah">Tambah</option>
+                  <option value="ubah">Ubah</option>
+                  <option value="hapus">Hapus</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="au-tabel">Data</label>
+                <select id="au-tabel" value={auditFilter.tabel} onChange={(e) => setAuditFilter({ ...auditFilter, tabel: e.target.value })}>
+                  <option value="">Semua data</option>
+                  <option value="penjualan">Penjualan</option>
+                  <option value="preorder">Pre-order</option>
+                  <option value="stok">Stok</option>
+                  <option value="pengeluaran">Pengeluaran</option>
+                  <option value="menu">Menu</option>
+                  <option value="supplier">Supplier</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="au-cari">Cari catatan</label>
+                <input id="au-cari" type="search" value={auditFilter.cari} placeholder="Kata kunci atau nama pengguna"
+                  onChange={(e) => setAuditFilter({ ...auditFilter, cari: e.target.value })} />
+              </div>
+            </div>
+          </Kartu>
           <Kartu>
+            {audit.length === 0 && <p className="py-4 text-center text-sm text-tinta-lemah">Tidak ada aktivitas yang cocok.</p>}
             <ul className="space-y-2 text-sm">
               {audit.slice(0, 20).map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2 border-b border-garis py-2 last:border-0">

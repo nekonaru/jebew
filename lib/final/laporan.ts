@@ -2,7 +2,7 @@
 
 import { query, querySatu, denganTransaksi, jalankan } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
-import { hppBaris, ringkasKeuangan } from "../inti-final.ts";
+import { hppPerTransaksi, ringkasKeuangan } from "../inti-final.ts";
 import type { PenggunaSesi } from "../auth.ts";
 import { catatAudit } from "../audit.ts";
 
@@ -36,8 +36,6 @@ export async function ambilLaporan(dari: string, sampai: string) {
         nomor: baris.nomor, total: baris.total, diskon: baris.diskon, metode: baris.metode,
         sumber: baris.sumber, dibuat_pada: baris.dibuat_pada, items: [], hpp: 0,
       });
-      // Kolom hpp menyimpan HPP per porsi, jadi harus dikalikan jumlah porsi.
-      peta.get(baris.id)!.hpp += hppBaris(Number(baris.hpp ?? 0), Number(baris.jumlah ?? 0));
     }
     if (baris.nama_menu) {
       const nama = baris.nama_varian ? `${baris.nama_menu} (${baris.nama_varian})` : baris.nama_menu;
@@ -46,6 +44,10 @@ export async function ambilLaporan(dari: string, sampai: string) {
   }
 
   // HPP diambil dari snapshot saat transaksi, sehingga laporan historis tidak berubah.
+  const hppTransaksi = hppPerTransaksi(penjualan.map((b) => ({
+    id: b.id, hpp: Number(b.hpp ?? 0), jumlah: Number(b.jumlah ?? 0),
+  })));
+  for (const [id, nilai] of peta) nilai.hpp = hppTransaksi.get(id) ?? 0;
   const daftar = [...peta.entries()].map(([id, nilai]) => ({ id, ...nilai }));
 
   const ringkasan = ringkasKeuangan(

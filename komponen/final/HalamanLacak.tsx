@@ -21,6 +21,7 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
   const [hasil, setHasil] = useState<Hasil | null>(null);
   const [pesan, setPesan] = useState("");
   const [loading, setLoading] = useState(false);
+  const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
 
   async function cari(e?: FormEvent) {
     e?.preventDefault();
@@ -35,13 +36,20 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
 
   useEffect(() => { if (kodeAwal) void cari(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kodeAwal]);
 
+  useEffect(() => {
+    void fetch("/api/dashboard")
+      .then(ambilJson<{ pengaturan: Record<string, string> }>)
+      .then((d) => setNamaUsaha(d.pengaturan.nama_usaha ?? "Warung Kak Ikaa"))
+      .catch(() => {});
+  }, []);
+
   const indeks = hasil ? TAHAPAN.indexOf(hasil.status) : -1;
 
   return (
     <div className="min-h-screen">
       <header className="border-b border-garis bg-permukaan">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
-          <Link href="/" className="font-judul text-lg font-semibold text-utama">Warung Kak Ikaa</Link>
+          <Link href="/" className="font-judul text-lg font-semibold text-utama">{namaUsaha}</Link>
           <Link href="/" className="text-sm text-tinta-lemah">Kembali ke menu</Link>
         </div>
       </header>

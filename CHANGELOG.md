@@ -1,5 +1,33 @@
 # Riwayat Perubahan
 
+## final-v1.4.0
+
+Audit putaran ketiga dan penyempurnaan alur kerja.
+
+### Perbaikan kritis
+
+- **HPP multi item benar.** HPP semua item dalam satu transaksi kini dijumlahkan, bukan hanya item pertama.
+- **Halaman pemilik diamankan.** Kasir tidak bisa membuka halaman Master data dan Pengaturan lewat URL langsung.
+- **Harga rata rata tepat.** Pembelian dengan stok lama nol memakai harga baru, sehingga HPP tidak melonjak.
+- **Tanggal slot ketat.** Tanggal mustahil seperti 31 Februari ditolak, konsisten dengan endpoint lain.
+- **Nama usaha konsisten.** Halaman lacak dan struk mengikuti pengaturan, bukan teks tetap.
+- **Ringkasan tidak menyesatkan.** Galat pemuatan statistik kini ditampilkan, bukan ditampilkan sebagai angka nol.
+- **Data publik dibatasi.** Render awal website memakai daftar putih pengaturan yang sama dengan API.
+- **TLS dapat dikonfigurasi.** Verifikasi sertifikat database aktif secara bawaan dan bisa dimatikan untuk proksi lokal.
+- **Aksesibilitas.** Label baris dinamis, urutan judul, dan batang grafik tidak lagi menyesatkan pembaca layar.
+
+### Fitur baru
+
+- **Struk kasir.** Setiap transaksi bisa langsung dicetak dari dialog keberhasilan.
+- **Ringkasan laporan cetak.** Laporan keuangan punya ringkasan berformat cetak.
+- **Filter pre-order.** Cari berdasarkan kode atau pelanggan dan saring berdasarkan status serta tanggal.
+- **Filter jejak aktivitas.** Saring log berdasarkan aksi, data, dan kata kunci.
+- **Pembatasan laju dua lapis.** Percobaan login dibatasi sebelum komputasi kata sandi dan percobaan gagal tetap dihitung per email.
+
+### Penggunaan
+
+Tidak ada perubahan cara pakai. Set `.env.local` dengan `DATABASE_TLS_VERIFY=false` hanya bila proksi lokal memakai sertifikat mandiri.
+
 ## final-v1.3.0
 
 Audit putaran kedua dan pengembangan lanjutan.

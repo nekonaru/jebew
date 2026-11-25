@@ -266,9 +266,9 @@ export default function HalamanStok() {
           </div>
           {formBeli.items.map((it, i) => (
             <div key={i} className="grid grid-cols-[1.4fr_1fr_1fr_auto] gap-2 items-end">
-              <div><label>Bahan</label><select required value={it.bahan_id} onChange={(e) => setFormBeli({ ...formBeli, items: formBeli.items.map((x, j) => j === i ? { ...x, bahan_id: e.target.value } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}</select></div>
-              <div><label>Jumlah</label><input type="number" min="0.01" step="any" required value={it.jumlah} onChange={(e) => setFormBeli({ ...formBeli, items: formBeli.items.map((x, j) => j === i ? { ...x, jumlah: e.target.value } : x) })} /></div>
-              <div><label>Harga</label><input type="number" min="0" required value={it.harga_satuan} onChange={(e) => setFormBeli({ ...formBeli, items: formBeli.items.map((x, j) => j === i ? { ...x, harga_satuan: e.target.value } : x) })} /></div>
+              <div><label>Bahan</label><select required aria-label={`Bahan baris ${i + 1}`} value={it.bahan_id} onChange={(e) => setFormBeli({ ...formBeli, items: formBeli.items.map((x, j) => j === i ? { ...x, bahan_id: e.target.value } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}</select></div>
+              <div><label>Jumlah</label><input type="number" min="0.01" step="any" required aria-label={`Jumlah baris ${i + 1}`} value={it.jumlah} onChange={(e) => setFormBeli({ ...formBeli, items: formBeli.items.map((x, j) => j === i ? { ...x, jumlah: e.target.value } : x) })} /></div>
+              <div><label>Harga</label><input type="number" min="0" required aria-label={`Harga baris ${i + 1}`} value={it.harga_satuan} onChange={(e) => setFormBeli({ ...formBeli, items: formBeli.items.map((x, j) => j === i ? { ...x, harga_satuan: e.target.value } : x) })} /></div>
               <Tombol jenis="hapus" onClick={() => setFormBeli({ ...formBeli, items: formBeli.items.filter((_, j) => j !== i) })} kelas="px-2">-</Tombol>
             </div>
           ))}
@@ -283,9 +283,9 @@ export default function HalamanStok() {
           <div><label htmlFor="o-tanggal">Tanggal</label><input id="o-tanggal" type="date" required value={formOpname.tanggal} onChange={(e) => setFormOpname({ ...formOpname, tanggal: e.target.value })} /></div>
           {formOpname.items.map((it, i) => (
             <div key={i} className="grid grid-cols-[1.2fr_1fr_1fr_auto] gap-2 items-end">
-              <div><label>Bahan</label><select required value={it.bahan_id} onChange={(e) => setFormOpname({ ...formOpname, items: formOpname.items.map((x, j) => j === i ? { ...x, bahan_id: e.target.value } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama} ({formatAngka(b.stok)})</option>)}</select></div>
-              <div><label>Stok fisik</label><input type="number" min="0" step="any" required value={it.stok_fisik} onChange={(e) => setFormOpname({ ...formOpname, items: formOpname.items.map((x, j) => j === i ? { ...x, stok_fisik: e.target.value } : x) })} /></div>
-              <div><label>Alasan</label><input value={it.alasan} onChange={(e) => setFormOpname({ ...formOpname, items: formOpname.items.map((x, j) => j === i ? { ...x, alasan: e.target.value } : x) })} /></div>
+              <div><label>Bahan</label><select required aria-label={`Bahan baris ${i + 1}`} value={it.bahan_id} onChange={(e) => setFormOpname({ ...formOpname, items: formOpname.items.map((x, j) => j === i ? { ...x, bahan_id: e.target.value } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama} ({formatAngka(b.stok)})</option>)}</select></div>
+              <div><label>Stok fisik</label><input type="number" min="0" step="any" required aria-label={`Stok fisik baris ${i + 1}`} value={it.stok_fisik} onChange={(e) => setFormOpname({ ...formOpname, items: formOpname.items.map((x, j) => j === i ? { ...x, stok_fisik: e.target.value } : x) })} /></div>
+              <div><label>Alasan</label><input aria-label={`Alasan baris ${i + 1}`} value={it.alasan} onChange={(e) => setFormOpname({ ...formOpname, items: formOpname.items.map((x, j) => j === i ? { ...x, alasan: e.target.value } : x) })} /></div>
               <Tombol jenis="hapus" onClick={() => setFormOpname({ ...formOpname, items: formOpname.items.filter((_, j) => j !== i) })} kelas="px-2">-</Tombol>
             </div>
           ))}

@@ -53,6 +53,27 @@ export default function HalamanLaporan() {
         <Statistik label="Laba bersih" nilai={formatRupiah(data?.ringkasan.labaBersih ?? 0)} keterangan={`Pengeluaran ${formatRupiah(data?.ringkasan.pengeluaran ?? 0)}`} />
       </div>
 
+      <Kartu kelas="mt-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Ringkasan untuk dicetak</h2>
+          <Tombol jenis="sekunder" kelas="min-h-[38px] px-3 text-xs tidak-cetak" onClick={() => window.print()}>Cetak ringkasan</Tombol>
+        </div>
+        <div id="laporan-cetak" className="mt-4 rounded-xl border border-garis p-4 text-sm">
+          <p className="font-judul text-lg font-semibold">Mie Jebew</p>
+          <p className="text-xs text-tinta-lemah">{dari} sampai {sampai} · WIB</p>
+          <dl className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="flex justify-between gap-3"><dt>Omzet</dt><dd className="font-semibold">{formatRupiah(data?.ringkasan.omzet ?? 0)}</dd></div>
+            <div className="flex justify-between gap-3"><dt>HPP</dt><dd className="font-semibold">{formatRupiah(data?.ringkasan.hpp ?? 0)}</dd></div>
+            <div className="flex justify-between gap-3"><dt>Laba kotor</dt><dd className="font-semibold">{formatRupiah(data?.ringkasan.labaKotor ?? 0)}</dd></div>
+            <div className="flex justify-between gap-3"><dt>Pengeluaran</dt><dd className="font-semibold">{formatRupiah(data?.ringkasan.pengeluaran ?? 0)}</dd></div>
+            <div className="flex justify-between gap-3"><dt>Laba bersih</dt><dd className="font-semibold">{formatRupiah(data?.ringkasan.labaBersih ?? 0)}</dd></div>
+          </dl>
+          <p className="mt-4 border-t border-garis pt-3 text-xs text-tinta-lemah">
+            Metode bayar: {Object.entries(data?.ringkasan.perMetode ?? {}).map(([m, n]) => `${m} ${formatRupiah(n)}`).join(" · ") || "Belum ada transaksi"}
+          </p>
+        </div>
+      </Kartu>
+
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <Kartu>
           <h2 className="text-lg font-semibold">Tren omzet harian</h2>

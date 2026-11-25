@@ -34,7 +34,16 @@ export default function HalamanPengaturan() {
     e.preventDefault();
     try {
       const respons = await fetch("/api/pengaturan", {
-        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(pengaturan),
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nama_usaha: pengaturan.nama_usaha ?? "",
+          tagline: pengaturan.tagline ?? "",
+          whatsapp_admin: pengaturan.whatsapp_admin ?? "",
+          hari_buka: pengaturan.hari_buka ?? "",
+          jam_buka: pengaturan.jam_buka ?? "",
+          jam_tutup: pengaturan.jam_tutup ?? "",
+          toko_aktif: pengaturan.toko_aktif ?? "true",
+        }),
       });
       await ambilJson(respons);
       setJenis("sukses"); setPesan("Pengaturan tersimpan.");

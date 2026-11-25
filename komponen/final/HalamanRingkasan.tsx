@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
-import { Badge, Judul, Kartu, Statistik } from "./ui.tsx";
+import { Badge, Judul, Kartu, Pesan, Statistik } from "./ui.tsx";
 import GrafikOmzet, { type TitikOmzet } from "./GrafikOmzet.tsx";
 
 type Ringkasan = {
@@ -31,9 +31,11 @@ const PINTASAN = [
 export default function HalamanRingkasan() {
   const [statistik, setStatistik] = useState<Ringkasan | null>(null);
   const [publik, setPublik] = useState<Publik | null>(null);
+  const [pesan, setPesan] = useState("");
 
   useEffect(() => {
-    void fetch("/api/statistik").then(ambilJson<Ringkasan>).then(setStatistik).catch(() => {});
+    void fetch("/api/statistik").then(ambilJson<Ringkasan>).then(setStatistik)
+      .catch(() => setPesan("Ringkasan tidak berhasil dimuat. Muat ulang halaman untuk mencoba lagi."));
     void fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik).catch(() => {});
   }, []);
 
@@ -43,6 +45,7 @@ export default function HalamanRingkasan() {
         anak={`Selamat datang, ${publik?.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}`}
         sub="Ringkasan aktivitas hari ini dan kondisi dapur Anda."
       />
+      <Pesan teks={pesan} jenis="galat" />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Statistik label="Omzet hari ini" nilai={formatRupiah(statistik?.omzet ?? 0)} aksen />
