@@ -32,7 +32,10 @@ const klien = new pg.Client({
   connectionString: env.DATABASE_URL,
   ssl: { rejectUnauthorized: env.DATABASE_TLS_VERIFY !== "false" },
 });
-await klien.connect();
-const hasil = await klien.query("DELETE FROM pembatasan_laju");
-console.log("Baris pembatas laju dihapus:", hasil.rowCount);
-await klien.end();
+try {
+  await klien.connect();
+  const hasil = await klien.query("DELETE FROM pembatasan_laju");
+  console.log("Baris pembatas laju dihapus:", hasil.rowCount);
+} finally {
+  await klien.end();
+}

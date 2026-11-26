@@ -244,7 +244,8 @@ export async function simpanMenu(
 
 export async function hapusMenu(id: number, pengguna: PenggunaSesi | null = null): Promise<void> {
   await denganTransaksi(async () => {
-    await querySatu("SELECT id FROM menu WHERE id = $1 FOR UPDATE", [id]);
+    const ada = await querySatu("SELECT id FROM menu WHERE id = $1 FOR UPDATE", [id]);
+    if (!ada) throw new GalatBisnis("Menu tidak ditemukan");
     const aktif = await querySatu<{ jumlah: number }>(
       `SELECT COUNT(*) AS jumlah FROM preorder p
        JOIN item_preorder i ON i.preorder_id = p.id

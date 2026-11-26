@@ -7,6 +7,7 @@ import type { PenggunaSesi } from "../auth.ts";
 import { catatAudit } from "../audit.ts";
 
 export async function ambilLaporan(dari: string, sampai: string) {
+  return denganTransaksi(async () => {
   const penjualan = await query<{
     id: number; nomor: string; total: number; diskon: number; metode: string;
     catatan: string; sumber: string; dibuat_pada: string;
@@ -101,6 +102,7 @@ export async function ambilLaporan(dari: string, sampai: string) {
     pengeluaranList,
     pengeluaranPerKategori,
   };
+  }, "REPEATABLE READ");
 }
 
 export async function tambahPengeluaran(

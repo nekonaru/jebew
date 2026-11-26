@@ -1,5 +1,22 @@
 # Riwayat Perubahan
 
+## final-v2.8.0
+
+Audit putaran kedua puluh empat dan kemudahan berbagi kode lacak.
+
+### Fitur baru
+
+- **Salin kode lacak.** Kartu pre-order memiliki tombol untuk menyalin kode lacak tanpa mengetik manual.
+
+### Perbaikan
+
+- **Laporan satu snapshot.** Seluruh kueri laporan berada dalam transaksi REPEATABLE READ, sehingga omzet dan rincian pengeluaran berasal dari titik waktu yang sama.
+- **Server sibuk lebih jelas.** Timeout koneksi kini menghasilkan 503 dengan pesan singkat, bukan galat server umum.
+- **Pool disesuaikan.** Jumlah koneksi per instance dinaikkan ke empat agar ekspor dan pemulihan tidak menguras koneksi kasir.
+- **Pesan field ekstra diterjemahkan.** Galat Zod `unrecognized_keys` kini memakai Bahasa Indonesia.
+- **Hapus master valid.** Menghapus menu atau bahan yang tidak ada kini menghasilkan 404, bukan berhasil palsu.
+- **Skrip lebih tangguh.** Koneksi ditutup walau kueri gagal, dan `.env.example` memuat penanda uji pembersihan laju.
+
 ## final-v2.7.0
 
 Audit putaran kedua puluh tiga dan konsistensi cadangan.

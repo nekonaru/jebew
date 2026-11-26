@@ -14,7 +14,8 @@ export function galat(kesalahan: unknown): Response {
   if (kesalahan instanceof ZodError) {
     const isu = kesalahan.issues[0];
     const bagian = isu?.path.join(".") ?? "";
-    const bawaan = /^(expected|invalid|too |string must|number must|value)/i.test(isu?.message ?? "");
+    const bawaan = isu?.code === "unrecognized_keys"
+      || /^(expected|invalid|too |string must|number must|value)/i.test(isu?.message ?? "");
     const pesan = isu?.message && !bawaan ? isu.message : (bagian ? `Data ${bagian} tidak valid` : "Data tidak valid");
     return Response.json({ pesan }, { status: 400 });
   }
@@ -30,6 +31,10 @@ export function galat(kesalahan: unknown): Response {
   }
   if (typeof kesalahan === "object" && kesalahan !== null && "code" in kesalahan && kesalahan.code === "40P01") {
     return Response.json({ pesan: "Transaksi bentrok dengan permintaan lain. Coba lagi sebentar." }, { status: 400 });
+  }
+  const teks = kesalahan instanceof Error ? kesalahan.message : String(kesalahan);
+  if (/timeout exceeded when trying to connect|Connection terminated due to connection timeout/i.test(teks)) {
+    return Response.json({ pesan: "Server sedang sibuk. Coba lagi sebentar." }, { status: 503 });
   }
   console.error("Galat server:", kesalahan);
   return Response.json({ pesan: "Terjadi kesalahan pada server" }, { status: 500 });

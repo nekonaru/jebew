@@ -72,6 +72,8 @@ export async function simpanBahan(
 
 export async function hapusBahan(id: number, pengguna: PenggunaSesi | null = null): Promise<void> {
   await denganTransaksi(async () => {
+    const ada = await querySatu("SELECT id FROM bahan WHERE id = $1 FOR UPDATE", [id]);
+    if (!ada) throw new GalatBisnis("Bahan tidak ditemukan");
     const dipakai = await querySatu<{ jumlah: number }>(
       `SELECT (SELECT COUNT(*) FROM resep WHERE bahan_id=$1) + (SELECT COUNT(*) FROM item_varian WHERE bahan_id=$1) AS jumlah`,
       [id],

@@ -107,7 +107,16 @@ export default function HalamanPreorder() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="font-judul text-lg font-semibold">{p.kode}</h2>
-                  <p className="text-xs text-tinta-lemah">Lacak: {p.kode_lacak}</p>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <p className="text-xs text-tinta-lemah">Lacak: {p.kode_lacak}</p>
+                    <button type="button" aria-label={`Salin kode lacak ${p.kode_lacak}`}
+                      onClick={() => { void navigator.clipboard?.writeText(p.kode_lacak).then(() => {
+                        setJenis("sukses"); setPesan(`Kode lacak ${p.kode_lacak} disalin.`);
+                      }).catch(() => {
+                        setJenis("galat"); setPesan("Kode lacak tidak berhasil disalin.");
+                      }); }}
+                      className="text-[11px] font-semibold text-utama hover:underline">Salin</button>
+                  </div>
                 </div>
                 <Badge warna={warna[p.status as keyof typeof warna] ?? "netral"}>{p.status}</Badge>
               </div>
