@@ -164,7 +164,8 @@ CREATE TABLE IF NOT EXISTS preorder (
   waktu_ambil TEXT NOT NULL,
   slot_id INTEGER REFERENCES slot_waktu(id),
   catatan TEXT NOT NULL DEFAULT '',
-  status TEXT NOT NULL DEFAULT 'baru' CHECK (status IN ('baru', 'diproses', 'selesai', 'batal')),
+  diskon INTEGER NOT NULL DEFAULT 0 CHECK (diskon >= 0),
+  status TEXT NOT NULL DEFAULT 'baru' CHECK (status IN ('baru', 'diproses', 'siap', 'selesai', 'batal')),
   penjualan_id INTEGER,
   dibuat_pada TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'Asia/Jakarta')
 );

@@ -7,6 +7,7 @@ import { penggunaSaatIni } from "@/lib/auth.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa.ts";
 import { jamMenitWIB, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 import { statusPreorder } from "@/lib/jadwal.ts";
+import { ambilHariLibur, ambilJadwalHarian, pakaiPromo, tukarPoin } from "@/lib/final/tambahan.ts";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -80,6 +81,8 @@ const skema = z.object({
     }, "Waktu ambil sudah lewat"),
   slot_id: z.number().int().positive().nullable(),
   catatan: z.string().trim().max(300),
+  kode_promo: z.string().trim().max(20).optional(),
+  poin_dipakai: z.number().int().min(0).max(100000).optional(),
 }).strict();
 
 export async function POST(req: Request) {
@@ -90,8 +93,15 @@ export async function POST(req: Request) {
     if (!(await izinLaju(kunci, 5, 60 * 1000))) {
       return NextResponse.json({ pesan: "Terlalu banyak pre-order. Coba lagi sebentar." }, { status: 429 });
     }
-    const pengaturan = await ambilPengaturan();
-    const jadwalPreorder = statusPreorder(pengaturan);
+    const [pengaturan, jadwal, libur] = await Promise.all([
+      ambilPengaturan(), ambilJadwalHarian(), ambilHariLibur(),
+    ]);
+    const jadwalPreorder = statusPreorder(pengaturan, new Date(),
+      jadwal.map((j) => ({
+        jenis: String(j.jenis), hari: Number(j.hari),
+        jam_buka: String(j.jam_buka), jam_tutup: String(j.jam_tutup), aktif: Boolean(j.aktif),
+      })),
+      libur.map((l) => String(l.tanggal).slice(0, 10)));
     if (!jadwalPreorder.buka) {
       return NextResponse.json({ pesan: jadwalPreorder.keterangan }, { status: 403 });
     }
@@ -102,6 +112,8 @@ export async function POST(req: Request) {
     }
     const badan = skema.parse(await bacaJsonTerbatasi(req));
     const hasil = await simpanPreorder(badan);
+    if (hasil.kode_promo) await pakaiPromo(hasil.kode_promo, hasil.kode_lacak, hasil.diskon ?? 0);
+    if (hasil.poin_dipakai) await tukarPoin(badan.whatsapp, hasil.poin_dipakai);
     const pesan = susunPesanWhatsApp({
       kode: `${hasil.kode} / ${hasil.kode_lacak}`,
       namaPelanggan: badan.nama_pelanggan,
@@ -130,7 +142,7 @@ export async function PUT(req: Request) {
     if (penolakan) return penolakan;
     const badan = z.object({
       id: z.number().int().positive(),
-      status: z.enum(["diproses", "selesai", "batal"]),
+      status: z.enum(["diproses", "siap", "selesai", "batal"]),
       metode: z.enum(["tunai", "qris", "transfer"]).optional(),
     }).strict().parse(await bacaJsonTerbatasi(req));
     if (badan.status === "selesai") await selesaikanPreorder(badan.id, pengguna, badan.metode ?? "tunai");

@@ -8,6 +8,11 @@ import type { PenggunaSesi } from "../auth.ts";
 import { ambilBahanTransaksi, ambilMenu } from "./menu.ts";
 import { catatAudit } from "../audit.ts";
 import { escapeLike, jamMenitWIB, tanggalHariIni } from "../format.ts";
+import {
+  catatRiwayatStatus, catatNotifikasi, tambahPoin, validasiPromo,
+  ambilPoin, ambilRiwayatStatus, estimasiSiapMenit,
+} from "./tambahan.ts";
+import { kirimWhatsApp, pesanStatus } from "../notifikasi.ts";
 
 export type Barang = {
   menu_id: number;
@@ -169,6 +174,8 @@ export type PreorderInput = {
   waktu_ambil: string;
   slot_id: number | null;
   catatan: string;
+  kode_promo?: string;
+  poin_dipakai?: number;
 };
 
 function kodePendek(panjang: number): string {
@@ -176,7 +183,8 @@ function kodePendek(panjang: number): string {
 }
 
 export async function simpanPreorder(input: PreorderInput): Promise<{
-  kode: string; kode_lacak: string; total: number; items: Barang[];
+  kode: string; kode_lacak: string; total: number; diskon: number;
+  items: Barang[]; kode_promo: string | null; poin_dipakai: number;
 }> {
   return denganTransaksi(async () => {
     if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(input.waktu_ambil)
@@ -194,7 +202,18 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
     const idsMenu = [...new Set(input.items.map((i) => i.menu_id))];
     await query("SELECT id FROM menu WHERE id = ANY($1::int[]) FOR SHARE", [idsMenu]);
     const { barang } = await siapkanBarang(input.items);
-    const total = barang.reduce((n, b) => n + b.subtotal, 0);
+    const subtotal = barang.reduce((n, b) => n + b.subtotal, 0);
+    const promo = input.kode_promo ? await validasiPromo(input.kode_promo, subtotal) : null;
+    const poin = Math.max(0, Math.floor(Number(input.poin_dipakai ?? 0)));
+    let diskonPoin = 0;
+    if (poin > 0) {
+      if (poin % 100 !== 0) throw new GalatBisnis("Penukaran poin kelipatan 100");
+      const saldo = await ambilPoin(input.whatsapp);
+      if (saldo.poin < poin) throw new GalatBisnis("Poin tidak cukup");
+      diskonPoin = Math.floor(poin / 100) * 5000;
+    }
+    const diskon = Math.min(subtotal, (promo?.diskon ?? 0) + diskonPoin);
+    const total = subtotal - diskon;
     const kode = `JBW-${kodePendek(3)}`;
     const kodeLacak = kodePendek(4);
 
@@ -211,10 +230,12 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
     }
 
     const baris = await querySatu<{ id: number }>(
-      `INSERT INTO preorder (kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, slot_id, catatan)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-      [kode, kodeLacak, input.nama_pelanggan, input.whatsapp, input.waktu_ambil, input.slot_id, input.catatan],
+      `INSERT INTO preorder (kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, slot_id, catatan, diskon)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+      [kode, kodeLacak, input.nama_pelanggan, input.whatsapp, input.waktu_ambil,
+        input.slot_id, input.catatan, diskon],
     );
+    await catatRiwayatStatus(baris!.id, "baru");
     for (const item of barang) {
       await jalankan(
         `INSERT INTO item_preorder (preorder_id, menu_id, varian_id, nama_menu, nama_varian, harga_satuan, jumlah, subtotal, hpp)
@@ -223,7 +244,10 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
           item.harga_satuan, item.jumlah, item.subtotal, item.hpp],
       );
     }
-    return { kode, kode_lacak: kodeLacak, total, items: barang };
+    return {
+      kode, kode_lacak: kodeLacak, total, diskon, items: barang,
+      kode_promo: promo?.kode ?? null, poin_dipakai: poin,
+    };
   });
 }
 
@@ -287,21 +311,23 @@ export async function lacakPreorder(kode: string) {
   );
   if (!hasil) return null;
   const kunci = kode.trim().toUpperCase();
-  const [items, antrean] = await Promise.all([
+  const [items, antrean, riwayat, estimasi] = await Promise.all([
     query<{ menu_id: number; varian_id: number | null; nama_menu: string; nama_varian: string; jumlah: number; subtotal: number }>(
       "SELECT menu_id, varian_id, nama_menu, nama_varian, jumlah, subtotal FROM item_preorder WHERE preorder_id = (SELECT id FROM preorder WHERE kode_lacak = $1)",
       [kunci],
     ),
     querySatu<{ jumlah: number }>(
       `SELECT COUNT(*)::int AS jumlah FROM preorder
-       WHERE status IN ('baru', 'diproses')
+       WHERE status IN ('baru', 'diproses', 'siap')
          AND id < (SELECT id FROM preorder WHERE kode_lacak = $1)`,
       [kunci],
     ),
+    ambilRiwayatStatus(kunci),
+    estimasiSiapMenit(),
   ]);
   return {
     ...hasil, items, total: items.reduce((n, i) => n + i.subtotal, 0),
-    antrean: Number(antrean?.jumlah ?? 0),
+    antrean: Number(antrean?.jumlah ?? 0), riwayat, estimasi_menit: estimasi,
   };
 }
 
@@ -309,8 +335,12 @@ export async function selesaikanPreorder(
   id: number, pengguna: PenggunaSesi | null, metode: "tunai" | "qris" | "transfer" = "tunai",
 ): Promise<void> {
   await denganTransaksi(async () => {
-    const preorder = await querySatu<{ id: number; status: string; catatan: string; penjualan_id: number | null }>(
-      "SELECT id, status, catatan, penjualan_id FROM preorder WHERE id = $1 FOR UPDATE", [id],
+    const preorder = await querySatu<{
+      id: number; status: string; catatan: string; penjualan_id: number | null;
+      kode: string; kode_lacak: string; whatsapp: string; waktu_ambil: string;
+    }>(
+      `SELECT id, status, catatan, penjualan_id, kode, kode_lacak, whatsapp, waktu_ambil
+       FROM preorder WHERE id = $1 FOR UPDATE`, [id],
     );
     if (!preorder) throw new GalatBisnis("Preorder tidak ditemukan");
     if (preorder.status === "selesai") throw new GalatBisnis("Preorder sudah selesai");
@@ -358,16 +388,24 @@ export async function selesaikanPreorder(
     await jalankan(
       "UPDATE preorder SET status='selesai', penjualan_id=$1 WHERE id=$2", [baris!.id, id],
     );
+    await catatRiwayatStatus(id, "selesai", pengguna?.id);
+    await tambahPoin(preorder!.whatsapp, total);
+    await catatNotifikasi(id, preorder!.whatsapp,
+      pesanStatus(preorder!.kode, preorder!.kode_lacak, "selesai", preorder!.waktu_ambil));
     await catatAudit(pengguna, "ubah", "preorder", `${id} selesai, penjualan ${nomor}`);
   });
 }
 
 export async function ubahStatusPreorder(
-  id: number, status: "diproses" | "batal", pengguna: PenggunaSesi | null,
+  id: number, status: "diproses" | "siap" | "batal", pengguna: PenggunaSesi | null,
 ): Promise<void> {
-  await denganTransaksi(async () => {
-    const ada = await querySatu<{ status: string; slot_id: number | null }>(
-      "SELECT status, slot_id FROM preorder WHERE id = $1 FOR UPDATE", [id],
+  const hasilKirim = await denganTransaksi(async () => {
+    const ada = await querySatu<{
+      status: string; slot_id: number | null; kode: string; kode_lacak: string;
+      whatsapp: string; waktu_ambil: string;
+    }>(
+      `SELECT status, slot_id, kode, kode_lacak, whatsapp, waktu_ambil
+       FROM preorder WHERE id = $1 FOR UPDATE`, [id],
     );
     if (!ada) throw new GalatBisnis("Preorder tidak ditemukan");
     if (ada.status === "selesai") throw new GalatBisnis("Preorder selesai tidak bisa diubah");
@@ -380,6 +418,12 @@ export async function ubahStatusPreorder(
       );
     }
     await jalankan("UPDATE preorder SET status = $1 WHERE id = $2", [status, id]);
+    await catatRiwayatStatus(id, status, pengguna?.id);
     await catatAudit(pengguna, "ubah", "preorder", `${id} menjadi ${status}`);
+
+    const pesan = pesanStatus(ada.kode, ada.kode_lacak, status, ada.waktu_ambil);
+    await catatNotifikasi(id, ada.whatsapp, pesan);
+    return { pesan, whatsapp: ada.whatsapp };
   });
+  if (status === "siap") await kirimWhatsApp(hasilKirim.whatsapp, hasilKirim.pesan);
 }

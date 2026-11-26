@@ -118,7 +118,14 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Varian** | Level pedas dan topping punya harga dan resep sendiri |
 | **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, hubungi pelanggan langsung, saring pesanan, dan unduh CSV |
 | **Slot massal** | Buat banyak slot sekaligus dari rentang tanggal, jam, interval, kuota, dan hari yang dipilih, lalu hapus slot yang belum terpakai |
-| **Antrean lacak** | Halaman lacak menunjukkan jumlah pesanan aktif sebelum pesanan yang dicari |
+| **Antrean lacak** | Halaman lacak menunjukkan jumlah pesanan aktif, perkiraan waktu siap, dan riwayat status |
+| **Papan dapur** | Pesanan bergerak dari baru ke diproses lalu siap, dengan timer dan notifikasi WhatsApp |
+| **Promo dan poin** | Kupon, poin loyalitas, dan penukaran poin menjadi diskon di checkout |
+| **Ulasan** | Pelanggan memberi rating lewat kode lacak, pemilik meninjau sebelum tampil |
+| **Jadwal per hari** | Jam toko dan pre-order berbeda tiap hari, lengkap dengan hari libur |
+| **Target harian** | Target omzet dan transaksi yang bisa diatur per tanggal |
+| **Stok lanjutan** | Prediksi stok habis, harga supplier, purchase order, dan penerimaan barang |
+| **Health check** | Endpoint `/api/health` untuk memeriksa database dan konfigurasi |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
@@ -134,6 +141,9 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Jam operasional** | Pemilik mengatur jam toko dan jam pre-order secara terpisah, serta menutup atau membuka masing-masing lewat tombol cepat |
 | **Pesan lagi** | Kode lacak memuat tombol untuk memasukkan menu yang sama kembali ke keranjang |
 | **Ingat kontak** | Pelanggan bisa menyimpan nama dan WhatsApp di perangkatnya secara sukarela |
+| **Menu favorit** | Simpan menu favorit di perangkat dan saring berdasarkan favorit |
+| **Rekomendasi** | Lihat menu yang sering dipesan bersamaan dengan pilihan pertama |
+| **Pesanan besar** | Opsi pesanan minimal sepuluh porsi untuk kebutuhan katering |
 | **Pembaruan berkala** | Status menyegarkan setiap 15 detik |
 
 ---
@@ -171,11 +181,11 @@ npm run dev
 Buka `http://localhost:3000` untuk website konsumen dan `http://localhost:3000/login` untuk admin.
 
 > [!IMPORTANT]
-> `npm run siap:supabase` memasang skema dan data contoh. Perintah `npm run muat:contoh` mengganti seluruh data demo, termasuk menghapus transaksi yang sudah ada. Untuk database yang sudah berisi data, jalankan `npm run db:migrasi` agar kolom HPP per transaksi dan kunci jadwal pre-order (`preorder_aktif`, `preorder_jam_buka`, `preorder_jam_tutup`) tersedia tanpa menghapus data.
+> `npm run siap:supabase` memasang skema dan data contoh. Perintah `npm run muat:contoh` mengganti seluruh data demo, termasuk menghapus transaksi yang sudah ada. Untuk database yang sudah berisi data, jalankan `npm run db:migrasi` agar kolom HPP, versi sesi, diskon preorder, status siap, dan seluruh tabel fitur lanjutan tersedia tanpa menghapus data.
 
 ### Deploy ke Vercel
 
-Buat project Vercel baru yang menarik repo ini dengan branch produksi `final`. Isi environment variables `DATABASE_URL`, `RAHASIA_SESI`, dan `WHATSAPP_ADMIN`. Nama usaha diatur lewat halaman Pengaturan. Project lama tetap memantau `main` untuk prototipe.
+Buat project Vercel baru yang menarik repo ini dengan branch produksi `final`. Isi environment variables `DATABASE_URL`, `RAHASIA_SESI`, dan `WHATSAPP_ADMIN`. Notifikasi WhatsApp otomatis opsional. Isi `WHATSAPP_API_TOKEN` dan `WHATSAPP_PHONE_ID` bila WhatsApp Business API tersedia. Tanpa keduanya, sistem tetap membuat tautan `wa.me` pada halaman Papan dapur. Nama usaha diatur lewat halaman Pengaturan. Project lama tetap memantau `main` untuk prototipe.
 
 ---
 

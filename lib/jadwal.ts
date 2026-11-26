@@ -6,6 +6,10 @@ export type StatusJadwal = {
   keterangan: string;
 };
 
+export type JadwalHari = {
+  jenis?: string; hari: number; jam_buka: string; jam_tutup: string; aktif: boolean;
+};
+
 const NAMA_HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
 function indeksHari(nama: string): number {
@@ -57,16 +61,42 @@ function teks(nilai: unknown, cadangan: string): string {
   return typeof nilai === "string" && nilai ? nilai : cadangan;
 }
 
+function hariSekarang(sekarang: Date): number {
+  const hari = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Jakarta", weekday: "short" })
+    .format(sekarang);
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(hari);
+}
+
+function tanggalSekarang(sekarang: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(sekarang);
+}
+
+function jadwalHariIni(jadwal: JadwalHari[] | undefined, jenis: string, sekarang: Date): JadwalHari | null {
+  if (!jadwal?.length) return null;
+  const indeks = hariSekarang(sekarang);
+  return jadwal.find((j) => j.jenis === jenis && j.hari === indeks) ?? null;
+}
+
 export function statusToko(
   pengaturan: Record<string, unknown>, sekarang: Date = new Date(),
+  jadwal?: JadwalHari[], libur: string[] = [],
 ): StatusJadwal {
-  const jamBuka = teks(pengaturan.jam_buka, "10:00");
-  const jamTutup = teks(pengaturan.jam_tutup, "21:00");
-  const hariBuka = teks(pengaturan.hari_buka, "Senin - Minggu");
   if (teks(pengaturan.toko_aktif, "true") === "false") {
     return { buka: false, label: "Toko tutup", keterangan: "Pemilik sedang menutup toko" };
   }
-  if (!hariTermasuk(hariBuka, sekarang)) {
+  if (libur.includes(tanggalSekarang(sekarang))) {
+    return { buka: false, label: "Toko tutup", keterangan: "Hari libur" };
+  }
+  const harian = jadwalHariIni(jadwal, "toko", sekarang);
+  if (harian && !harian.aktif) {
+    return { buka: false, label: "Toko tutup", keterangan: "Libur pada hari ini" };
+  }
+  const jamBuka = harian?.jam_buka ?? teks(pengaturan.jam_buka, "10:00");
+  const jamTutup = harian?.jam_tutup ?? teks(pengaturan.jam_tutup, "21:00");
+  const hariBuka = teks(pengaturan.hari_buka, "Senin - Minggu");
+  if (!harian && !hariTermasuk(hariBuka, sekarang)) {
     return { buka: false, label: "Toko tutup", keterangan: `Hari libur: ${hariBuka}` };
   }
   if (!jamDalamRentang(jamSekarang(sekarang), jamBuka, jamTutup)) {
@@ -78,12 +108,20 @@ export function statusToko(
 /** Status pre-order. Terpisah dari status toko. */
 export function statusPreorder(
   pengaturan: Record<string, unknown>, sekarang: Date = new Date(),
+  jadwal?: JadwalHari[], libur: string[] = [],
 ): StatusJadwal {
-  const jamBuka = teks(pengaturan.preorder_jam_buka, teks(pengaturan.jam_buka, "10:00"));
-  const jamTutup = teks(pengaturan.preorder_jam_tutup, teks(pengaturan.jam_tutup, "21:00"));
   if (teks(pengaturan.preorder_aktif, "true") === "false") {
     return { buka: false, label: "Pre-order ditutup", keterangan: "Pemilik belum membuka pre-order" };
   }
+  if (libur.includes(tanggalSekarang(sekarang))) {
+    return { buka: false, label: "Pre-order ditutup", keterangan: "Hari libur" };
+  }
+  const harian = jadwalHariIni(jadwal, "preorder", sekarang);
+  if (harian && !harian.aktif) {
+    return { buka: false, label: "Pre-order ditutup", keterangan: "Libur pada hari ini" };
+  }
+  const jamBuka = harian?.jam_buka ?? teks(pengaturan.preorder_jam_buka, teks(pengaturan.jam_buka, "10:00"));
+  const jamTutup = harian?.jam_tutup ?? teks(pengaturan.preorder_jam_tutup, teks(pengaturan.jam_tutup, "21:00"));
   if (!jamDalamRentang(jamSekarang(sekarang), jamBuka, jamTutup)) {
     return { buka: false, label: "Pre-order ditutup", keterangan: `Pre-order dibuka ${jamBuka} - ${jamTutup} WIB` };
   }

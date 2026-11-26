@@ -5,6 +5,7 @@ import { ambilMenuPublik } from "@/lib/final/menu.ts";
 import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 import { pengaturanPublik } from "@/lib/publik.ts";
 import { statusPreorder, statusToko } from "@/lib/jadwal.ts";
+import { ambilHariLibur, ambilJadwalHarian } from "@/lib/final/tambahan.ts";
 
 export const runtime = "nodejs";
 
@@ -39,11 +40,17 @@ const dataPublik = unstable_cache(
 export async function GET() {
   try {
     const data = await dataPublik();
+    const [jadwal, libur] = await Promise.all([ambilJadwalHarian(), ambilHariLibur()]);
+    const jadwalHari = jadwal.map((j) => ({
+      jenis: String(j.jenis), hari: Number(j.hari),
+      jam_buka: String(j.jam_buka), jam_tutup: String(j.jam_tutup), aktif: Boolean(j.aktif),
+    }));
+    const tanggalLibur = libur.map((l) => String(l.tanggal).slice(0, 10));
     // Status dihitung setiap permintaan agar perubahan pemilik langsung terlihat.
     const pengaturan = {
       ...data.pengaturan,
-      status_toko: statusToko(data.pengaturan),
-      status_preorder: statusPreorder(data.pengaturan),
+      status_toko: statusToko(data.pengaturan, new Date(), jadwalHari, tanggalLibur),
+      status_preorder: statusPreorder(data.pengaturan, new Date(), jadwalHari, tanggalLibur),
     };
     return NextResponse.json({ menu: data.menu, pengaturan }, {
       headers: { "Cache-Control": "no-store" },

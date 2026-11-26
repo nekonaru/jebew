@@ -1,5 +1,32 @@
 # Riwayat Perubahan
 
+## final-v3.0.0
+
+Pembaruan besar pertama untuk Jebew v3: dapur terhubung, promosi dan loyalitas, jadwal per hari, serta stok lanjutan.
+
+### Fitur baru
+
+- **Papan dapur.** Pesanan tampil dalam tiga kolom: baru, diproses, dan siap. Ada timer sejak pesanan masuk, aksi satu klik, serta catatan pelanggan.
+- **Status siap.** Preorder kini punya tahap siap sebelum selesai. Setiap perubahan status tercatat dan memicu notifikasi WhatsApp.
+- **Notifikasi WhatsApp otomatis.** Pesan dibuat otomatis saat status berubah. Bila WhatsApp Business API belum terpasang, tautan `wa.me` tetap tersedia untuk admin.
+- **Promo dan kupon.** Pemilik membuat kode promo nominal atau persen, kuota, minimum belanja, dan masa berlaku. Pelanggan memakai kode di checkout.
+- **Poin loyalitas.** Seribu rupiah setara satu poin. Seratus poin bisa ditukar menjadi diskon lima ribu rupiah.
+- **Ulasan pelanggan.** Pelanggan mengirim rating dan komentar memakai kode lacak. Pemilik meninjau sebelum ulasan tampil.
+- **Estimasi dan antrean.** Halaman lacak menampilkan jumlah pesanan aktif, perkiraan waktu siap, dan riwayat status lengkap.
+- **Favorit dan rekomendasi.** Pelanggan bisa menyimpan menu favorit di perangkat dan melihat menu yang sering dipesan bersamaan.
+- **Pesanan besar.** Checkout punya pilihan pesanan besar dengan batas minimal sepuluh porsi untuk kebutuhan katering.
+- **Jadwal per hari.** Pemilik menentukan jam toko dan jam pre-order untuk tiap hari serta menambah hari libur. Jadwal ini menggantikan jam umum.
+- **Target harian.** Pemilik menetapkan target omzet dan target transaksi per tanggal.
+- **Stok lanjutan.** Prediksi hari sebelum bahan habis, riwayat harga supplier, purchase order, dan penerimaan purchase order yang langsung menambah stok.
+- **Health check.** Endpoint `/api/health` untuk pemantauan kesiapan aplikasi dan database.
+
+### Perbaikan
+
+- **Detail checkout lengkap.** Total bayar menampilkan diskon promo dan poin sebelum tombol kirim.
+- **Slot dikelompokkan.** Pilihan waktu ambil dikelompokkan menurut tanggal agar mudah dibaca.
+- **Halaman preorder mengikuti tahap baru.** Filter dan aksi tersedia untuk status siap.
+- **Migrasi otomatis.** Penyiapan database kini menjalankan skema dan migrasi sekaligus, termasuk tabel baru tanpa menghapus data lama.
+
 ## final-v2.13.0
 
 Pembaruan besar: otomatisasi slot, kemudahan pelanggan, dan penguatan keamanan serta aksesibilitas.

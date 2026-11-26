@@ -158,6 +158,23 @@ test("status toko dan pre-order berdiri sendiri", () => {
   assert.equal(statusPreorder({ ...pengaturan, preorder_aktif: "false" }, kamis).buka, false);
 });
 
+test("jadwal harian menggantikan jam umum dan hari libur ditolak", () => {
+  const kamis = new Date("2026-11-26T03:00:00Z");
+  const pengaturan = {
+    jam_buka: "10:00", jam_tutup: "21:00", hari_buka: "Senin - Minggu",
+    toko_aktif: "true", preorder_aktif: "true",
+    preorder_jam_buka: "10:00", preorder_jam_tutup: "21:00",
+  };
+  const jadwal = [
+    { jenis: "toko", hari: 4, jam_buka: "08:00", jam_tutup: "20:00", aktif: true },
+    { jenis: "preorder", hari: 4, jam_buka: "11:00", jam_tutup: "19:00", aktif: true },
+  ];
+  assert.equal(statusToko(pengaturan, kamis, jadwal).buka, true);
+  assert.equal(statusToko(pengaturan, new Date("2026-11-26T23:30:00Z"), jadwal).buka, false);
+  assert.equal(statusPreorder(pengaturan, new Date("2026-11-26T03:30:00Z"), jadwal).buka, false);
+  assert.equal(statusToko(pengaturan, kamis, [], ["2026-11-26"]).buka, false);
+});
+
 test("format rupiah dan tanggal", () => {
   assert.equal(formatRupiah(15000), "Rp\u00A015.000");
   assert.match(tanggalHariIni(), /^\d{4}-\d{2}-\d{2}$/);

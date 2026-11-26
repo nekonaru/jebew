@@ -8,12 +8,13 @@ import { Badge, Kartu, Pesan, Tombol } from "./ui.tsx";
 
 type Hasil = {
   kode: string; kode_lacak: string; nama_pelanggan: string; waktu_ambil: string;
-  status: string; dibuat_pada: string; antrean?: number;
+  status: string; dibuat_pada: string; antrean?: number; estimasi_menit?: number;
+  riwayat?: { status: string; dicatat_pada: string }[];
   items: { menu_id: number; varian_id: number | null; nama_menu: string; nama_varian: string; jumlah: number; subtotal: number }[];
   total: number;
 };
 
-const TAHAPAN = ["baru", "diproses", "selesai"];
+const TAHAPAN = ["baru", "diproses", "siap", "selesai"];
 const warna = { baru: "peringatan", diproses: "info", selesai: "sukses", batal: "bahaya" } as const;
 
 export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
@@ -21,6 +22,9 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
   const [hasil, setHasil] = useState<Hasil | null>(null);
   const [pesan, setPesan] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [komentar, setKomentar] = useState("");
+  const [ulasanTerkirim, setUlasanTerkirim] = useState(false);
   const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
   const pengendali = useRef<AbortController | null>(null);
 
@@ -42,6 +46,22 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
     }
     finally {
       if (pengendali.current === kontrol) setLoading(false);
+    }
+  }
+
+  async function kirimUlasan(e: FormEvent) {
+    e.preventDefault();
+    if (!hasil) return;
+    try {
+      const respons = await fetch("/api/ulasan", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kode_lacak: hasil.kode_lacak, rating, komentar }),
+      });
+      await ambilJson(respons);
+      setUlasanTerkirim(true);
+      setPesan("");
+    } catch (err) {
+      setPesan(err instanceof Error ? err.message : "Gagal mengirim ulasan");
     }
   }
 
@@ -130,6 +150,21 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
                       : `Ada ${hasil.antrean} pesanan aktif sebelum kamu. Kode lacak ini dipakai untuk mengecek progres.`}
                   </p>
                 )}
+                {hasil.status !== "selesai" && hasil.estimasi_menit ? (
+                  <p className="mt-2 text-xs text-tinta-lemah">
+                    Perkiraan siap sekitar {hasil.estimasi_menit} menit setelah mulai diproses.
+                  </p>
+                ) : null}
+                {(hasil.riwayat?.length ?? 0) > 0 && (
+                  <details className="mt-4 text-xs text-tinta-lemah">
+                    <summary className="cursor-pointer font-semibold text-utama">Lihat riwayat status</summary>
+                    <ul className="mt-2 space-y-1">
+                      {hasil.riwayat?.map((r, i) => (
+                        <li key={i}>{r.status} - {r.dicatat_pada}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
               </Kartu>
             )}
 
@@ -162,6 +197,30 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
             >
               Pesan menu yang sama lagi
             </Tombol>
+
+            {hasil.status === "selesai" && (
+              <Kartu>
+                <h2 className="text-lg font-semibold">Bagaimana pesananmu?</h2>
+                {ulasanTerkirim ? (
+                  <p className="mt-3 text-sm text-sukses">Ulasan terkirim. Terima kasih sudah menunggu review dari admin.</p>
+                ) : (
+                  <form onSubmit={(e) => void kirimUlasan(e)} className="mt-4 space-y-3">
+                    <div>
+                      <label htmlFor="ulasan-rating">Rating</label>
+                      <select id="ulasan-rating" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+                        {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n} bintang</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="ulasan-komentar">Komentar</label>
+                      <textarea id="ulasan-komentar" maxLength={500} value={komentar}
+                        onChange={(e) => setKomentar(e.target.value)} placeholder="Ceritakan pengalamanmu" />
+                    </div>
+                    <Tombol tipe="submit" kelas="w-full">Kirim ulasan</Tombol>
+                  </form>
+                )}
+              </Kartu>
+            )}
           </div>
         )}
       </main>

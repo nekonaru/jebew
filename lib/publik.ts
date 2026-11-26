@@ -1,4 +1,4 @@
-import { statusPreorder, statusToko } from "./jadwal.ts";
+import { statusPreorder, statusToko, type JadwalHari } from "./jadwal.ts";
 
 /** Daftar putih pengaturan yang boleh dikirim ke pengunjung website. */
 export function pengaturanPublik(pengaturan: Record<string, string>) {
@@ -17,10 +17,12 @@ export function pengaturanPublik(pengaturan: Record<string, string>) {
 }
 
 /** Data publik lengkap dengan status operasional yang dihitung server. */
-export function dataPengunjung(pengaturan: Record<string, string>) {
+export function dataPengunjung(
+  pengaturan: Record<string, string>, jadwal: JadwalHari[] = [], libur: string[] = [],
+) {
   return {
     ...pengaturanPublik(pengaturan),
-    status_toko: statusToko(pengaturan),
-    status_preorder: statusPreorder(pengaturan),
+    status_toko: statusToko(pengaturan, new Date(), jadwal, libur),
+    status_preorder: statusPreorder(pengaturan, new Date(), jadwal, libur),
   };
 }

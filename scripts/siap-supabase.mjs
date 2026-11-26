@@ -36,6 +36,10 @@ try {
   await klien.query(skema);
   console.log("Skema berhasil diterapkan.");
 
+  const migrasi = readFileSync(path.join(process.cwd(), "database", "migrasi.sql"), "utf8");
+  await klien.query(migrasi);
+  console.log("Migrasi berhasil diterapkan.");
+
   const hasil = await klien.query("SELECT COUNT(*) AS jumlah FROM bahan");
   if (Number(hasil.rows[0].jumlah) === 0) {
     const contoh = readFileSync(path.join(process.cwd(), "database", "seed.sql"), "utf8");

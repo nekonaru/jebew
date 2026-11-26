@@ -13,7 +13,7 @@ type Preorder = {
   items: { menu_id: number; nama_menu: string; nama_varian: string; jumlah: number; subtotal: number }[];
 };
 
-const STATUS = ["semua", "baru", "diproses", "selesai", "batal"] as const;
+const STATUS = ["semua", "baru", "diproses", "siap", "selesai", "batal"] as const;
 
 export default function HalamanPreorder() {
   const [daftar, setDaftar] = useState<Preorder[]>([]);
@@ -23,7 +23,7 @@ export default function HalamanPreorder() {
   const [sampai, setSampai] = useState("");
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
-  const [aksi, setAksi] = useState<{ id: number; status: "diproses" | "selesai" | "batal" } | null>(null);
+  const [aksi, setAksi] = useState<{ id: number; status: "diproses" | "siap" | "selesai" | "batal" } | null>(null);
   const [memproses, setMemproses] = useState(false);
   const [metode, setMetode] = useState<"tunai" | "qris" | "transfer">("tunai");
 
@@ -40,7 +40,7 @@ export default function HalamanPreorder() {
   }, [cari, dari, sampai, filter]);
   useEffect(() => { void muat(); }, [muat]);
 
-  function ubah(id: number, status: "diproses" | "selesai" | "batal") {
+  function ubah(id: number, status: "diproses" | "siap" | "selesai" | "batal") {
     setMetode("tunai");
     setAksi({ id, status });
   }
@@ -63,7 +63,7 @@ export default function HalamanPreorder() {
   }
 
   const tampil = daftar;
-  const warna = { baru: "peringatan", diproses: "info", selesai: "sukses", batal: "bahaya" } as const;
+  const warna = { baru: "peringatan", diproses: "info", siap: "sukses", selesai: "netral", batal: "bahaya" } as const;
 
   return (
     <div>
@@ -157,11 +157,14 @@ export default function HalamanPreorder() {
 
               {p.catatan && <p className="mt-3 text-xs text-tinta-lemah">Catatan: {p.catatan}</p>}
 
-              {(p.status === "baru" || p.status === "diproses") && (
+              {(p.status === "baru" || p.status === "diproses" || p.status === "siap") && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {p.status === "baru" && <Tombol onClick={() => void ubah(p.id, "diproses")} jenis="sekunder" kelas="min-h-[38px] px-3 text-xs">Proses</Tombol>}
+                  {p.status === "diproses" && <Tombol onClick={() => void ubah(p.id, "siap")} jenis="sukses" kelas="min-h-[38px] px-3 text-xs">Tandai siap</Tombol>}
                   <Tombol onClick={() => void ubah(p.id, "selesai")} jenis="sukses" kelas="min-h-[38px] px-3 text-xs">Selesaikan</Tombol>
-                  <Tombol onClick={() => void ubah(p.id, "batal")} jenis="hapus" kelas="min-h-[38px] px-3 text-xs">Batalkan</Tombol>
+                  {p.status !== "siap" && (
+                    <Tombol onClick={() => void ubah(p.id, "batal")} jenis="hapus" kelas="min-h-[38px] px-3 text-xs">Batalkan</Tombol>
+                  )}
                 </div>
               )}
               {p.penjualan_id && <p className="mt-3 text-xs text-sukses">Tercatat sebagai penjualan #{p.penjualan_id}</p>}
