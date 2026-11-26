@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { formatRupiah, jamMenitWIB, tanggalHariIni } from "@/lib/format.ts";
+import { besokWIB, formatRupiah, jamMenitWIB, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Pesan, Tombol } from "./ui.tsx";
 
@@ -126,21 +126,25 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
 
   function bukaCheckout() {
     if (keranjang.length === 0) return;
-    if (!slotId && !waktu.trim()) {
-      setToastGalat(true);
-      setToast("Pilih slot waktu atau isi waktu ambil terlebih dahulu.");
-      setToastUrut((n) => n + 1);
-      setDialogKeranjang(false);
-      return;
-    }
     setPesan(""); setDialogKeranjang(false); setDialogCheckout(true);
   }
 
   async function kirim(e: FormEvent) {
     e.preventDefault();
+    let slotDipilih = slot.find((s) => s.id === Number(slotId));
+    if (slotId && !slotDipilih) {
+      setSlotId("");
+      setJenis("galat");
+      setPesan("Slot yang dipilih sudah tidak tersedia. Pilih slot lain atau ketik waktu ambil manual.");
+      return;
+    }
+    if (!slotId && !waktu.trim()) {
+      setJenis("galat");
+      setPesan("Waktu ambil wajib diisi. Pilih slot yang tersedia atau ketik waktu manual.");
+      return;
+    }
     setLoading(true); setPesan("");
     try {
-      const slotDipilih = slot.find((s) => s.id === Number(slotId));
       const respons = await fetch("/api/preorder", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -328,10 +332,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                   <div className="flex items-start justify-between gap-3">
                     <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${AKSESEN_KATEGORI[m.kategori]?.teks ?? "text-tinta-lemah"}`}>{m.kategori}</p>
                     <span className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
-                      m.tersedia ? "bg-sukses-terang text-sukses" : "bg-stone-100 text-stone-500"
+                      !tokoBuka ? "bg-red-50 text-bahaya" : m.tersedia ? "bg-sukses-terang text-sukses" : "bg-stone-100 text-stone-500"
                     }`}>
-                      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${m.tersedia ? "bg-sukses" : "bg-stone-400"}`} />
-                      {m.tersedia ? "Tersedia" : "Habis"}
+                      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${!tokoBuka ? "bg-bahaya" : m.tersedia ? "bg-sukses" : "bg-stone-400"}`} />
+                      {!tokoBuka ? "Toko tutup" : m.tersedia ? "Tersedia" : "Habis"}
                     </span>
                   </div>
                   <div className="mt-3 flex items-start justify-between gap-3">
@@ -352,7 +356,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                     aria-label={`Tambah ke pesanan: ${m.nama}`}
                     className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-utama text-sm font-semibold text-white transition-[background-color,transform] duration-[var(--gerak-cepat)] hover:bg-utama-gelap active:scale-[0.98] disabled:bg-stone-300">
                     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-                    {m.tersedia ? "Tambah ke pesanan" : "Sedang habis"}
+                    {!tokoBuka ? "Toko sedang tutup" : m.tersedia ? "Tambah ke pesanan" : "Sedang habis"}
                   </button>
                 </div>
               </article>
@@ -450,8 +454,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         )}
       </Dialog>
 
-      <Dialog terbuka={dialogCheckout} judul="Data pemesanan" padaTutup={() => setDialogCheckout(false)} lebar="42rem">
+      <Dialog terbuka={dialogCheckout} judul="Langkah 2 dari 3 - Isi data pemesanan" padaTutup={() => setDialogCheckout(false)} lebar="42rem">
         <form onSubmit={kirim} className="space-y-5">
+          <div>
+            <h3 className="font-judul text-lg font-semibold text-tinta">Data diri dan waktu ambil</h3>
+            <p className="mt-1 text-xs leading-relaxed text-tinta-lemah">
+              Isi nama dan WhatsApp, lalu pilih slot atau ketik waktu ambil. Setelah pesanan dibuat, tekan Kirim ke WhatsApp agar admin menerima pesanmu.
+            </p>
+          </div>
           <div className="rounded-xl bg-latar px-4 py-3 text-sm">
             <div className="flex justify-between"><span>{jumlahItem} item pesanan</span><span className="font-semibold">{formatRupiah(totalKeranjang)}</span></div>
           </div>
@@ -459,22 +469,40 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             <div><label htmlFor="p-nama">Nama kamu</label><input id="p-nama" required value={nama} onChange={(e) => setNama(e.target.value)} /></div>
             <div><label htmlFor="p-wa">Nomor WhatsApp</label><input id="p-wa" inputMode="tel" required value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="08..." /></div>
           </div>
-          <div>
-            <label htmlFor="p-slot">Waktu ambil</label>
-            <select id="p-slot" value={slotId} onChange={(e) => setSlotId(e.target.value)}>
-              <option value="">Pilih slot yang tersedia</option>
-              {slot.filter((s) => {
-                if (s.dipakai >= s.kuota) return false;
-                if (s.tanggal > tanggalHariIni()) return true;
-                if (s.tanggal < tanggalHariIni()) return false;
-                const sekarang = jamMenitWIB();
-                const jamSlot = Number(s.jam.slice(0, 2)) * 60 + Number(s.jam.slice(3, 5));
-                return jamSlot > sekarang.jam * 60 + sekarang.menit;
-              }).map((s) => <option key={s.id} value={s.id}>{s.tanggal} - {s.jam} (sisa {s.kuota - s.dipakai})</option>)}
-            </select>
-            {!slotId && <div className="mt-2"><label htmlFor="p-waktu">Atau isi waktu manual</label><input id="p-waktu" value={waktu} onChange={(e) => setWaktu(e.target.value)} placeholder="2026-11-25 18:00" /></div>}
+          <div className="rounded-xl border border-garis bg-latar/60 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-utama">Wajib diisi</p>
+            <div className="mt-3">
+              <label htmlFor="p-slot">Pilih slot waktu ambil</label>
+              <select id="p-slot" value={slotId} onChange={(e) => setSlotId(e.target.value)} aria-describedby="p-slot-bantuan">
+                <option value="">Pilih slot yang tersedia</option>
+                {slot.filter((s) => {
+                  if (s.dipakai >= s.kuota) return false;
+                  if (s.tanggal > tanggalHariIni()) return true;
+                  if (s.tanggal < tanggalHariIni()) return false;
+                  const sekarang = jamMenitWIB();
+                  const jamSlot = Number(s.jam.slice(0, 2)) * 60 + Number(s.jam.slice(3, 5));
+                  return jamSlot > sekarang.jam * 60 + sekarang.menit;
+                }).map((s) => <option key={s.id} value={s.id}>{s.tanggal} {s.jam} WIB (sisa {s.kuota - s.dipakai})</option>)}
+              </select>
+              <p id="p-slot-bantuan" className="mt-1.5 text-[11px] leading-relaxed text-tinta-lemah">
+                Pilih salah satu. Bila tidak ada slot, isi waktu manual di bawah.
+              </p>
+            </div>
+            {!slotId && (
+              <div className="mt-3">
+                <label htmlFor="p-waktu">Atau ketik waktu ambil sendiri</label>
+                <input id="p-waktu" aria-describedby="p-waktu-bantuan" value={waktu} onChange={(e) => setWaktu(e.target.value)}
+                  placeholder={`${besokWIB()} 18:00`} />
+                <p id="p-waktu-bantuan" className="mt-1.5 text-[11px] text-tinta-lemah">
+                  Format: tanggal jam, contoh 2026-11-26 18:00. Semua waktu memakai WIB.
+                </p>
+              </div>
+            )}
           </div>
-          <div><label htmlFor="p-catatan">Catatan, misalnya level pedas 2</label><textarea id="p-catatan" value={catatan} onChange={(e) => setCatatan(e.target.value)} /></div>
+          <div>
+            <label htmlFor="p-catatan">Catatan (opsional)</label>
+            <textarea id="p-catatan" maxLength={300} rows={2} value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Misalnya: level pedas 2, tanpa daun bawang" />
+          </div>
           <Pesan teks={pesan} jenis={jenis} />
           <Tombol tipe="submit" nonaktif={loading} kelas="w-full">{loading ? "Mengirim..." : `Kirim pre-order - ${formatRupiah(totalKeranjang)}`}</Tombol>
         </form>
@@ -483,7 +511,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       <Dialog terbuka={hasilDialog} judul="Pesanan tercatat" padaTutup={() => setHasilDialog(false)}>
         {hasil && (
           <div className="space-y-4">
-            <Pesan teks={`Pesanan ${hasil.kode} berhasil. Simpan kode lacak ${hasil.kode_lacak} untuk mengecek status.`} jenis="sukses" />
+            <Pesan teks={`Pesanan ${hasil.kode} tersimpan. Simpan kode lacak ${hasil.kode_lacak}, lalu tekan Kirim ke WhatsApp agar admin menerima pesananmu.`} jenis="sukses" />
             <button type="button"
               onClick={() => {
                 if (!navigator.clipboard?.writeText) {
@@ -512,6 +540,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                 Salin pesan di atas dan kirim manual. Nomor WhatsApp admin belum tersedia.
               </p>
             )}
+            <Link href={`/lacak?kode=${encodeURIComponent(hasil.kode_lacak)}`}
+              className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold text-tinta transition hover:bg-latar">
+              Cek status pesanan
+            </Link>
           </div>
         )}
       </Dialog>
@@ -527,11 +559,11 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             {[
               {
                 t: "Bagaimana cara memesan?",
-                j: "Pilih menu yang mau, tekan Tambah ke pesanan, lalu isi nama dan nomor WhatsApp pada langkah terakhir.",
+                j: "Pilih menu, tekan Tambah ke pesanan, lalu tekan Isi data pesanan. Isi nama, WhatsApp, dan waktu ambil, lalu kirim ke WhatsApp admin.",
               },
               {
                 t: "Kapan pesanan bisa diambil?",
-                j: `Warung buka ${data.pengaturan.hari_buka ?? "Senin - Minggu"} pukul ${data.pengaturan.jam_buka ?? "10:00"} sampai ${data.pengaturan.jam_tutup ?? "21:00"} WIB.`,
+                j: `Warung buka ${data.pengaturan.hari_buka ?? "Senin - Minggu"} pukul ${data.pengaturan.jam_buka ?? "10:00"} sampai ${data.pengaturan.jam_tutup ?? "21:00"} WIB. Waktu di luar jam tersebut perlu konfirmasi admin.`,
               },
               {
                 t: "Boleh pesan lebih dari satu menu?",
@@ -568,7 +600,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                 <label htmlFor="lacak">Kode lacak</label>
                 <input id="lacak" value={kodeLacak} onChange={(e) => setKodeLacak(e.target.value)} placeholder="Contoh: A1B2C3D4" />
               </div>
-              <Link href={`/lacak?kode=${encodeURIComponent(kodeLacak)}`} className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-tinta px-4 text-sm font-semibold text-white transition-colors duration-[var(--gerak-cepat)] hover:bg-utama">
+              <Link href={kodeLacak.trim() ? `/lacak?kode=${encodeURIComponent(kodeLacak.trim())}` : "#"}
+                aria-disabled={!kodeLacak.trim()}
+                onClick={(e) => { if (!kodeLacak.trim()) e.preventDefault(); }}
+                className={`inline-flex min-h-[46px] items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white transition-colors duration-[var(--gerak-cepat)] ${kodeLacak.trim() ? "bg-tinta hover:bg-utama" : "cursor-not-allowed bg-stone-400"}`}>
                 Cek status
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M5 12h14m-6-6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </Link>

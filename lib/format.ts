@@ -45,6 +45,13 @@ export function tanggalHariIni(): string {
   }).format(new Date());
 }
 
+/** Tanggal besok dalam WIB, dipakai sebagai contoh input. */
+export function besokWIB(): string {
+  const t = new Date(`${tanggalHariIni()}T00:00:00Z`);
+  t.setUTCDate(t.getUTCDate() + 1);
+  return t.toISOString().slice(0, 10);
+}
+
 /** Escape karakter khusus pola LIKE/ILIKE agar pencarian bersifat literal. */
 export function escapeLike(nilai: string): string {
   return nilai.replace(/[\\%_]/g, "\\$&");

@@ -1,5 +1,20 @@
 # Riwayat Perubahan
 
+## final-v2.11.0
+
+Perbaikan menyeluruh pada alur pemesanan konsumen.
+
+### Perbaikan
+
+- **Formulir langsung terbuka.** Tombol "Isi data pesanan" tidak lagi memblokir dialog karena kolom waktu berada di dalam formulir.
+- **Formulir lebih jelas.** Dialog diberi judul langkah, rincian data diri dan waktu dipisah, serta ada petunjuk format WIB yang benar.
+- **Slot kedaluwarsa ditangani.** Bila slot hilang saat formulir dibuka, pelanggan diminta memilih ulang atau mengisi waktu manual dengan pesan yang jelas.
+- **Validasi dipindah ke submit.** Waktu ambil diperiksa saat mengirim, sehingga pesan galat muncul di dalam formulir.
+- **Pelacakan lebih jelas.** Tombol Cek status dinonaktifkan bila kode kosong, dan dialog sukses memuat tautan langsung ke pelacakan.
+- **Status toko konsisten.** Badge menu menunjukkan "Toko tutup" saat toko tidak buka, dengan tombol yang menjelaskan alasannya.
+- **Contoh waktu memakai WIB.** Placeholder tanggal dan opsi slot tidak lagi mengarah ke tanggal UTC yang salah.
+- **FAQ diperbarui.** Cara memesan menyebut waktu ambil dan tombol isi data.
+
 ## final-v2.10.0
 
 Audit putaran kedua puluh enam dan alur cadangan yang seimbang.
