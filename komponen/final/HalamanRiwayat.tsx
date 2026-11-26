@@ -26,6 +26,8 @@ export default function HalamanRiwayat() {
   const [dari, setDari] = useState(mundur(29));
   const [sampai, setSampai] = useState(tanggalHariIni());
   const [cari, setCari] = useState("");
+  const [metode, setMetode] = useState("");
+  const [sumber, setSumber] = useState("");
   const [halaman, setHalaman] = useState(1);
   const [hasil, setHasil] = useState<Hasil | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -37,12 +39,13 @@ export default function HalamanRiwayat() {
     try {
       const p = new URLSearchParams({
         dari: dari || mundur(29), sampai: sampai || tanggalHariIni(), cari, halaman: String(halaman),
+        metode, sumber,
       });
       setHasil(await ambilApi<Hasil>(`/api/riwayat?${p}`));
     } catch {
       setPesan("Riwayat tidak berhasil dimuat.");
     }
-  }, [dari, sampai, cari, halaman]);
+  }, [dari, sampai, cari, metode, sumber, halaman]);
 
   useEffect(() => { void muat(); }, [muat]);
 
@@ -83,8 +86,25 @@ export default function HalamanRiwayat() {
             <input id="ry-cari" type="search" value={cari} placeholder="Contoh: JW-20261125-0001"
               onChange={(e) => { setCari(e.target.value); setHalaman(1); }} />
           </div>
+          <div>
+            <label htmlFor="ry-metode">Metode</label>
+            <select id="ry-metode" value={metode} onChange={(e) => { setMetode(e.target.value); setHalaman(1); }}>
+              <option value="">Semua metode</option>
+              <option value="tunai">Tunai</option>
+              <option value="qris">QRIS</option>
+              <option value="transfer">Transfer</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="ry-sumber">Sumber</label>
+            <select id="ry-sumber" value={sumber} onChange={(e) => { setSumber(e.target.value); setHalaman(1); }}>
+              <option value="">Semua sumber</option>
+              <option value="kasir">Kasir</option>
+              <option value="preorder">Pre-order</option>
+            </select>
+          </div>
           <div className="sm:col-span-3">
-            <a href={`/api/riwayat?dari=${dari || mundur(29)}&sampai=${sampai || tanggalHariIni()}&cari=${encodeURIComponent(cari)}&format=csv`}
+            <a href={`/api/riwayat?dari=${dari || mundur(29)}&sampai=${sampai || tanggalHariIni()}&cari=${encodeURIComponent(cari)}&metode=${metode}&sumber=${sumber}&format=csv`}
               className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">
               Unduh CSV
             </a>

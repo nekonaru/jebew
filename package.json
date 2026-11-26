@@ -1,6 +1,6 @@
 {
   "name": "jebew",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
     "siap:supabase": "node scripts/siap-supabase.mjs",
     "db:migrasi": "node scripts/migrasi.mjs",
     "uji:api": "node scripts/uji-api.mjs",
+    "bersih:laju": "node scripts/bersihkan-laju.mjs",
     "muat:contoh": "node scripts/muat-contoh.mjs",
     "verifikasi": "npm run typecheck && npm run test && npm run build"
   },

@@ -1,5 +1,21 @@
 # Riwayat Perubahan
 
+## final-v2.4.0
+
+Audit putaran kedua puluh dan filter riwayat.
+
+### Fitur baru
+
+- **Filter riwayat lebih lengkap.** Transaksi bisa disaring berdasarkan metode pembayaran dan sumber, selain tanggal dan kata kunci.
+
+### Perbaikan
+
+- **Ubah pengguna tanpa kata sandi baru.** Kolom kata sandi kosong kini diterima sebagai "tidak diubah", dan dialog menyediakan pilihan status aktif.
+- **Slot lebih tahan konkurensi.** Pemeriksaan kuota mengunci baris slot sebelum penulisan, dan batas laju GET dinaikkan agar IP bersama tidak kehabisan kuota.
+- **Lacak memberi umpan balik.** Pencarian dari URL menampilkan pesan galat bila kode tidak ditemukan.
+- **Dokumentasi keamanan mengikuti versi mayor 2.**
+- **Alat uji.** Ditambah perintah `npm run bersih:laju` untuk mengosongkan pembatas laju saat menjalankan uji berulang.
+
 ## final-v2.3.0
 
 Audit putaran kesembilan belas dan kelola pengguna.

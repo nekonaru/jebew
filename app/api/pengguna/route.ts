@@ -19,7 +19,7 @@ export async function GET() {
 const skema = z.object({
   email: z.string().email(),
   nama: z.string().trim().min(1).max(100),
-  kata_sandi: z.string().min(6).max(100).optional(),
+  kata_sandi: z.union([z.literal(""), z.string().min(6, "Kata sandi minimal 6 karakter").max(100)]).optional(),
   peran: z.enum(["pemilik", "kasir"]),
   aktif: z.boolean(),
 }).strict();

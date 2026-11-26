@@ -156,11 +156,17 @@ export async function ambilSlotWaktu(): Promise<{
 }
 
 export async function simpanSlotWaktu(input: { tanggal: string; jam: string; kuota: number }): Promise<void> {
-  await jalankan(
+  await denganTransaksi(async () => {
+    await querySatu(
+      "SELECT id FROM slot_waktu WHERE tanggal = $1::date AND jam = $2 FOR UPDATE",
+      [input.tanggal, input.jam],
+    );
+    await jalankan(
     `INSERT INTO slot_waktu (tanggal, jam, kuota) VALUES ($1,$2,$3)
      ON CONFLICT (tanggal, jam) DO UPDATE SET kuota = EXCLUDED.kuota,
      terisi = (SELECT COUNT(*) FROM preorder p
                WHERE p.slot_id = slot_waktu.id AND p.status <> 'batal')`,
-    [input.tanggal, input.jam, input.kuota],
-  );
+      [input.tanggal, input.jam, input.kuota],
+    );
+  });
 }

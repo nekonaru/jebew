@@ -50,6 +50,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ pesan: "Tanggal awal tidak boleh setelah tanggal akhir" }, { status: 400 });
     }
     const cari = (p.get("cari") ?? "").trim().slice(0, 60);
+    const metode = ["tunai", "qris", "transfer"].includes(p.get("metode") ?? "") ? p.get("metode")! : "";
+    const sumber = ["kasir", "preorder"].includes(p.get("sumber") ?? "") ? p.get("sumber")! : "";
     const csv = p.get("format") === "csv";
     const halaman = csv ? 1 : Math.max(1, Number(p.get("halaman") ?? 1) || 1);
     const per = csv ? 5000 : 12;
@@ -57,8 +59,10 @@ export async function GET(req: Request) {
     const syarat = `p.dibuat_pada::date BETWEEN $1::date AND $2::date
       AND ($3 = '' OR p.nomor ILIKE '%' || $3 || '%' ESCAPE '\\'
         OR EXISTS (SELECT 1 FROM item_penjualan i2
-                   WHERE i2.penjualan_id = p.id AND i2.nama_menu ILIKE '%' || $3 || '%' ESCAPE '\\'))`;
-    const nilai = [dari, sampai, escapeLike(cari)];
+                   WHERE i2.penjualan_id = p.id AND i2.nama_menu ILIKE '%' || $3 || '%' ESCAPE '\\'))
+      AND ($4 = '' OR p.metode = $4)
+      AND ($5 = '' OR p.sumber = $5)`;
+    const nilai = [dari, sampai, escapeLike(cari), metode, sumber];
 
     const [daftar, hitung] = await Promise.all([
       query<{
@@ -70,7 +74,7 @@ export async function GET(req: Request) {
          FROM penjualan p LEFT JOIN item_penjualan i ON i.penjualan_id = p.id
          WHERE ${syarat}
          GROUP BY p.id ORDER BY p.dibuat_pada DESC, p.id DESC
-         LIMIT $4 OFFSET $5`,
+         LIMIT $6 OFFSET $7`,
         [...nilai, per, offset],
       ),
       querySatu<{ jumlah: number }>(

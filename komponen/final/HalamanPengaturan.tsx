@@ -271,6 +271,7 @@ export default function HalamanPengaturan() {
             </div>
           </div>
           <div><label htmlFor="u-peran">Peran</label><select id="u-peran" value={formP.peran} onChange={(e) => setFormP({ ...formP, peran: e.target.value })}><option value="kasir">Kasir</option><option value="pemilik">Pemilik</option></select></div>
+          <div><label htmlFor="u-aktif">Status</label><select id="u-aktif" value={formP.aktif ? "aktif" : "nonaktif"} onChange={(e) => setFormP({ ...formP, aktif: e.target.value === "aktif" })}><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div>
           <Tombol tipe="submit" kelas="w-full">Simpan pengguna</Tombol>
         </form>
       </Dialog>

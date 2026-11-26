@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   try {
     const kunci = `slot:${req.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() ?? "lokal"}`;
-    if (!(await izinLaju(kunci, 40, 60 * 1000))) {
+    if (!(await izinLaju(kunci, 200, 60 * 1000))) {
       return NextResponse.json({ pesan: "Terlalu banyak permintaan. Coba lagi sebentar." }, { status: 429 });
     }
     const semua = await ambilSlotWaktu();

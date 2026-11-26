@@ -36,10 +36,11 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
 
   useEffect(() => {
     if (!kodeAwal) return;
-    setKode(kodeAwal);
+    setKode(kodeAwal); setHasil(null); setPesan(""); setLoading(true);
     void fetch(`/api/lacak?kode=${encodeURIComponent(kodeAwal)}`).then(ambilJson<Hasil>)
       .then(setHasil)
-      .catch(() => setHasil(null));
+      .catch((err: unknown) => setPesan(err instanceof Error ? err.message : "Pesanan tidak ditemukan"))
+      .finally(() => setLoading(false));
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [kodeAwal]);
 

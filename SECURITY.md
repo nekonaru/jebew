@@ -5,7 +5,7 @@
 | Versi | Status |
 |-------|--------|
 | `v0.1.x` | Prototipe Tahap 1 pada cabang `main`, dibekukan |
-| `final-v1.x` | Produk jadi pada cabang `final`, didukung |
+| `final-v2.x` | Produk jadi pada cabang `final`, didukung |
 
 ## Melaporkan Kerentanan
 
