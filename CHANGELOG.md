@@ -1,5 +1,24 @@
 # Riwayat Perubahan
 
+## final-v2.12.0
+
+Jadwal toko dan pre-order yang terpisah, plus tombol status cepat untuk pemilik.
+
+### Fitur baru
+
+- **Jadwal terpisah.** Pemilik mengatur jam toko dan jam pre-order secara berbeda, termasuk opsi siap menerima pre-order.
+- **Tombol status cepat.** Pemilik membuka atau menutup toko dan pre-order langsung dari ringkasan tanpa membuka pengaturan.
+- **Status operasional di website.** Pengunjung melihat status toko dan status pre-order di header beserta keterangan jamnya.
+- **Pre-order mengikuti jadwalnya.** Pesanan ditolak saat pre-order ditutup, meskipun toko sedang buka.
+
+### Perbaikan
+
+- **Perubahan langsung tampil.** Status dihitung setiap permintaan dan cache diinvalidasi saat jadwal diubah.
+- **Rentang hari aman.** Format hari divalidasi dan parser gagal tertutup untuk teks yang tidak dikenal.
+- **Toggle sesuai flag.** Tombol status memakai flag aktif, bukan gabungan flag dan jam, sehingga tidak ada klik yang sia-sia.
+- **Jam fleksibel.** Rentang lintas tengah malam dan jam sama kini didukung konsisten di validator dan mesin jadwal.
+- **Pengujian jadwal.** Empat fungsi jadwal mendapat pengujian unit untuk WIB, tengah malam, dan status berdiri sendiri.
+
 ## final-v2.11.0
 
 Perbaikan menyeluruh pada alur pemesanan konsumen.

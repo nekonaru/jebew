@@ -8,6 +8,13 @@ ALTER TABLE item_penjualan
 ALTER TABLE item_preorder
   ADD COLUMN IF NOT EXISTS hpp INTEGER NOT NULL DEFAULT 0;
 
+-- Kunci pengaturan jadwal toko dan pre-order yang terpisah.
+INSERT INTO pengaturan (kunci, nilai) VALUES
+  ('preorder_aktif', 'true'),
+  ('preorder_jam_buka', '10:00'),
+  ('preorder_jam_tutup', '21:00')
+ON CONFLICT (kunci) DO NOTHING;
+
 -- Perbaiki sequence identity yang tertinggal setelah pemuatan data contoh.
 DO $$
 DECLARE nama_tabel TEXT;

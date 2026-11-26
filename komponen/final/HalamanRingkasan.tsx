@@ -6,7 +6,7 @@ import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { tautanWhatsApp } from "@/lib/wa.ts";
 import { usePeran } from "./Panel.tsx";
-import { Badge, Judul, Kartu, Pesan, Statistik } from "./ui.tsx";
+import { Badge, Judul, Kartu, Pesan, Statistik, Tombol } from "./ui.tsx";
 import GrafikOmzet, { type TitikOmzet } from "./GrafikOmzet.tsx";
 
 type Ringkasan = {
@@ -23,7 +23,19 @@ type Ringkasan = {
   bahanMenipis: { id: number; nama: string; satuan: string; stok: number; stok_minimum: number }[];
   terlaris: { nama: string; varian: string; jumlah: number; omzet: number }[];
 };
-type Publik = { pengaturan: Record<string, string> };
+type InfoStatus = { buka: boolean; label: string; keterangan: string };
+type Publik = {
+  pengaturan: {
+    nama_usaha?: string;
+    whatsapp_admin?: string;
+    toko_aktif?: string;
+    preorder_aktif?: string;
+    status_toko?: InfoStatus;
+    status_preorder?: InfoStatus;
+    jam_buka?: string; jam_tutup?: string;
+    preorder_jam_buka?: string; preorder_jam_tutup?: string;
+  };
+};
 
 const PINTASAN = [
   { href: "/admin/kasir", label: "Buka kasir", warna: "bg-utama" },
@@ -40,14 +52,30 @@ export default function HalamanRingkasan() {
   const [pesan, setPesan] = useState("");
   const [gagal, setGagal] = useState(false);
 
+  const muatPublik = () => fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik);
+
   useEffect(() => {
     void fetch("/api/statistik").then(ambilJson<Ringkasan>).then(setStatistik)
       .catch(() => {
         setGagal(true);
         setPesan("Ringkasan tidak berhasil dimuat. Muat ulang halaman untuk mencoba lagi.");
       });
-    void fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik).catch(() => {});
+    void muatPublik().catch(() => {});
   }, []);
+
+  async function ubahStatus(kunci: "toko_aktif" | "preorder_aktif", nilai: boolean) {
+    try {
+      const respons = await fetch("/api/pengaturan/status", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kunci, nilai: nilai ? "true" : "false" }),
+      });
+      await ambilJson(respons);
+      setPesan("");
+      void muatPublik().catch(() => {});
+    } catch (e) {
+      setPesan(e instanceof Error ? e.message : "Gagal mengubah status");
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -56,6 +84,39 @@ export default function HalamanRingkasan() {
         sub="Ringkasan aktivitas hari ini dan kondisi dapur Anda."
       />
       <Pesan teks={pesan} jenis="galat" />
+
+      {pemilik && (
+        <Kartu>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Status operasional</h2>
+              <p className="mt-1 text-xs text-tinta-lemah">Toko dan pre-order memakai jam yang berbeda. Perubahan langsung terlihat di website.</p>
+            </div>
+            <Link href="/admin/pengaturan" className="text-xs font-semibold text-utama hover:underline">Atur jadwal</Link>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {([["toko_aktif", "Toko", publik?.pengaturan.toko_aktif, publik?.pengaturan.status_toko, publik?.pengaturan.jam_buka, publik?.pengaturan.jam_tutup],
+              ["preorder_aktif", "Pre-order", publik?.pengaturan.preorder_aktif, publik?.pengaturan.status_preorder, publik?.pengaturan.preorder_jam_buka, publik?.pengaturan.preorder_jam_tutup]] as const
+            ).map(([kunci, label, aktif, status, mulai, selesai]) => {
+              const diaktifkan = aktif !== "false";
+              return (
+                <div key={kunci} className="rounded-xl border border-garis p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold">{label}</p>
+                    <Badge warna={status?.buka ? "sukses" : "bahaya"}>{status?.label ?? "Memuat..."}</Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-tinta-lemah">{mulai ?? "-"} - {selesai ?? "-"} WIB</p>
+                  <p className="mt-1 text-[11px] text-tinta-lemah">{status?.keterangan ?? ""}</p>
+                  <Tombol kelas="mt-3 min-h-[38px] w-full text-xs"
+                    onClick={() => void ubahStatus(kunci, !diaktifkan)}>
+                    {diaktifkan ? `Tutup ${label.toLowerCase()}` : `Buka ${label.toLowerCase()}`}
+                  </Tombol>
+                </div>
+              );
+            })}
+          </div>
+        </Kartu>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {pemilik && <Statistik label="Omzet hari ini" nilai={gagal ? "-" : formatRupiah(statistik?.omzet ?? 0)}

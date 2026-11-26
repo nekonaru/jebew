@@ -82,8 +82,9 @@ button:active:not(:disabled) { transition-duration: var(--gerak-cepat); }
 .daftar-panjang > * { content-visibility: auto; contain-intrinsic-size: auto 140px; }
 
 @keyframes muncul {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  /* Teks tetap penuh kontras saat animasi berjalan. */
+  from { transform: translateY(8px); }
+  to { transform: translateY(0); }
 }
 @keyframes geser {
   from { opacity: 0; transform: translateX(10px); }

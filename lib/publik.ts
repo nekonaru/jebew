@@ -1,3 +1,5 @@
+import { statusPreorder, statusToko } from "./jadwal.ts";
+
 /** Daftar putih pengaturan yang boleh dikirim ke pengunjung website. */
 export function pengaturanPublik(pengaturan: Record<string, string>) {
   return {
@@ -8,5 +10,17 @@ export function pengaturanPublik(pengaturan: Record<string, string>) {
     jam_tutup: pengaturan.jam_tutup ?? "21:00",
     hari_buka: pengaturan.hari_buka ?? "Senin - Minggu",
     toko_aktif: pengaturan.toko_aktif ?? "true",
+    preorder_aktif: pengaturan.preorder_aktif ?? "true",
+    preorder_jam_buka: pengaturan.preorder_jam_buka ?? pengaturan.jam_buka ?? "10:00",
+    preorder_jam_tutup: pengaturan.preorder_jam_tutup ?? pengaturan.jam_tutup ?? "21:00",
+  };
+}
+
+/** Data publik lengkap dengan status operasional yang dihitung server. */
+export function dataPengunjung(pengaturan: Record<string, string>) {
+  return {
+    ...pengaturanPublik(pengaturan),
+    status_toko: statusToko(pengaturan),
+    status_preorder: statusPreorder(pengaturan),
   };
 }

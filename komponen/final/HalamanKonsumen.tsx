@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { besokWIB, formatRupiah, jamMenitWIB, tanggalHariIni } from "@/lib/format.ts";
+import { statusPreorder, statusToko } from "@/lib/jadwal.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Pesan, Tombol } from "./ui.tsx";
 
@@ -11,7 +12,14 @@ type Menu = {
   porsi: number; tersedia: boolean; varian: { id: number; nama: string; harga_tambahan: number }[];
 };
 type Slot = { id: number; tanggal: string; jam: string; kuota: number; dipakai: number };
-type DataAwal = { menu: Menu[]; pengaturan: Record<string, string> };
+type InfoStatus = { buka: boolean; label: string; keterangan: string };
+type PengaturanTampil = {
+  nama_usaha?: string; tagline?: string; whatsapp_admin?: string;
+  hari_buka?: string; jam_buka?: string; jam_tutup?: string; toko_aktif?: string;
+  preorder_aktif?: string; preorder_jam_buka?: string; preorder_jam_tutup?: string;
+  status_toko?: InfoStatus; status_preorder?: InfoStatus;
+};
+type DataAwal = { menu: Menu[]; pengaturan: PengaturanTampil };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
 type Hasil = { kode: string; kode_lacak: string; total: number; pesan: string; tautan: string | null };
 
@@ -163,7 +171,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     finally { setLoading(false); }
   }
 
-  const tokoBuka = data.pengaturan.toko_aktif === "true";
+  const statusTokoSaatIni = data.pengaturan.status_toko ?? statusToko(data.pengaturan);
+  const statusPreorderSaatIni = data.pengaturan.status_preorder ?? statusPreorder(data.pengaturan);
+  const tokoBuka = statusTokoSaatIni.buka;
+  const preorderBuka = statusPreorderSaatIni.buka;
   const tersediaCount = data.menu.filter((m) => m.tersedia).length;
 
   return (
@@ -186,17 +197,37 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <button type="button" aria-describedby="info-jam-buka"
                 className="flex items-center gap-1.5 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aksen">
                 <span className={`h-2 w-2 rounded-full ${tokoBuka ? "bg-sukses" : "bg-bahaya"}`} aria-hidden="true" />
-                <span className="text-xs font-semibold text-tinta">{tokoBuka ? "Buka" : "Tutup"}</span>
+                <span className="text-xs font-semibold text-tinta">{statusTokoSaatIni.label}</span>
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 text-tinta-lemah">
                   <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
                   <path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               </button>
               <div id="info-jam-buka" role="tooltip"
-                className="pointer-events-none absolute right-0 top-full z-30 mt-2 w-56 rounded-xl border border-garis bg-permukaan p-3 text-left shadow-angkat opacity-0 translate-y-1 transition-[opacity,transform] duration-[var(--gerak-cepat)] group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-utama">Jam operasional</p>
+                className="pointer-events-none absolute right-0 top-full z-30 mt-2 w-60 rounded-xl border border-garis bg-permukaan p-3 text-left shadow-angkat opacity-0 translate-y-1 transition-[opacity,transform] duration-[var(--gerak-cepat)] group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-utama">Jam toko</p>
                 <p className="mt-1 text-sm font-semibold text-tinta">{data.pengaturan.hari_buka ?? "Senin - Minggu"}</p>
                 <p className="text-sm text-tinta-lemah">{data.pengaturan.jam_buka ?? "10:00"} - {data.pengaturan.jam_tutup ?? "21:00"} WIB</p>
+                <p className="mt-1 text-[11px] text-tinta-lemah">{statusTokoSaatIni.keterangan}</p>
+              </div>
+            </div>
+            <div className="group relative flex items-center">
+              <button type="button" aria-describedby="info-jam-preorder"
+                className="flex items-center gap-1.5 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aksen">
+                <span className={`h-2 w-2 rounded-full ${preorderBuka ? "bg-aksen" : "bg-bahaya"}`} aria-hidden="true" />
+                <span className="text-[10px] font-semibold text-tinta sm:text-xs">{statusPreorderSaatIni.label}</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 text-tinta-lemah">
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M12 11v5m0-8h.01" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+              <div id="info-jam-preorder" role="tooltip"
+                className="pointer-events-none absolute right-0 top-full z-30 mt-2 w-60 rounded-xl border border-garis bg-permukaan p-3 text-left shadow-angkat opacity-0 translate-y-1 transition-[opacity,transform] duration-[var(--gerak-cepat)] group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-utama">Jam pre-order</p>
+                <p className="mt-1 text-sm font-semibold text-tinta">
+                  {data.pengaturan.preorder_jam_buka ?? "10:00"} - {data.pengaturan.preorder_jam_tutup ?? "21:00"} WIB
+                </p>
+                <p className="mt-1 text-[11px] text-tinta-lemah">{statusPreorderSaatIni.keterangan}</p>
               </div>
             </div>
             <button type="button" onClick={() => setDialogKeranjang(true)}
@@ -256,8 +287,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         </section>
 
         <section className="reveal mb-9 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-kartu border border-garis bg-permukaan px-5 py-4 shadow-kartu sm:px-7">
-          <InfoRingkas judul="Jam buka" isi={`${data.pengaturan.jam_buka ?? "10:00"} - ${data.pengaturan.jam_tutup ?? "21:00"}`}
+          <InfoRingkas judul="Jam toko" isi={`${data.pengaturan.jam_buka ?? "10:00"} - ${data.pengaturan.jam_tutup ?? "21:00"} WIB`}
             ikon="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+          <InfoRingkas judul="Jam pre-order" isi={`${data.pengaturan.preorder_jam_buka ?? "10:00"} - ${data.pengaturan.preorder_jam_tutup ?? "21:00"} WIB`}
+            ikon="M6 2h9l5 5v15H6zM15 2v5h5M9 13h6M9 17h4" />
           <InfoRingkas judul="Lacak pesanan" isi="Pakai kode dari website" aksi="/lacak"
             ikon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           <InfoRingkas judul="Pesan cepat" isi="Klik menu, isi data di akhir"
@@ -332,10 +365,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                   <div className="flex items-start justify-between gap-3">
                     <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${AKSESEN_KATEGORI[m.kategori]?.teks ?? "text-tinta-lemah"}`}>{m.kategori}</p>
                     <span className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
-                      !tokoBuka ? "bg-red-50 text-bahaya" : m.tersedia ? "bg-sukses-terang text-sukses" : "bg-stone-100 text-stone-500"
+                      !preorderBuka ? "bg-red-50 text-bahaya" : m.tersedia ? "bg-sukses-terang text-sukses" : "bg-stone-100 text-stone-500"
                     }`}>
-                      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${!tokoBuka ? "bg-bahaya" : m.tersedia ? "bg-sukses" : "bg-stone-400"}`} />
-                      {!tokoBuka ? "Toko tutup" : m.tersedia ? "Tersedia" : "Habis"}
+                      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${!preorderBuka ? "bg-bahaya" : m.tersedia ? "bg-sukses" : "bg-stone-400"}`} />
+                      {!preorderBuka ? statusPreorderSaatIni.label : m.tersedia ? "Tersedia" : "Habis"}
                     </span>
                   </div>
                   <div className="mt-3 flex items-start justify-between gap-3">
@@ -352,11 +385,11 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                   )}
                 </div>
                 <div className="border-t border-garis bg-latar/60 px-4 py-3">
-                  <button type="button" onClick={() => klikMenu(m)} disabled={!m.tersedia || !tokoBuka}
-                    aria-label={`Tambah ke pesanan: ${m.nama}`}
+                  <button type="button" onClick={() => klikMenu(m)} disabled={!m.tersedia || !preorderBuka}
+                    aria-label={`${!preorderBuka ? statusPreorderSaatIni.label : m.tersedia ? "Tambah ke pesanan" : "Sedang habis"}: ${m.nama}`}
                     className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-utama text-sm font-semibold text-white transition-[background-color,transform] duration-[var(--gerak-cepat)] hover:bg-utama-gelap active:scale-[0.98] disabled:bg-stone-300">
                     <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-                    {!tokoBuka ? "Toko sedang tutup" : m.tersedia ? "Tambah ke pesanan" : "Sedang habis"}
+                    {!preorderBuka ? statusPreorderSaatIni.label : m.tersedia ? "Tambah ke pesanan" : "Sedang habis"}
                   </button>
                 </div>
               </article>
@@ -564,6 +597,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               {
                 t: "Kapan pesanan bisa diambil?",
                 j: `Warung buka ${data.pengaturan.hari_buka ?? "Senin - Minggu"} pukul ${data.pengaturan.jam_buka ?? "10:00"} sampai ${data.pengaturan.jam_tutup ?? "21:00"} WIB. Waktu di luar jam tersebut perlu konfirmasi admin.`,
+              },
+              {
+                t: "Kapan pre-order dibuka?",
+                j: `Pre-order dibuka pukul ${data.pengaturan.preorder_jam_buka ?? "10:00"} sampai ${data.pengaturan.preorder_jam_tutup ?? "21:00"} WIB bila pemilik menyatakannya siap. Di luar jam itu, atau saat pre-order ditutup, tombol pesan dinonaktifkan. Jam toko bisa berbeda dari jam pre-order.`,
               },
               {
                 t: "Boleh pesan lebih dari satu menu?",

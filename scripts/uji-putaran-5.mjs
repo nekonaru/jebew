@@ -1,4 +1,5 @@
 // Uji audit putaran keenam: pembatasan peran, WIB, dan kesesuaian slot.
+import { jadwalTerbuka } from "./bantu-jadwal.mjs";
 const dasar = process.env.URL_UJI ?? "http://localhost:8100";
 const hasil = [];
 const catat = (nama, lulus, rincian = "") => hasil.push(`${lulus ? "OK" : "??"} ${nama}${rincian ? ": " + rincian : ""}`);
@@ -11,6 +12,7 @@ const json = (badan) => ({
   method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(badan),
 });
 
+const pulihkanJadwal = await jadwalTerbuka(dasar);
 const pemilik = await api("/api/auth", json({ email: "pemilik@jebew.test", kata_sandi: "pemilik123" }));
 const cp = pemilik.cookie?.split(";")[0] ?? "";
 const statPemilik = JSON.parse((await api("/api/statistik", { headers: { Cookie: cp } })).teks);
@@ -75,5 +77,6 @@ const menit = await api("/api/preorder", {
 });
 catat("menit tidak valid ditolak", menit.status === 400, String(menit.status));
 
+await pulihkanJadwal();
 console.log(hasil.join("\n"));
 console.log(`\nTOTAL: ${hasil.length}, GAGAL: ${hasil.filter((x) => x.startsWith("??")).length}`);

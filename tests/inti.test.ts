@@ -6,6 +6,7 @@ import {
   type InfoBahan, type ItemResep,
 } from "../lib/inti-final.ts";
 import { formatRupiah, tanggalHariIni, tanggalParameter, tanggalValid } from "../lib/format.ts";
+import { hariTermasuk, jamDalamRentang, statusPreorder, statusToko } from "../lib/jadwal.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "../lib/wa.ts";
 
 const bahan: InfoBahan[] = [
@@ -127,6 +128,34 @@ test("parameter tanggal kosong memakai cadangan", () => {
   assert.equal(tanggalParameter(null, "2026-11-01"), "2026-11-01");
   assert.equal(tanggalParameter("2026-11-25", "2026-11-01"), "2026-11-25");
   assert.equal(tanggalParameter("2026-13-45", "2026-11-01"), "");
+});
+
+test("rentang jam mendukung lintas hari dan jam sama", () => {
+  assert.equal(jamDalamRentang("10:30", "10:00", "21:00"), true);
+  assert.equal(jamDalamRentang("09:59", "10:00", "21:00"), false);
+  assert.equal(jamDalamRentang("23:30", "22:00", "06:00"), true);
+  assert.equal(jamDalamRentang("05:00", "22:00", "06:00"), true);
+  assert.equal(jamDalamRentang("12:00", "10:00", "10:00"), true);
+});
+
+test("rentang hari memakai nama lengkap dan gagal tertutup", () => {
+  // Kamis, 26 November 2026 pukul 10.00 WIB.
+  const kamis = new Date("2026-11-26T03:00:00Z");
+  assert.equal(hariTermasuk("Senin - Minggu", kamis), true);
+  assert.equal(hariTermasuk("Senin - Rabu", kamis), false);
+  assert.equal(hariTermasuk("Senin - Libur", kamis), false);
+  assert.equal(hariTermasuk("Kamis", kamis), true);
+});
+
+test("status toko dan pre-order berdiri sendiri", () => {
+  const kamis = new Date("2026-11-26T03:00:00Z");
+  const pengaturan = {
+    jam_buka: "10:00", jam_tutup: "21:00", hari_buka: "Senin - Minggu", toko_aktif: "false",
+    preorder_aktif: "true", preorder_jam_buka: "10:00", preorder_jam_tutup: "21:00",
+  };
+  assert.equal(statusToko(pengaturan, kamis).buka, false);
+  assert.equal(statusPreorder(pengaturan, kamis).buka, true);
+  assert.equal(statusPreorder({ ...pengaturan, preorder_aktif: "false" }, kamis).buka, false);
 });
 
 test("format rupiah dan tanggal", () => {

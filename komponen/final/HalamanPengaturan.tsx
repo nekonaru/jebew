@@ -31,7 +31,13 @@ export default function HalamanPengaturan() {
         fetch("/api/pengguna").then(ambilJson<{ pengguna: Pengguna[] }>),
         fetch("/api/slot").then(ambilJson<{ slot: Slot[] }>),
       ]);
-      setPengaturan(p); setPengguna(u.pengguna ?? []); setSlot(s.slot ?? []);
+      setPengaturan({
+        preorder_aktif: "true",
+        preorder_jam_buka: p.jam_buka ?? "10:00",
+        preorder_jam_tutup: p.jam_tutup ?? "21:00",
+        ...p,
+      });
+      setPengguna(u.pengguna ?? []); setSlot(s.slot ?? []);
     } catch (e) { setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal memuat pengaturan"); }
   }, []);
   useEffect(() => { void muat(); }, [muat]);
@@ -49,6 +55,9 @@ export default function HalamanPengaturan() {
           jam_buka: pengaturan.jam_buka ?? "",
           jam_tutup: pengaturan.jam_tutup ?? "",
           toko_aktif: pengaturan.toko_aktif ?? "true",
+          preorder_aktif: pengaturan.preorder_aktif ?? "true",
+          preorder_jam_buka: pengaturan.preorder_jam_buka ?? "10:00",
+          preorder_jam_tutup: pengaturan.preorder_jam_tutup ?? "21:00",
         }),
       });
       await ambilJson(respons);
@@ -202,6 +211,22 @@ export default function HalamanPengaturan() {
               <div><label htmlFor="s-tutup">Jam tutup</label><input id="s-tutup" type="time" value={pengaturan.jam_tutup ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, jam_tutup: e.target.value })} /></div>
             </div>
             <div><label htmlFor="s-aktif">Status toko</label><select id="s-aktif" value={pengaturan.toko_aktif ?? "true"} onChange={(e) => setPengaturan({ ...pengaturan, toko_aktif: e.target.value })}><option value="true">Buka</option><option value="false">Tutup</option></select></div>
+
+            <fieldset className="rounded-xl border border-garis p-4">
+              <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-tinta-lemah">Jadwal pre-order</legend>
+              <p className="mb-3 text-[11px] leading-relaxed text-tinta-lemah">Jadwal pre-order bisa berbeda dari jam toko. Terima pesanan hanya pada jam ini.</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label htmlFor="s-po-buka">Pre-order buka</label><input id="s-po-buka" type="time" value={pengaturan.preorder_jam_buka ?? "10:00"} onChange={(e) => setPengaturan({ ...pengaturan, preorder_jam_buka: e.target.value })} /></div>
+                <div><label htmlFor="s-po-tutup">Pre-order tutup</label><input id="s-po-tutup" type="time" value={pengaturan.preorder_jam_tutup ?? "21:00"} onChange={(e) => setPengaturan({ ...pengaturan, preorder_jam_tutup: e.target.value })} /></div>
+              </div>
+              <div className="mt-4">
+                <label htmlFor="s-po-aktif">Siap menerima pre-order</label>
+                <select id="s-po-aktif" value={pengaturan.preorder_aktif ?? "true"} onChange={(e) => setPengaturan({ ...pengaturan, preorder_aktif: e.target.value })}>
+                  <option value="true">Siap, terima pesanan</option>
+                  <option value="false">Belum siap, tutup pre-order</option>
+                </select>
+              </div>
+            </fieldset>
             <Tombol tipe="submit">Simpan pengaturan</Tombol>
           </form>
         </Kartu>

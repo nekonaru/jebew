@@ -1,5 +1,6 @@
 // Uji asap seluruh endpoint. Jalankan setelah server berjalan:
 // npm run uji:api URL_UJI=http://localhost:3000
+import { jadwalTerbuka } from "./bantu-jadwal.mjs";
 const dasar = process.env.URL_UJI ?? "http://localhost:3000";
 const waktuAmbil = `${new Date(Date.now() + 86400000).toISOString().slice(0, 10)} 18:00`;
 const hasil = [];
@@ -51,6 +52,7 @@ const jualEkstra = await api("/api/kasir", { method: "POST", headers: H, body: J
 catat("kasir field ekstra", jualEkstra.status, jualEkstra.status === 400);
 
 // Preorder
+const pulihkanJadwal = await jadwalTerbuka(dasar);
 const po = await api("/api/preorder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: [{ menu_id: 28, varian_id: null, jumlah: 1 }], nama_pelanggan: "Audit", whatsapp: "081234567890", waktu_ambil: waktuAmbil, slot_id: null, catatan: "" }) });
 catat("preorder", po.status, po.status === 201);
 if (po.status === 201) {
@@ -75,5 +77,6 @@ catat("laporan tanggal terbalik", laporanBuruk.status, laporanBuruk.status === 4
 const csv = await api("/api/laporan?dari=2026-11-25&sampai=2026-11-25&format=csv", { headers: H });
 catat("ekspor CSV", csv.status, csv.status === 200 && csv.isi.includes("Nomor"));
 
+await pulihkanJadwal();
 console.log(hasil.join("\n"));
 console.log(`\nTOTAL: ${hasil.length}, GAGAL: ${hasil.filter((x) => x.startsWith("??")).length}`);

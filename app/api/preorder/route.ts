@@ -6,6 +6,7 @@ import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa.ts";
 import { jamMenitWIB, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
+import { statusPreorder } from "@/lib/jadwal.ts";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -90,8 +91,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ pesan: "Terlalu banyak pre-order. Coba lagi sebentar." }, { status: 429 });
     }
     const pengaturan = await ambilPengaturan();
-    if (pengaturan.toko_aktif === "false") {
-      return NextResponse.json({ pesan: "Toko sedang tutup. Silakan coba lagi lain waktu." }, { status: 403 });
+    const jadwalPreorder = statusPreorder(pengaturan);
+    if (!jadwalPreorder.buka) {
+      return NextResponse.json({ pesan: jadwalPreorder.keterangan }, { status: 403 });
     }
     const dariLingkungan = (process.env.WHATSAPP_ADMIN ?? "").trim();
     const nomorAdmin = dariLingkungan || (pengaturan.whatsapp_admin ?? "").trim();

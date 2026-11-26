@@ -1,4 +1,5 @@
 // Uji regresi audit putaran ketiga dan fitur v1.4.0.
+import { jadwalTerbuka } from "./bantu-jadwal.mjs";
 const dasar = process.env.URL_UJI ?? "http://localhost:7100";
 const waktuAmbil = `${new Date(Date.now() + 86400000).toISOString().slice(0, 10)} 18:00`;
 const hasil = [];
@@ -39,6 +40,7 @@ if (pilih.length === 2) {
 }
 
 // Filter preorder berdasarkan kode atau nama pelanggan.
+const pulihkanJadwal = await jadwalTerbuka(dasar);
 const nama = `UjiCari${Date.now()}`;
 const po = await api("/api/preorder", json({
   items: [{ menu_id: pilih[0]?.id ?? menu[0]?.id, varian_id: null, jumlah: 1 }],
@@ -56,7 +58,8 @@ if (po.status === 201) {
 const slot = await api("/api/slot", json({ tanggal: "2026-02-31", jam: "12:00", kuota: 5 }, cookie));
 catat("tanggal slot invalid", slot.status === 400, String(slot.status));
 const pub = JSON.parse((await api("/api/dashboard")).teks);
-catat("pengaturan publik terbatas", Object.keys(pub.pengaturan ?? {}).length === 7, `${Object.keys(pub.pengaturan ?? {}).length}`);
+const kunciPublik = Object.keys(pub.pengaturan ?? {});
+catat("pengaturan publik terbatas", kunciPublik.includes("nama_usaha") && !kunciPublik.includes("kata_sandi"), `${kunciPublik.length} kunci`);
 
 // Kasir tidak bisa membuka halaman khusus pemilik lewat URL langsung.
 const kasir = await api("/api/auth", json({ email: "kasir@jebew.test", kata_sandi: "kasir123" }));
@@ -66,5 +69,6 @@ for (const path of ["/admin/master", "/admin/pengaturan"]) {
   catat(`kasir ditolak ${path}`, r.status === 307 && r.headers.get("location") === "/admin", `${r.status} ${r.headers.get("location") ?? ""}`);
 }
 
+await pulihkanJadwal();
 console.log(hasil.join("\n"));
 console.log(`\nTOTAL: ${hasil.length}, GAGAL: ${hasil.filter((x) => x.startsWith("??")).length}`);

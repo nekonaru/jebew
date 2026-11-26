@@ -129,7 +129,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Panduan pesan** | Tiga langkah singkat sebelum daftar menu |
 | **Tanya jawab** | Pertanyaan umum tentang pemesanan, jam ambil, dan pelacakan |
 | **Pemberitahuan keranjang** | Konfirmasi singkat saat menu masuk keranjang |
-| **Jam operasional** | Admin bisa membuka atau menutup toko dan mengatur jam |
+| **Jam operasional** | Pemilik mengatur jam toko dan jam pre-order secara terpisah, serta menutup atau membuka masing-masing lewat tombol cepat |
 | **Pembaruan berkala** | Status menyegarkan setiap 15 detik |
 
 ---
@@ -167,7 +167,7 @@ npm run dev
 Buka `http://localhost:3000` untuk website konsumen dan `http://localhost:3000/login` untuk admin.
 
 > [!IMPORTANT]
-> `npm run siap:supabase` memasang skema dan data contoh. Perintah `npm run muat:contoh` mengganti seluruh data demo, termasuk menghapus transaksi yang sudah ada. Untuk database yang sudah berisi data, jalankan `npm run db:migrasi` agar kolom HPP per transaksi tersedia tanpa menghapus data.
+> `npm run siap:supabase` memasang skema dan data contoh. Perintah `npm run muat:contoh` mengganti seluruh data demo, termasuk menghapus transaksi yang sudah ada. Untuk database yang sudah berisi data, jalankan `npm run db:migrasi` agar kolom HPP per transaksi dan kunci jadwal pre-order (`preorder_aktif`, `preorder_jam_buka`, `preorder_jam_tutup`) tersedia tanpa menghapus data.
 
 ### Deploy ke Vercel
 

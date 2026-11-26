@@ -4,6 +4,7 @@ import { galat } from "@/lib/api-final.ts";
 import { ambilMenuPublik } from "@/lib/final/menu.ts";
 import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 import { pengaturanPublik } from "@/lib/publik.ts";
+import { statusPreorder, statusToko } from "@/lib/jadwal.ts";
 
 export const runtime = "nodejs";
 
@@ -32,12 +33,21 @@ const dataPublik = unstable_cache(
     };
   },
   ["status-final"],
-  { revalidate: 5 },
+  { revalidate: 5, tags: ["status-final"] },
 );
 
 export async function GET() {
   try {
-    return NextResponse.json(await dataPublik());
+    const data = await dataPublik();
+    // Status dihitung setiap permintaan agar perubahan pemilik langsung terlihat.
+    const pengaturan = {
+      ...data.pengaturan,
+      status_toko: statusToko(data.pengaturan),
+      status_preorder: statusPreorder(data.pengaturan),
+    };
+    return NextResponse.json({ menu: data.menu, pengaturan }, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (kesalahan) {
     return galat(kesalahan) as NextResponse;
   }

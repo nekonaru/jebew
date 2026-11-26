@@ -7,7 +7,10 @@ INSERT INTO pengaturan (kunci, nilai) VALUES
   ('hari_buka', 'Senin - Minggu'),
   ('jam_buka', '10:00'),
   ('jam_tutup', '21:00'),
-  ('toko_aktif', 'true')
+  ('toko_aktif', 'true'),
+  ('preorder_aktif', 'true'),
+  ('preorder_jam_buka', '10:00'),
+  ('preorder_jam_tutup', '21:00')
 ON CONFLICT (kunci) DO NOTHING;
 
 INSERT INTO pengguna (id, email, nama, kata_sandi, peran, aktif) VALUES
