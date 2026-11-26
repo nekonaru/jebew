@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat, izinLaju } from "@/lib/api-final.ts";
 import { query, querySatu } from "@/lib/database.ts";
 import { escapeLike, tanggalHariIni, tanggalParameter } from "@/lib/format.ts";
 
@@ -14,8 +14,11 @@ function mundur(hari: number): string {
 /** Riwayat penjualan dengan pencarian, rentang tanggal, dan rincian per transaksi. */
 export async function GET(req: Request) {
   try {
-    const { penolakan } = await aman(req, "masuk");
+    const { penolakan, pengguna } = await aman(req, "masuk");
     if (penolakan) return penolakan;
+    if (!(await izinLaju(`riwayat:${pengguna?.id ?? "masuk"}`, 120, 60 * 1000))) {
+      return NextResponse.json({ pesan: "Terlalu banyak permintaan. Coba lagi sebentar." }, { status: 429 });
+    }
 
     const p = new URL(req.url).searchParams;
     const id = Number(p.get("id") ?? 0);

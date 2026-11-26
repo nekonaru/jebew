@@ -69,7 +69,10 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   border-color: var(--warna-aksen);
   box-shadow: 0 0 0 3px rgba(224, 138, 46, 0.14);
-  outline: none;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--warna-aksen);
+  outline-offset: 2px;
 }
 textarea { @apply resize-y; min-height: 90px; }
 

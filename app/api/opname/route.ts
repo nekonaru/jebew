@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 import { ambilItemOpname, ambilOpname, simpanOpname } from "@/lib/final/stok.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   try {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    const id = await simpanOpname(skema.parse(await req.json()), pengguna);
+    const id = await simpanOpname(skema.parse(await bacaJsonTerbatasi(req)), pengguna);
     return NextResponse.json({ id }, { status: 201 });
   } catch (e) { return galat(e) as NextResponse; }
 }

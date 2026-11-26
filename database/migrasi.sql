@@ -8,6 +8,10 @@ ALTER TABLE item_penjualan
 ALTER TABLE item_preorder
   ADD COLUMN IF NOT EXISTS hpp INTEGER NOT NULL DEFAULT 0;
 
+-- Versi sesi agar kata sandi yang diubah atau keluar mencabut token lama.
+ALTER TABLE pengguna
+  ADD COLUMN IF NOT EXISTS sesi_versi INTEGER NOT NULL DEFAULT 0;
+
 -- Kunci pengaturan jadwal toko dan pre-order yang terpisah.
 INSERT INTO pengaturan (kunci, nilai) VALUES
   ('preorder_aktif', 'true'),

@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS pengguna (
   kata_sandi TEXT NOT NULL,
   peran TEXT NOT NULL CHECK (peran IN ('pemilik', 'kasir')),
   aktif BOOLEAN NOT NULL DEFAULT TRUE,
+  sesi_versi INTEGER NOT NULL DEFAULT 0,
   dibuat_pada TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'Asia/Jakarta')
 );
 

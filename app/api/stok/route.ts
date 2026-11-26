@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 import { ambilPergerakan, restockBahan } from "@/lib/final/stok.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const badan = z.object({
       id: z.number().int().positive(), tambahan: z.number().finite().positive(),
       catatan: z.string().trim().max(200).default(""),
-    }).strict().parse(await req.json());
+    }).strict().parse(await bacaJsonTerbatasi(req));
     await restockBahan(badan.id, badan.tambahan, pengguna, badan.catatan);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }

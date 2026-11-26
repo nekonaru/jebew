@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { buatToken, penggunaSaatIni, pilihanCookie, verifikasiLogin } from "@/lib/auth.ts";
-import { asalValid, galat, izinLaju } from "@/lib/api-final.ts";
+import { buatToken, cabutSesi, penggunaSaatIni, pilihanCookie, verifikasiLogin } from "@/lib/auth.ts";
+import { asalValid, galat, izinLaju , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 
 export const runtime = "nodejs";
 
-const skemaLogin = z.object({ email: z.string().email(), kata_sandi: z.string().min(6).max(100) }).strict();
+const skemaLogin = z.object({ email: z.string().email(), kata_sandi: z.string().min(8).max(100) }).strict();
 
 export async function GET() {
   const pengguna = await penggunaSaatIni();
@@ -24,7 +24,7 @@ export async function POST(permintaan: Request) {
     if (Number.isFinite(panjang) && panjang > 4096) {
       return NextResponse.json({ pesan: "Permintaan terlalu besar" }, { status: 413 });
     }
-    const badan = skemaLogin.parse(await permintaan.json());
+    const badan = skemaLogin.parse(await bacaJsonTerbatasi(permintaan));
     const email = badan.email.toLowerCase();
     const alamat = permintaan.headers.get("x-real-ip")
       ?? permintaan.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim()
@@ -45,8 +45,9 @@ export async function POST(permintaan: Request) {
       return NextResponse.json({ pesan: "Email atau kata sandi salah" }, { status: 401 });
     }
 
-    const respons = NextResponse.json({ masuk: true, pengguna });
-    respons.cookies.set(pilihanCookie.name, buatToken(pengguna), {
+    const { versi, ...penggunaPublik } = pengguna;
+    const respons = NextResponse.json({ masuk: true, pengguna: penggunaPublik });
+    respons.cookies.set(pilihanCookie.name, buatToken(penggunaPublik, versi ?? 0), {
       httpOnly: pilihanCookie.httpOnly,
       sameSite: pilihanCookie.sameSite,
       secure: pilihanCookie.secure,
@@ -63,6 +64,8 @@ export async function DELETE(permintaan: Request) {
   if (!asalValid(permintaan)) {
     return NextResponse.json({ pesan: "Asal permintaan tidak valid" }, { status: 403 });
   }
+  const pengguna = await penggunaSaatIni();
+  if (pengguna) await cabutSesi(pengguna.id);
   const respons = NextResponse.json({ masuk: false });
   respons.cookies.set(pilihanCookie.name, "", {
     httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production",

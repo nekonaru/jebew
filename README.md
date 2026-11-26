@@ -55,7 +55,7 @@ Kedua versi bisa dibuka langsung tanpa instalasi:
 | Versi | Website konsumen | Dashboard admin |
 |-------|------------------|-----------------|
 | Prototipe Tahap 1 | [jebew-nu.vercel.app](https://jebew-nu.vercel.app) | `/admin`, PIN `1234` |
-| Produk Jadi Tahap 2 | [jebew-final.vercel.app](https://jebew-final.vercel.app) | `/login`, `pemilik@jebew.test` / `pemilik123` |
+| Produk Jadi Tahap 2 | [jebew-final.vercel.app](https://jebew-final.vercel.app) | `/login`, akun demo ada di bagian Akun Demo |
 
 > [!TIP]
 > Gunakan dua tab berdampingan untuk membandingkan alur pre-order di prototipe dan di produk jadi.
@@ -117,6 +117,8 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Kasir** | Cari menu, pilih varian, diskon, metode bayar, catatan, dan cetak struk |
 | **Varian** | Level pedas dan topping punya harga dan resep sendiri |
 | **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, hubungi pelanggan langsung, saring pesanan, dan unduh CSV |
+| **Slot massal** | Buat banyak slot sekaligus dari rentang tanggal, jam, interval, kuota, dan hari yang dipilih, lalu hapus slot yang belum terpakai |
+| **Antrean lacak** | Halaman lacak menunjukkan jumlah pesanan aktif sebelum pesanan yang dicari |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
@@ -130,6 +132,8 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Tanya jawab** | Pertanyaan umum tentang pemesanan, jam ambil, dan pelacakan |
 | **Pemberitahuan keranjang** | Konfirmasi singkat saat menu masuk keranjang |
 | **Jam operasional** | Pemilik mengatur jam toko dan jam pre-order secara terpisah, serta menutup atau membuka masing-masing lewat tombol cepat |
+| **Pesan lagi** | Kode lacak memuat tombol untuk memasukkan menu yang sama kembali ke keranjang |
+| **Ingat kontak** | Pelanggan bisa menyimpan nama dan WhatsApp di perangkatnya secara sukarela |
 | **Pembaruan berkala** | Status menyegarkan setiap 15 detik |
 
 ---
@@ -182,7 +186,7 @@ Buat project Vercel baru yang menarik repo ini dengan branch produksi `final`. I
 | Pemilik | `pemilik@jebew.test` | `pemilik123` |
 | Kasir | `kasir@jebew.test` | `kasir123` |
 
-Akun demo ini hanya untuk prototipe. Jangan menjalankan `npm run siap:supabase` atau `npm run muat:contoh` pada database produksi. Untuk mengganti kata sandi di luar demo, kirim `PUT /api/pengguna` dengan `kata_sandi` baru atau ubah data seed sebelum penyimpanan produksi disiapkan.
+Akun demo ini hanya untuk prototipe dan demo. Jangan menjalankan `npm run siap:supabase` atau `npm run muat:contoh` pada database produksi. Sebelum memakai aplikasi untuk usaha nyata, ganti kedua akun ini dengan akun sendiri dan kata sandi minimal delapan karakter. Mengganti kata sandi otomatis mencabut sesi lama. Tombol Keluar juga mencabut seluruh sesi akun yang bersangkutan.
 
 ---
 
@@ -233,7 +237,7 @@ jebew/
 
 Sesi disimpan dalam cookie HttpOnly bertanda tangan HMAC. Kata sandi memakai scrypt dengan garam acak. Setiap endpoint admin memeriksa sesi dan peran di server. Semua kueri Postgres memakai parameter, dan perubahan stok berjalan dalam transaksi dengan pembaruan bersyarat.
 
-Akses database hanya dari server lewat `DATABASE_URL`. Tidak ada kunci database di browser. RLS aktif pada semua tabel dan aplikasi memakai peran server, sehingga pemeriksaan akses dilakukan di API. Cara melaporkan kerentanan ada di [`SECURITY.md`](SECURITY.md).
+Akses database hanya dari server lewat `DATABASE_URL`. Tidak ada kunci database di browser. Pengendalian akses dilakukan di API karena koneksi memakai peran pemilik tabel. RLS diaktifkan pada tabel tetapi belum memakai policy khusus, jadi RLS bukan lapisan pengaman tambahan. Cara melaporkan kerentanan ada di [`SECURITY.md`](SECURITY.md).
 
 > [!NOTE]
 > Mode notifikasi WhatsApp dan pembayaran QRIS memakai simulasi untuk keperluan demo. Alur dan datanya berjalan, tetapi tidak terhubung ke penyedia berbayar.

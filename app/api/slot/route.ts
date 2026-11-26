@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat, izinLaju } from "@/lib/api-final.ts";
+import { aman, galat, izinLaju , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 import { ambilSlotWaktu, simpanSlotWaktu } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 import { jamMenitWIB, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
@@ -35,9 +35,9 @@ const skema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const { penolakan } = await aman(req, "pemilik");
+    const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    await simpanSlotWaktu(skema.parse(await req.json()));
+    await simpanSlotWaktu(skema.parse(await bacaJsonTerbatasi(req)), pengguna?.id);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }
 }

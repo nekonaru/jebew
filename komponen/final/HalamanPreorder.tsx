@@ -24,6 +24,7 @@ export default function HalamanPreorder() {
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
   const [aksi, setAksi] = useState<{ id: number; status: "diproses" | "selesai" | "batal" } | null>(null);
+  const [memproses, setMemproses] = useState(false);
   const [metode, setMetode] = useState<"tunai" | "qris" | "transfer">("tunai");
 
   const urutMuat = useRef(0);
@@ -45,7 +46,8 @@ export default function HalamanPreorder() {
   }
 
   async function kirimAksi() {
-    if (!aksi) return;
+    if (!aksi || memproses) return;
+    setMemproses(true);
     try {
       const badan = aksi.status === "selesai" ? { id: aksi.id, status: aksi.status, metode } : { ...aksi };
       const respons = await fetch("/api/preorder", {
@@ -57,6 +59,7 @@ export default function HalamanPreorder() {
       setAksi(null);
       void muat();
     } catch (e) { setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal mengubah status"); }
+    finally { setMemproses(false); }
   }
 
   const tampil = daftar;
@@ -192,7 +195,7 @@ export default function HalamanPreorder() {
             )}
             <div className="flex gap-2">
               <Tombol jenis="sekunder" kelas="flex-1" onClick={() => setAksi(null)}>Batal</Tombol>
-              <Tombol kelas="flex-1" onClick={() => void kirimAksi()}>Ya, lanjutkan</Tombol>
+              <Tombol kelas="flex-1" nonaktif={memproses} onClick={() => void kirimAksi()}>{memproses ? "Memproses..." : "Ya, lanjutkan"}</Tombol>
             </div>
           </div>
         )}

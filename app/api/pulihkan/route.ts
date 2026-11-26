@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 import { jalankan, query, denganTransaksi } from "@/lib/database.ts";
 import { catatAudit } from "@/lib/audit.ts";
 
@@ -28,6 +28,14 @@ const HAPUS = [
 const KOLOM_PENGGUNA = ["kasir_id", "pengguna_id"];
 const UKURAN_BATCH = 200;
 
+/** Nilai cadangan harus bertipe sederhana dan berada dalam batas wajar. */
+function nilaiValid(nilai: unknown): boolean {
+  if (nilai === null || nilai === undefined) return true;
+  if (typeof nilai === "number") return Number.isFinite(nilai) && Math.abs(nilai) <= 1e12;
+  if (typeof nilai === "string") return nilai.length <= 20000;
+  return typeof nilai === "boolean";
+}
+
 const skema = z.object({
   aplikasi: z.literal("Jebew"),
   versi: z.string().max(20).optional(),
@@ -41,7 +49,7 @@ export async function POST(req: Request) {
   try {
     const { penolakan, pengguna } = await aman(req, "pemilik", 4 * 1024 * 1024);
     if (penolakan) return penolakan;
-    const badan = skema.parse(await req.json());
+    const badan = skema.parse(await bacaJsonTerbatasi(req));
     // Akun dan pembatasan laju sengaja tidak dipulihkan dari cadangan.
     const { pengguna: _pengguna, pembatasan_laju: _laju, ...dataCadangan } = badan.data;
 
@@ -56,6 +64,13 @@ export async function POST(req: Request) {
       }
       if (baris.length > 30000) {
         return NextResponse.json({ pesan: `Jumlah baris ${nama} terlalu banyak` }, { status: 400 });
+      }
+      for (const barisData of baris) {
+        for (const [kolom, nilai] of Object.entries(barisData)) {
+          if (!nilaiValid(nilai)) {
+            return NextResponse.json({ pesan: `Nilai ${nama}.${kolom} tidak valid` }, { status: 400 });
+          }
+        }
       }
     }
 

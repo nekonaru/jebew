@@ -55,10 +55,12 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [pilihVarian, setPilihVarian] = useState<Menu | null>(null);
   const [dialogKeranjang, setDialogKeranjang] = useState(false);
   const [dialogCheckout, setDialogCheckout] = useState(false);
+  const [totalCheckout, setTotalCheckout] = useState(0);
   const [hasilDialog, setHasilDialog] = useState(false);
   const [hasil, setHasil] = useState<Hasil | null>(null);
   const [nama, setNama] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [ingatKontak, setIngatKontak] = useState(false);
   const [slotId, setSlotId] = useState("");
   const [waktu, setWaktu] = useState("");
   const [catatan, setCatatan] = useState("");
@@ -84,6 +86,45 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     const t = setInterval(() => void muat(), 15000);
     return () => clearInterval(t);
   }, [muat]);
+
+  useEffect(() => {
+    try {
+      const teks = localStorage.getItem("jebew_kontak");
+      if (teks) {
+        const kontak = JSON.parse(teks) as { nama?: string; whatsapp?: string };
+        if (typeof kontak.nama === "string") setNama(kontak.nama.slice(0, 100));
+        if (typeof kontak.whatsapp === "string") setWhatsapp(kontak.whatsapp.slice(0, 30));
+      }
+    } catch { /* abaikan data rusak */ }
+  }, []);
+
+  useEffect(() => {
+    if (data.menu.length === 0) return;
+    try {
+      const teks = localStorage.getItem("jebew_pesan_lagi");
+      localStorage.removeItem("jebew_pesan_lagi");
+      if (!teks) return;
+      const simpan = JSON.parse(teks) as {
+        items?: { menu_id: number; varian_id: number | null; jumlah: number }[];
+        nama?: string;
+      };
+      const items = (Array.isArray(simpan.items) ? simpan.items : []).flatMap((i) => {
+        const menu = data.menu.find((m) => m.id === i.menu_id);
+        if (!menu) return [];
+        const varianValid = i.varian_id === null || menu.varian.some((v) => v.id === i.varian_id);
+        if (!varianValid) return [];
+        const jumlah = Math.min(100, Math.max(1, Math.floor(Number(i.jumlah) || 1)));
+        return [{ menuId: menu.id, varianId: i.varian_id, jumlah }];
+      });
+      if (items.length === 0) return;
+      setKeranjang(items);
+      setDialogKeranjang(true);
+      setToast("Menu dari pesanan sebelumnya sudah dimasukkan ke keranjang.");
+      setToastGalat(false);
+      setToastUrut((n) => n + 1);
+      if (typeof simpan.nama === "string") setNama(simpan.nama.slice(0, 100));
+    } catch { /* abaikan data rusak */ }
+  }, [data.menu]);
 
   const daftarKategori = useMemo(() => [...new Set(data.menu.map((m) => m.kategori))], [data.menu]);
   const tersaring = useMemo(() => data.menu.filter((m) => {
@@ -134,7 +175,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
 
   function bukaCheckout() {
     if (keranjang.length === 0) return;
-    setPesan(""); setDialogKeranjang(false); setDialogCheckout(true);
+    setPesan(""); setTotalCheckout(totalKeranjang); setDialogKeranjang(false); setDialogCheckout(true);
   }
 
   async function kirim(e: FormEvent) {
@@ -165,6 +206,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       });
       const dataHasil = await ambilJson<Hasil>(respons);
       setHasil(dataHasil); setKodeLacak(dataHasil.kode_lacak); setDialogCheckout(false); setHasilDialog(true);
+      try {
+        if (ingatKontak) localStorage.setItem("jebew_kontak", JSON.stringify({ nama, whatsapp }));
+        else localStorage.removeItem("jebew_kontak");
+      } catch { /* penyimpanan lokal tidak tersedia */ }
       setKeranjang([]); setNama(""); setWhatsapp(""); setSlotId(""); setWaktu(""); setCatatan("");
       void muat();
     } catch (err) { setPesan(err instanceof Error ? err.message : "Gagal mengirim pre-order"); }
@@ -306,7 +351,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             {[
               { angka: "01", judul: "Pilih menu", isi: "Klik tombol Tambah pada menu yang kamu mau. Bisa lebih dari satu." },
               { angka: "02", judul: "Isi data", isi: "Setelah selesai, isi nama, WhatsApp, dan waktu ambil di akhir." },
-              { angka: "03", judul: "Terima konfirmasi", isi: "Pesanan terbuka di WhatsApp admin dengan rincian lengkap." },
+              { angka: "03", judul: "Kirim ke admin", isi: "Setelah kode lacak muncul, tekan Kirim ke WhatsApp agar admin menerima rincian pesanan." },
             ].map((langkah) => (
               <li key={langkah.angka} className="flex gap-4 rounded-kartu border border-garis bg-permukaan p-5 shadow-kartu">
                 <span className="font-judul text-3xl font-semibold leading-none text-utama">{langkah.angka}</span>
@@ -496,12 +541,17 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             </p>
           </div>
           <div className="rounded-xl bg-latar px-4 py-3 text-sm">
-            <div className="flex justify-between"><span>{jumlahItem} item pesanan</span><span className="font-semibold">{formatRupiah(totalKeranjang)}</span></div>
+            <div className="flex justify-between"><span>{jumlahItem} item pesanan</span><span className="font-semibold">{formatRupiah(totalCheckout)}</span></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div><label htmlFor="p-nama">Nama kamu</label><input id="p-nama" required value={nama} onChange={(e) => setNama(e.target.value)} /></div>
             <div><label htmlFor="p-wa">Nomor WhatsApp</label><input id="p-wa" inputMode="tel" required value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="08..." /></div>
           </div>
+          <label className="flex items-start gap-2 text-xs text-tinta-lemah">
+            <input type="checkbox" className="mt-0.5" checked={ingatKontak}
+              onChange={(e) => setIngatKontak(e.target.checked)} />
+            Ingat nama dan WhatsApp di perangkat ini untuk pesanan berikutnya.
+          </label>
           <div className="rounded-xl border border-garis bg-latar/60 p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-utama">Wajib diisi</p>
             <div className="mt-3">
@@ -537,7 +587,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             <textarea id="p-catatan" maxLength={300} rows={2} value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Misalnya: level pedas 2, tanpa daun bawang" />
           </div>
           <Pesan teks={pesan} jenis={jenis} />
-          <Tombol tipe="submit" nonaktif={loading} kelas="w-full">{loading ? "Mengirim..." : `Kirim pre-order - ${formatRupiah(totalKeranjang)}`}</Tombol>
+          <Tombol tipe="submit" nonaktif={loading} kelas="w-full">{loading ? "Mengirim..." : `Kirim pre-order - ${formatRupiah(totalCheckout)}`}</Tombol>
         </form>
       </Dialog>
 

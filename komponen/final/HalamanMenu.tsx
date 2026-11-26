@@ -30,6 +30,7 @@ export default function HalamanMenu() {
   const [menu, setMenu] = useState<Menu[]>([]);
   const [bahan, setBahan] = useState<Bahan[]>([]);
   const [dialog, setDialog] = useState(false);
+  const [hapusTarget, setHapusTarget] = useState<{ id: number; nama: string } | null>(null);
   const [edit, setEdit] = useState<number | null>(null);
   const [form, setForm] = useState<Form>(kosong());
   const [pesan, setPesan] = useState("");
@@ -83,14 +84,19 @@ export default function HalamanMenu() {
     } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); }
   }
 
-  async function hapus(id: number, nama: string) {
-    if (!window.confirm(`Hapus menu ${nama}?`)) return;
+  function hapus(id: number, nama: string) {
+    setHapusTarget({ id, nama });
+  }
+
+  async function konfirmasiHapus() {
+    if (!hapusTarget) return;
+    const id = hapusTarget.id;
     try {
       const respons = await fetch("/api/menu", {
         method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }),
       });
       await ambilJson(respons);
-      setJenis("sukses"); setPesan("Menu dihapus."); void muat();
+      setJenis("sukses"); setPesan("Menu dihapus."); setHapusTarget(null); void muat();
     } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menghapus"); }
   }
 
@@ -161,8 +167,8 @@ export default function HalamanMenu() {
             <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-tinta-lemah">Resep per porsi</legend>
             {form.resep.map((r, i) => (
               <div key={i} className="mb-2 grid grid-cols-[1.4fr_1fr_auto] gap-2 items-end">
-                <div><label>Bahan</label><select required value={r.bahan_id} onChange={(e) => setForm({ ...form, resep: form.resep.map((x, j) => j === i ? { ...x, bahan_id: e.target.value } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}</select></div>
-                <div><label>Jumlah</label><input type="number" min="0.01" step="any" required value={r.jumlah_per_porsi} onChange={(e) => setForm({ ...form, resep: form.resep.map((x, j) => j === i ? { ...x, jumlah_per_porsi: e.target.value } : x) })} /></div>
+                <div><label htmlFor={`r-bahan-${i}`}>Bahan</label><select id={`r-bahan-${i}`} required value={r.bahan_id} onChange={(e) => setForm({ ...form, resep: form.resep.map((x, j) => j === i ? { ...x, bahan_id: e.target.value } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}</select></div>
+                <div><label htmlFor={`r-jumlah-${i}`}>Jumlah</label><input id={`r-jumlah-${i}`} type="number" min="0.01" step="any" required value={r.jumlah_per_porsi} onChange={(e) => setForm({ ...form, resep: form.resep.map((x, j) => j === i ? { ...x, jumlah_per_porsi: e.target.value } : x) })} /></div>
                 <Tombol jenis="hapus" onClick={() => setForm({ ...form, resep: form.resep.filter((_, j) => j !== i) })} kelas="px-2">-</Tombol>
               </div>
             ))}
@@ -174,16 +180,16 @@ export default function HalamanMenu() {
             {form.varian.map((v, i) => (
               <div key={i} className="mb-3 rounded-xl border border-garis p-3">
                 <div className="grid grid-cols-[1.4fr_1fr_auto_auto] gap-2 items-end">
-                  <div><label>Nama</label><input required value={v.nama} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, nama: e.target.value } : x) })} /></div>
-                  <div><label>Tambah harga</label><input type="number" min={0} value={v.harga_tambahan} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, harga_tambahan: e.target.value } : x) })} /></div>
+                  <div><label htmlFor={`v-nama-${i}`}>Nama</label><input id={`v-nama-${i}`} required value={v.nama} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, nama: e.target.value } : x) })} /></div>
+                  <div><label htmlFor={`v-harga-${i}`}>Tambah harga</label><input id={`v-harga-${i}`} type="number" min={0} value={v.harga_tambahan} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, harga_tambahan: e.target.value } : x) })} /></div>
                   <label className="flex items-center gap-1 normal-case tracking-normal text-tinta"><input type="checkbox" className="h-5 w-5 min-h-0" checked={v.aktif} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, j) => j === i ? { ...x, aktif: e.target.checked } : x) })} /> Aktif</label>
                   <Tombol jenis="hapus" onClick={() => setForm({ ...form, varian: form.varian.filter((_, j) => j !== i) })} kelas="px-2">-</Tombol>
                 </div>
                 <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-tinta-lemah">Bahan tambahan varian</p>
                 {v.resep.map((r, j) => (
                   <div key={j} className="mt-2 grid grid-cols-[1.4fr_1fr_auto] gap-2 items-end">
-                    <div><label>Bahan</label><select value={r.bahan_id} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: x.resep.map((y, l) => l === j ? { ...y, bahan_id: e.target.value } : y) } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}</select></div>
-                    <div><label>Jumlah</label><input type="number" min="0.01" step="any" value={r.jumlah_per_porsi} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: x.resep.map((y, l) => l === j ? { ...y, jumlah_per_porsi: e.target.value } : y) } : x) })} /></div>
+                    <div><label htmlFor={`vr-bahan-${i}-${j}`}>Bahan</label><select id={`vr-bahan-${i}-${j}`} value={r.bahan_id} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: x.resep.map((y, l) => l === j ? { ...y, bahan_id: e.target.value } : y) } : x) })}><option value="">Pilih</option>{bahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}</select></div>
+                    <div><label htmlFor={`vr-jumlah-${i}-${j}`}>Jumlah</label><input id={`vr-jumlah-${i}-${j}`} type="number" min="0.01" step="any" value={r.jumlah_per_porsi} onChange={(e) => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: x.resep.map((y, l) => l === j ? { ...y, jumlah_per_porsi: e.target.value } : y) } : x) })} /></div>
                     <Tombol jenis="hapus" onClick={() => setForm({ ...form, varian: form.varian.map((x, k) => k === i ? { ...x, resep: x.resep.filter((_, l) => l !== j) } : x) })} kelas="px-2">-</Tombol>
                   </div>
                 ))}
@@ -195,6 +201,14 @@ export default function HalamanMenu() {
 
           <Tombol tipe="submit" kelas="w-full">Simpan menu</Tombol>
         </form>
+      </Dialog>
+
+      <Dialog terbuka={hapusTarget !== null} judul="Hapus menu" padaTutup={() => setHapusTarget(null)}>
+        <p className="text-sm text-tinta-lemah">Menu {hapusTarget?.nama} akan dihapus. Menu yang masih dipakai preorder aktif tidak bisa dihapus.</p>
+        <div className="mt-5 flex gap-3">
+          <Tombol onClick={() => setHapusTarget(null)} jenis="sekunder" kelas="flex-1">Batal</Tombol>
+          <Tombol onClick={() => void konfirmasiHapus()} jenis="hapus" kelas="flex-1">Hapus menu</Tombol>
+        </div>
       </Dialog>
     </div>
   );

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat, izinLaju } from "@/lib/api-final.ts";
+import { aman, galat, izinLaju , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 import { ambilPreorder, selesaikanPreorder, simpanPreorder, ubahStatusPreorder } from "@/lib/final/transaksi.ts";
 import { ambilPengaturan } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     if (!nomorAdmin && process.env.NODE_ENV === "production") {
       return NextResponse.json({ pesan: "Nomor WhatsApp admin belum dikonfigurasi" }, { status: 500 });
     }
-    const badan = skema.parse(await req.json());
+    const badan = skema.parse(await bacaJsonTerbatasi(req));
     const hasil = await simpanPreorder(badan);
     const pesan = susunPesanWhatsApp({
       kode: `${hasil.kode} / ${hasil.kode_lacak}`,
@@ -132,7 +132,7 @@ export async function PUT(req: Request) {
       id: z.number().int().positive(),
       status: z.enum(["diproses", "selesai", "batal"]),
       metode: z.enum(["tunai", "qris", "transfer"]).optional(),
-    }).strict().parse(await req.json());
+    }).strict().parse(await bacaJsonTerbatasi(req));
     if (badan.status === "selesai") await selesaikanPreorder(badan.id, pengguna, badan.metode ?? "tunai");
     else await ubahStatusPreorder(badan.id, badan.status, pengguna);
     return NextResponse.json({ berhasil: true });

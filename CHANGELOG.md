@@ -1,5 +1,36 @@
 # Riwayat Perubahan
 
+## final-v2.13.0
+
+Pembaruan besar: otomatisasi slot, kemudahan pelanggan, dan penguatan keamanan serta aksesibilitas.
+
+### Fitur baru
+
+- **Slot massal.** Pemilik membuat banyak slot sekaligus dari rentang tanggal, jam mulai, jam selesai, interval, kuota, dan hari yang dipilih, lengkap dengan pratinjau jumlah.
+- **Hapus slot.** Slot yang belum dipakai pesanan aktif bisa dihapus dari Pengaturan.
+- **Pesan lagi.** Dari halaman lacak, pelanggan memasukkan menu yang sama ke keranjang dengan satu klik.
+- **Ingat kontak.** Pelanggan bisa menyimpan nama dan WhatsApp di perangkat secara sukarela untuk pesanan berikutnya.
+- **Antrean lacak.** Halaman lacak menunjukkan jumlah pesanan aktif sebelum pesanan yang dicari.
+
+### Perbaikan keamanan
+
+- **Sesi tercabut.** Mengganti kata sandi, mengubah peran, menonaktifkan akun, atau keluar mencabut token lama. Setiap login memakai nonce baru.
+- **Body terukur.** Seluruh endpoint menerima body dengan penghitung byte nyata, bukan hanya `Content-Length`.
+- **Cadangan divalidasi.** Nilai pada berkas pemulihan dibatasi tipe dan rentangnya sebelum ditulis.
+- **Endpoint berat dibatasi.** Ekspor, laporan, dan riwayat memakai pembatas laju per pengguna.
+- **Kata sandi minimal delapan karakter.** Aturan disamakan di server dan tampilan.
+
+### Perbaikan lain
+
+- **Fokus terlihat.** Cincin fokus input tidak lagi ditimpa bayangan lemah.
+- **Grafik terbaca.** Nilai per hari tersedia untuk pembaca layar tanpa `role="img"` bertingkat.
+- **Laporan stabil.** Permintaan laporan memakai penjaga urutan dan membatasi 100 baris tampilan.
+- **Konfirmasi konsisten.** Hapus menu dan master data memakai dialog aplikasi, bukan `confirm` bawaan browser.
+- **Label terasosiasi.** Baris resep, varian, pembelian, dan opname memakai `htmlFor` dan `id`.
+- **HPP terkunci.** HPP dihitung dari harga bahan yang sudah dikunci saat stok dipotong.
+- **Kuota aman.** Kuota slot tidak boleh lebih kecil dari pesanan yang sudah terdaftar.
+- **Aksesibilitas dan konsistensi.** Tombol lacak dinonaktifkan saat kode kosong, estimasi stok tidak menampilkan kondisi aman saat data masih dimuat, format waktu diseragamkan, dan tautan website memakai navigasi klien.
+
 ## final-v2.12.0
 
 Jadwal toko dan pre-order yang terpisah, plus tombol status cepat untuk pemilik.

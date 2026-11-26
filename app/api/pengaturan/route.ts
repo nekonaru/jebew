@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 import { ambilPengaturan, simpanPengaturan } from "@/lib/final/pengaturan.ts";
 
 export const runtime = "nodejs";
@@ -34,7 +34,7 @@ export async function PUT(req: Request) {
   try {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    await simpanPengaturan(skema.parse(await req.json()), pengguna?.id);
+    await simpanPengaturan(skema.parse(await bacaJsonTerbatasi(req)), pengguna?.id);
     revalidateTag("status-final");
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }

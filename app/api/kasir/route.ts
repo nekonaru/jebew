@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 import { catatPenjualan } from "@/lib/final/transaksi.ts";
 
 export const runtime = "nodejs";
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   try {
     const { penolakan, pengguna } = await aman(req, "masuk");
     if (penolakan) return penolakan;
-    const hasil = await catatPenjualan(skema.parse(await req.json()), pengguna);
+    const hasil = await catatPenjualan(skema.parse(await bacaJsonTerbatasi(req)), pengguna);
     return NextResponse.json({
       id: hasil.id, nomor: hasil.nomor, total: hasil.total, dibuat_pada: hasil.dibuat_pada,
       items: hasil.items.map(({ hpp: _hpp, ...i }) => i),

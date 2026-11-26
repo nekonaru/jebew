@@ -19,6 +19,7 @@ export default function HalamanMaster() {
   const [nilaiKonversi, setNilaiKonversi] = useState("1");
   const [pasangan, setPasangan] = useState("kg|gram");
   const [dialog, setDialog] = useState(false);
+  const [hapusTarget, setHapusTarget] = useState<number | null>(null);
   const [edit, setEdit] = useState<number | null>(null);
   const [nama, setNama] = useState("");
   const [kontak, setKontak] = useState("");
@@ -79,8 +80,13 @@ export default function HalamanMaster() {
     }
   }
 
-  async function hapus(id: number) {
-    if (!window.confirm("Hapus data ini?")) return;
+  function hapus(id: number) {
+    setHapusTarget(id);
+  }
+
+  async function konfirmasiHapus() {
+    if (hapusTarget === null) return;
+    const id = hapusTarget;
     try {
       const path = tab === "Supplier" ? `/api/supplier?id=${id}` : `/api/kategori?id=${id}`;
       const respons = await fetch(path, { method: "DELETE" });
@@ -89,7 +95,7 @@ export default function HalamanMaster() {
         throw new Error(isi.pesan ?? "Gagal menghapus");
       }
       setGalat(false);
-      setPesan("Data dihapus.");
+      setPesan("Data dihapus."); setHapusTarget(null);
       await muat();
     } catch (err) {
       setGalat(true);
@@ -227,6 +233,14 @@ export default function HalamanMaster() {
           )}
           <Tombol tipe="submit" kelas="w-full">Simpan</Tombol>
         </form>
+      </Dialog>
+
+      <Dialog terbuka={hapusTarget !== null} judul="Hapus data" padaTutup={() => setHapusTarget(null)}>
+        <p className="text-sm text-tinta-lemah">Data yang masih dipakai transaksi tidak bisa dihapus.</p>
+        <div className="mt-5 flex gap-3">
+          <Tombol onClick={() => setHapusTarget(null)} jenis="sekunder" kelas="flex-1">Batal</Tombol>
+          <Tombol onClick={() => void konfirmasiHapus()} jenis="hapus" kelas="flex-1">Hapus</Tombol>
+        </div>
       </Dialog>
     </div>
   );

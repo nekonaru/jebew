@@ -51,6 +51,7 @@ export default function HalamanRingkasan() {
   const [publik, setPublik] = useState<Publik | null>(null);
   const [pesan, setPesan] = useState("");
   const [gagal, setGagal] = useState(false);
+  const [statusSibuk, setStatusSibuk] = useState(false);
 
   const muatPublik = () => fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik);
 
@@ -64,6 +65,8 @@ export default function HalamanRingkasan() {
   }, []);
 
   async function ubahStatus(kunci: "toko_aktif" | "preorder_aktif", nilai: boolean) {
+    if (statusSibuk) return;
+    setStatusSibuk(true);
     try {
       const respons = await fetch("/api/pengaturan/status", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -74,7 +77,7 @@ export default function HalamanRingkasan() {
       void muatPublik().catch(() => {});
     } catch (e) {
       setPesan(e instanceof Error ? e.message : "Gagal mengubah status");
-    }
+    } finally { setStatusSibuk(false); }
   }
 
   return (
@@ -107,7 +110,7 @@ export default function HalamanRingkasan() {
                   </div>
                   <p className="mt-1 text-xs text-tinta-lemah">{mulai ?? "-"} - {selesai ?? "-"} WIB</p>
                   <p className="mt-1 text-[11px] text-tinta-lemah">{status?.keterangan ?? ""}</p>
-                  <Tombol kelas="mt-3 min-h-[38px] w-full text-xs"
+                  <Tombol kelas="mt-3 min-h-[38px] w-full text-xs" nonaktif={statusSibuk}
                     onClick={() => void ubahStatus(kunci, !diaktifkan)}>
                     {diaktifkan ? `Tutup ${label.toLowerCase()}` : `Buka ${label.toLowerCase()}`}
                   </Tombol>
@@ -157,7 +160,9 @@ export default function HalamanRingkasan() {
             <h2 className="text-lg font-semibold">Bahan perlu diisi</h2>
             <Link href="/admin/stok" className="text-xs font-semibold text-utama hover:underline">Kelola stok</Link>
           </div>
-          {(statistik?.bahanMenipis ?? []).length === 0 ? (
+          {!statistik ? (
+            <div className="mt-5 rounded-xl bg-latar px-4 py-6 text-center text-sm text-tinta-lemah">Memeriksa stok...</div>
+          ) : statistik.bahanMenipis.length === 0 ? (
             <div className="mt-5 rounded-xl bg-latar px-4 py-6 text-center">
               <Badge warna="sukses">Semua stok aman</Badge>
             </div>

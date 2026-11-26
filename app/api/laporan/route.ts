@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { galat } from "@/lib/api-final.ts";
+import { galat, izinLaju } from "@/lib/api-final.ts";
 import { ambilLaporan, keCsv } from "@/lib/final/laporan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
@@ -25,6 +25,9 @@ export async function GET(req: Request) {
     }
     if (pengguna.peran !== "pemilik") {
       return NextResponse.json({ pesan: "Hanya pemilik yang bisa melihat laporan" }, { status: 403 });
+    }
+    if (!(await izinLaju(`laporan:${pengguna.id}`, 30, 60 * 1000))) {
+      return NextResponse.json({ pesan: "Terlalu banyak permintaan laporan. Coba lagi sebentar." }, { status: 429 });
     }
     const p = new URL(req.url).searchParams;
     const hari = tanggalHariIni();

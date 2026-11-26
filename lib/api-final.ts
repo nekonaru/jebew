@@ -7,7 +7,37 @@ import { penggunaSaatIni, type PenggunaSesi } from "./auth.ts";
 
 const BATAS_UKURAN = 128 * 1024;
 
+class GalatUkuran extends Error {}
+
+/** Baca body sebagai JSON dengan penghitung byte nyata, bukan hanya Content-Length. */
+export async function bacaJsonTerbatasi<T = unknown>(
+  permintaan: Request, batas = BATAS_UKURAN,
+): Promise<T> {
+  if (!permintaan.body) throw new GalatBisnis("Isi permintaan kosong");
+  const pembaca = permintaan.body.getReader();
+  const potongan: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await pembaca.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > batas) {
+      await pembaca.cancel();
+      throw new GalatUkuran("Permintaan terlalu besar");
+    }
+    potongan.push(value);
+  }
+  const panjang = potongan.reduce((n, p) => n + p.byteLength, 0);
+  const gabungan = new Uint8Array(panjang);
+  let offset = 0;
+  for (const p of potongan) { gabungan.set(p, offset); offset += p.byteLength; }
+  return JSON.parse(new TextDecoder().decode(gabungan)) as T;
+}
+
 export function galat(kesalahan: unknown): Response {
+  if (kesalahan instanceof GalatUkuran) {
+    return Response.json({ pesan: kesalahan.message }, { status: 413 });
+  }
   if (kesalahan instanceof GalatBisnis) {
     return Response.json({ pesan: kesalahan.message }, { status: 400 });
   }

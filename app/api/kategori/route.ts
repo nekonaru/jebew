@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat , bacaJsonTerbatasi} from "@/lib/api-final.ts";
 import { denganTransaksi, jalankan, query, querySatu } from "@/lib/database.ts";
 import { catatAudit } from "@/lib/audit.ts";
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   try {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    const badan = skema.parse(await req.json());
+    const badan = skema.parse(await bacaJsonTerbatasi(req));
     const id = await denganTransaksi(async () => {
       const baris = await querySatu<{ id: number }>(
         "INSERT INTO kategori_pengeluaran (nama) VALUES ($1) RETURNING id", [badan.nama],
@@ -54,7 +54,7 @@ export async function PUT(req: Request) {
   try {
     const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    const badan = z.object({ id: z.number().int().positive(), nama: skema.shape.nama }).strict().parse(await req.json());
+    const badan = z.object({ id: z.number().int().positive(), nama: skema.shape.nama }).strict().parse(await bacaJsonTerbatasi(req));
     let tidakAda = false;
     await denganTransaksi(async () => {
       const ada = await querySatu("SELECT id FROM kategori_pengeluaran WHERE id = $1 FOR UPDATE", [badan.id]);

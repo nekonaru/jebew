@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { formatRupiah, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { formatRupiah, formatWaktu, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Judul, Kartu, Pesan, Statistik, Tabel, KepalaTabel, SelKepala, BarisKosong, Tombol } from "./ui.tsx";
 
@@ -22,11 +22,14 @@ export default function HalamanLaporan() {
   const [pesan, setPesan] = useState("");
   const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
 
+  const urutMuat = useRef(0);
   const muat = useCallback(async (a: string, b: string) => {
+    const urut = ++urutMuat.current;
     try {
       const hasil = await fetch(`/api/laporan?dari=${a}&sampai=${b}`).then(ambilJson<Laporan>);
+      if (urut !== urutMuat.current) return;
       setData(hasil); setRentangAktif({ dari: a, sampai: b }); setPesan("");
-    } catch (e) { setPesan(e instanceof Error ? e.message : "Gagal memuat laporan"); }
+    } catch (e) { if (urut === urutMuat.current) setPesan(e instanceof Error ? e.message : "Gagal memuat laporan"); }
   }, []);
   useEffect(() => { const h = tanggalHariIni(); void muat(h, h); }, [muat]);
 
@@ -98,10 +101,11 @@ export default function HalamanLaporan() {
         <Kartu>
           <h2 className="text-lg font-semibold">Tren omzet harian</h2>
           {data?.harian.length ? (
-            <div className="mt-5 flex h-40 items-end gap-2" role="img" aria-label="Grafik omzet harian pada rentang yang dipilih">
+            <div className="mt-5 flex h-40 items-end gap-2" role="group" aria-label="Grafik omzet harian pada rentang yang dipilih">
               {data.harian.map((h) => (
                 <div key={h.tanggal} className="flex flex-1 flex-col items-center gap-2">
-                  <div className="flex w-full flex-1 items-end" role="img" aria-label={`${h.tanggal}, omzet ${formatRupiah(h.omzet)}`}>
+                  <span className="visually-hidden">{h.tanggal}, omzet {formatRupiah(h.omzet)}</span>
+                  <div className="flex w-full flex-1 items-end" aria-hidden="true">
                     <div className="w-full rounded-t-lg bg-utama transition-all duration-500" style={{ height: `${Math.max(6, (h.omzet / maks) * 100)}%` }} />
                   </div>
                   <span className="text-[10px] text-tinta-lemah">{h.tanggal.slice(5)}</span>
@@ -147,10 +151,10 @@ export default function HalamanLaporan() {
             <SelKepala>Sumber</SelKepala><SelKepala>Metode</SelKepala><SelKepala>Total</SelKepala>
           </tr></KepalaTabel>
           <tbody>
-            {data?.daftar.map((t) => (
+            {data?.daftar.slice(0, 100).map((t) => (
               <tr key={t.id} className="border-t border-garis">
                 <td className="px-4 py-3 font-medium">{t.nomor}</td>
-                <td className="px-4 py-3 text-xs">{t.dibuat_pada.slice(0, 16).replace("T", " ")}</td>
+                <td className="px-4 py-3 text-xs">{formatWaktu(t.dibuat_pada)}</td>
                 <td className="px-4 py-3 text-xs">{t.items.map((i) => `${i.nama} x${i.jumlah}`).join(", ")}</td>
                 <td className="px-4 py-3"><Badge warna={t.sumber === "preorder" ? "info" : "netral"}>{t.sumber}</Badge></td>
                 <td className="px-4 py-3 text-xs">{t.metode}</td>
@@ -160,6 +164,11 @@ export default function HalamanLaporan() {
             {!data?.daftar.length && <BarisKosong kolom={6} teks="Belum ada transaksi." />}
           </tbody>
         </Tabel>
+        {(data?.daftar.length ?? 0) > 100 && (
+          <p className="mt-2 text-xs text-tinta-lemah">
+            Menampilkan 100 transaksi terakhir dari {data?.daftar.length} transaksi pada rentang ini. Unduh CSV untuk melihat seluruhnya.
+          </p>
+        )}
       </div>
 
       <Kartu>

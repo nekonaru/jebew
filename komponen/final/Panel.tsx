@@ -87,7 +87,7 @@ export default function Panel({
             <p className="font-judul text-sm font-bold uppercase tracking-[0.14em]">Mie Jebew</p>
           </div>
           <div className="ml-auto flex items-center gap-4">
-            <a href="/" className="text-sm font-semibold text-utama hover:underline">Lihat website</a>
+            <Link href="/" className="text-sm font-semibold text-utama hover:underline">Lihat website</Link>
             <button onClick={() => void keluar()} className="text-sm text-tinta-lemah lg:hidden">Keluar</button>
             <span className="hidden text-sm text-tinta-lemah sm:inline">{nama}</span>
           </div>

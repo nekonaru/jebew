@@ -43,8 +43,8 @@ export async function simpanPengguna(input: PenggunaInput, id?: number, actorId?
     await query("SELECT pg_advisory_xact_lock(818881)");
     const pelaku = actorId ? { id: actorId } : null;
     if (id !== undefined) {
-      const ada = await querySatu<{ id: number; peran: string }>(
-        "SELECT id, peran FROM pengguna WHERE id = $1", [id],
+      const ada = await querySatu<{ id: number; peran: string; aktif: boolean }>(
+        "SELECT id, peran, aktif FROM pengguna WHERE id = $1", [id],
       );
       if (!ada) throw new GalatBisnis("Pengguna tidak ditemukan");
       if (id === actorId && (input.peran !== "pemilik" || !input.aktif)) {
@@ -58,10 +58,16 @@ export async function simpanPengguna(input: PenggunaInput, id?: number, actorId?
           throw new GalatBisnis("Tidak bisa menurunkan satu-satunya pemilik aktif");
         }
       }
+      const naikkanVersi = Boolean(input.kata_sandi) || ada.peran !== input.peran || Boolean(ada.aktif) !== input.aktif;
       if (input.kata_sandi) {
         await jalankan(
-          "UPDATE pengguna SET email=$1, nama=$2, kata_sandi=$3, peran=$4, aktif=$5 WHERE id=$6",
+          "UPDATE pengguna SET email=$1, nama=$2, kata_sandi=$3, peran=$4, aktif=$5, sesi_versi = sesi_versi + 1 WHERE id=$6",
           [email, input.nama, hashKataSandi(input.kata_sandi), input.peran, input.aktif, id],
+        );
+      } else if (naikkanVersi) {
+        await jalankan(
+          "UPDATE pengguna SET email=$1, nama=$2, peran=$3, aktif=$4, sesi_versi = sesi_versi + 1 WHERE id=$5",
+          [email, input.nama, input.peran, input.aktif, id],
         );
       } else {
         await jalankan(
@@ -156,18 +162,60 @@ export async function ambilSlotWaktu(): Promise<{
   );
 }
 
-export async function simpanSlotWaktu(input: { tanggal: string; jam: string; kuota: number }): Promise<void> {
+export async function simpanSlotWaktu(
+  input: { tanggal: string; jam: string; kuota: number }, actorId?: number,
+): Promise<void> {
   await denganTransaksi(async () => {
-    await querySatu(
-      "SELECT id FROM slot_waktu WHERE tanggal = $1::date AND jam = $2 FOR UPDATE",
+    const ada = await querySatu<{ terisi: number }>(
+      "SELECT terisi FROM slot_waktu WHERE tanggal = $1::date AND jam = $2 FOR UPDATE",
       [input.tanggal, input.jam],
     );
+    if (ada && Number(ada.terisi) > input.kuota) {
+      throw new GalatBisnis("Kuota tidak boleh lebih kecil dari pesanan yang sudah terdaftar");
+    }
     await jalankan(
     `INSERT INTO slot_waktu (tanggal, jam, kuota) VALUES ($1,$2,$3)
-     ON CONFLICT (tanggal, jam) DO UPDATE SET kuota = EXCLUDED.kuota,
-     terisi = (SELECT COUNT(*) FROM preorder p
-               WHERE p.slot_id = slot_waktu.id AND p.status <> 'batal')`,
+     ON CONFLICT (tanggal, jam) DO UPDATE SET kuota = EXCLUDED.kuota`,
       [input.tanggal, input.jam, input.kuota],
     );
+    await catatAudit(actorId ? { id: actorId } : null, "ubah", "slot_waktu", `Slot ${input.tanggal} ${input.jam} kuota ${input.kuota}`);
+  });
+}
+
+/** Buat banyak slot sekaligus dalam satu transaksi. */
+export async function simpanSlotMassal(
+  input: { tanggal: string; jam: string; kuota: number }[], actorId?: number,
+): Promise<void> {
+  await denganTransaksi(async () => {
+    for (const s of input) {
+      const ada = await querySatu<{ terisi: number }>(
+        "SELECT terisi FROM slot_waktu WHERE tanggal = $1::date AND jam = $2 FOR UPDATE",
+        [s.tanggal, s.jam],
+      );
+      if (ada && Number(ada.terisi) > s.kuota) {
+        throw new GalatBisnis(`Kuota ${s.tanggal} ${s.jam} lebih kecil dari pesanan yang sudah terdaftar`);
+      }
+      await jalankan(
+        `INSERT INTO slot_waktu (tanggal, jam, kuota) VALUES ($1,$2,$3)
+         ON CONFLICT (tanggal, jam) DO UPDATE SET kuota = EXCLUDED.kuota`,
+        [s.tanggal, s.jam, s.kuota],
+      );
+    }
+    await catatAudit(actorId ? { id: actorId } : null, "ubah", "slot_waktu", `${input.length} slot waktu dibuat`);
+  });
+}
+
+/** Hapus slot yang belum dipakai pesanan aktif. */
+export async function hapusSlotWaktu(id: number, actorId?: number): Promise<boolean> {
+  return denganTransaksi(async () => {
+    const baris = await querySatu<{ dipakai: number }>(
+      `SELECT COUNT(*) AS dipakai FROM preorder
+       WHERE slot_id = $1 AND status <> 'batal'`,
+      [id],
+    );
+    if (Number(baris?.dipakai ?? 0) > 0) return false;
+    await jalankan("DELETE FROM slot_waktu WHERE id = $1", [id]);
+    await catatAudit(actorId ? { id: actorId } : null, "hapus", "slot_waktu", `Slot ${id} dihapus`);
+    return true;
   });
 }

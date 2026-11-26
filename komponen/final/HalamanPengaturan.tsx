@@ -8,16 +8,30 @@ import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 type Pengaturan = Record<string, string>;
 type Pengguna = { id: number; email: string; nama: string; peran: string; aktif: boolean };
 type Slot = { id: number; tanggal: string; jam: string; kuota: number; terisi: number; dipakai: number };
+const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+function tambahHari(teks: string, jumlah: number): string {
+  const t = new Date(`${teks}T00:00:00Z`);
+  t.setUTCDate(t.getUTCDate() + jumlah);
+  return t.toISOString().slice(0, 10);
+}
+
+function menitJam(teks: string): number {
+  return Number(teks.slice(0, 2)) * 60 + Number(teks.slice(3, 5));
+}
 
 export default function HalamanPengaturan() {
   const [pengaturan, setPengaturan] = useState<Pengaturan>({});
   const [pengguna, setPengguna] = useState<Pengguna[]>([]);
   const [slot, setSlot] = useState<Slot[]>([]);
-  const [dialog, setDialog] = useState<"pengguna" | "slot" | null>(null);
+  const [dialog, setDialog] = useState<"pengguna" | "slot" | "massal" | null>(null);
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
   const [formP, setFormP] = useState({ email: "", nama: "", kata_sandi: "", peran: "kasir", aktif: true });
   const [formS, setFormS] = useState({ tanggal: "", jam: "12:00", kuota: "10" });
+  const [formM, setFormM] = useState({ dari: tanggalHariIni(), sampai: "", jam_mulai: "10:00", jam_selesai: "21:00", interval: "60", kuota: "10" });
+  const [hariM, setHariM] = useState<number[]>([1, 2, 3, 4, 5, 6, 0]);
+  const [hapusSlotId, setHapusSlotId] = useState<number | null>(null);
   const [cadangan, setCadangan] = useState<Record<string, unknown[]> | null>(null);
   const [konfirmasi, setKonfirmasi] = useState("");
   const [memulihkan, setMemulihkan] = useState(false);
@@ -102,6 +116,42 @@ export default function HalamanPengaturan() {
     } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); }
   }
 
+  const perkiraanSlot = (() => {
+    if (!formM.dari || !formM.sampai || formM.sampai < formM.dari) return 0;
+    const mulai = menitJam(formM.jam_mulai);
+    const selesai = menitJam(formM.jam_selesai);
+    const interval = Number(formM.interval);
+    if (!interval || mulai >= selesai) return 0;
+    let jumlah = 0;
+    for (let t = formM.dari; t <= formM.sampai; t = tambahHari(t, 1)) {
+      if (hariM.includes(new Date(`${t}T00:00:00Z`).getUTCDay())) {
+        jumlah += Math.ceil((selesai - mulai) / interval);
+      }
+    }
+    return jumlah;
+  })();
+
+  async function simpanMassal(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      const respons = await fetch("/api/slot/massal", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formM, interval: Number(formM.interval), kuota: Number(formM.kuota), hari: hariM }),
+      });
+      const hasil = await ambilJson<{ dibuat: number }>(respons);
+      setDialog(null); setJenis("sukses"); setPesan(`${hasil.dibuat} slot berhasil dibuat.`); void muat();
+    } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal membuat slot"); }
+  }
+
+  async function hapusSlot() {
+    if (hapusSlotId === null) return;
+    try {
+      const respons = await fetch(`/api/slot/${hapusSlotId}`, { method: "DELETE" });
+      await ambilJson(respons);
+      setJenis("sukses"); setPesan("Slot dihapus."); setHapusSlotId(null); void muat();
+    } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menghapus slot"); }
+  }
+
   async function pilihBerkas(e: React.ChangeEvent<HTMLInputElement>) {
     const berkas = e.target.files?.[0];
     setCadangan(null); setKonfirmasi("");
@@ -114,7 +164,8 @@ export default function HalamanPengaturan() {
       const isi = JSON.parse(await berkas.text()) as {
         aplikasi?: string; versi?: string; data?: Record<string, unknown[]>;
       };
-      if (isi.aplikasi !== "Jebew" || !isi.data || typeof isi.data !== "object") {
+      if (isi.aplikasi !== "Jebew" || !isi.data || typeof isi.data !== "object"
+        || Object.values(isi.data).some((isiTabel) => !Array.isArray(isiTabel))) {
         throw new Error("Berkas bukan cadangan Jebew yang valid");
       }
       setCadangan(isi.data);
@@ -189,7 +240,7 @@ export default function HalamanPengaturan() {
               {Object.keys(cadangan).filter((k) => k !== "pengguna" && k !== "pembatasan_laju").length} tabel, {" "}
               {Object.entries(cadangan)
                 .filter(([k]) => k !== "pengguna" && k !== "pembatasan_laju")
-                .reduce((n, [, b]) => n + b.length, 0)} baris siap dipulihkan.
+                .reduce((n, [, b]) => n + (Array.isArray(b) ? b.length : 0), 0)} baris siap dipulihkan.
             </p>
           )}
         </div>
@@ -250,9 +301,12 @@ export default function HalamanPengaturan() {
           </Kartu>
 
           <Kartu>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold">Slot pre-order</h2>
-              <Tombol onClick={() => setDialog("slot")} kelas="min-h-[38px] px-3 text-xs">Tambah slot</Tombol>
+              <div className="flex gap-2">
+                <Tombol onClick={() => setDialog("massal")} kelas="min-h-[38px] px-3 text-xs" jenis="sekunder">Buat massal</Tombol>
+                <Tombol onClick={() => setDialog("slot")} kelas="min-h-[38px] px-3 text-xs">Tambah slot</Tombol>
+              </div>
             </div>
             <ul className="mt-4 space-y-2">
               {slot.map((s) => {
@@ -260,8 +314,12 @@ export default function HalamanPengaturan() {
                 return (
                   <li key={s.id} className="rounded-xl border border-garis p-3 text-sm">
                     <div className="flex items-center justify-between gap-3">
-                      <span>{s.tanggal} - {s.jam}</span>
-                      <Badge warna={s.dipakai >= s.kuota ? "bahaya" : "sukses"}>{s.dipakai}/{s.kuota}</Badge>
+                      <span>{s.tanggal} - {s.jam} WIB</span>
+                      <div className="flex items-center gap-2">
+                        <Badge warna={s.dipakai >= s.kuota ? "bahaya" : "sukses"}>{s.dipakai}/{s.kuota}</Badge>
+                        <Tombol onClick={() => setHapusSlotId(s.id)} jenis="hapus" kelas="min-h-[32px] px-2 text-xs"
+                          nama={`hapus-slot-${s.id}`}>Hapus</Tombol>
+                      </div>
                     </div>
                     <div role="progressbar" aria-valuenow={persen} aria-valuemin={0} aria-valuemax={100}
                       aria-label={`Kuota terpakai ${s.tanggal} ${s.jam}`}
@@ -284,7 +342,7 @@ export default function HalamanPengaturan() {
           <div>
             <label htmlFor="u-sandi">Kata sandi {editPengguna && <span className="text-tinta-lemah">(kosongkan bila tidak diubah)</span>}</label>
             <div className="relative">
-              <input id="u-sandi" type={tampilSandi ? "text" : "password"} minLength={6} required={!editPengguna} className="pr-12"
+              <input id="u-sandi" type={tampilSandi ? "text" : "password"} minLength={8} required={!editPengguna} className="pr-12"
                 value={formP.kata_sandi} onChange={(e) => setFormP({ ...formP, kata_sandi: e.target.value })} />
               <button type="button"
                 onClick={() => setTampilSandi((nilai) => !nilai)}
@@ -311,6 +369,50 @@ export default function HalamanPengaturan() {
           <div><label htmlFor="sl-kuota">Kuota</label><input id="sl-kuota" type="number" min={1} required value={formS.kuota} onChange={(e) => setFormS({ ...formS, kuota: e.target.value })} /></div>
           <Tombol tipe="submit" kelas="w-full">Simpan slot</Tombol>
         </form>
+      </Dialog>
+
+      <Dialog terbuka={dialog === "massal"} judul="Buat slot massal" padaTutup={() => setDialog(null)}>
+        <form onSubmit={simpanMassal} className="space-y-4">
+          <p className="text-xs leading-relaxed text-tinta-lemah">
+            Buat banyak slot sekaligus untuk rentang tanggal dan jam tertentu. Slot yang sudah ada kuotanya akan diperbarui.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label htmlFor="m-dari">Dari tanggal</label><input id="m-dari" type="date" required min={tanggalHariIni()} value={formM.dari} onChange={(e) => setFormM({ ...formM, dari: e.target.value })} /></div>
+            <div><label htmlFor="m-sampai">Sampai tanggal</label><input id="m-sampai" type="date" required min={formM.dari} max={tambahHari(formM.dari, 31)} value={formM.sampai} onChange={(e) => setFormM({ ...formM, sampai: e.target.value })} /></div>
+            <div><label htmlFor="m-mulai">Jam mulai</label><input id="m-mulai" type="time" required value={formM.jam_mulai} onChange={(e) => setFormM({ ...formM, jam_mulai: e.target.value })} /></div>
+            <div><label htmlFor="m-selesai">Jam selesai</label><input id="m-selesai" type="time" required value={formM.jam_selesai} onChange={(e) => setFormM({ ...formM, jam_selesai: e.target.value })} /></div>
+            <div>
+              <label htmlFor="m-interval">Interval</label>
+              <select id="m-interval" value={formM.interval} onChange={(e) => setFormM({ ...formM, interval: e.target.value })}>
+                {[30, 60, 90, 120].map((n) => <option key={n} value={n}>{n} menit</option>)}
+              </select>
+            </div>
+            <div><label htmlFor="m-kuota">Kuota per slot</label><input id="m-kuota" type="number" min={1} max={1000} required value={formM.kuota} onChange={(e) => setFormM({ ...formM, kuota: e.target.value })} /></div>
+          </div>
+          <fieldset className="rounded-xl border border-garis p-4">
+            <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-tinta-lemah">Hari dibuat</legend>
+            <div className="flex flex-wrap gap-2">
+              {HARI.map((nama, indeks) => (
+                <label key={nama} className="flex items-center gap-1.5 rounded-lg border border-garis px-2 py-1.5 text-xs">
+                  <input type="checkbox" checked={hariM.includes(indeks)}
+                    aria-label={`Hari ${nama}`}
+                    onChange={() => setHariM((d) => d.includes(indeks) ? d.filter((h) => h !== indeks) : [...d, indeks])} />
+                  {nama}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <p className="text-xs font-semibold text-utama">Perkiraan {perkiraanSlot} slot. Maksimal 150 slot per pembuatan.</p>
+          <Tombol tipe="submit" kelas="w-full" nonaktif={perkiraanSlot === 0 || perkiraanSlot > 150}>Buat {perkiraanSlot} slot</Tombol>
+        </form>
+      </Dialog>
+
+      <Dialog terbuka={hapusSlotId !== null} judul="Hapus slot" padaTutup={() => setHapusSlotId(null)}>
+        <p className="text-sm text-tinta-lemah">Slot yang sudah dipakai pesanan aktif tidak bisa dihapus.</p>
+        <div className="mt-5 flex gap-3">
+          <Tombol onClick={() => setHapusSlotId(null)} jenis="sekunder" kelas="flex-1">Batal</Tombol>
+          <Tombol onClick={() => void hapusSlot()} jenis="hapus" kelas="flex-1">Hapus slot</Tombol>
+        </div>
       </Dialog>
     </div>
   );

@@ -1,6 +1,7 @@
+import { NextResponse } from "next/server";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat, izinLaju } from "@/lib/api-final.ts";
 import { denganTransaksi, query } from "@/lib/database.ts";
 import { tanggalHariIni } from "@/lib/format.ts";
 
@@ -19,8 +20,11 @@ function versiAplikasi(): string {
 /** Cadangan seluruh data usaha untuk pemilik. Kata sandi sengaja tidak disertakan. */
 export async function GET(req: Request) {
   try {
-    const { penolakan } = await aman(req, "pemilik");
+    const { penolakan, pengguna } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
+    if (!(await izinLaju(`ekspor:${pengguna?.id ?? "pemilik"}`, 10, 60 * 1000))) {
+      return NextResponse.json({ pesan: "Terlalu banyak unduhan. Coba lagi sebentar." }, { status: 429 });
+    }
 
     const tabel = [
       "pengaturan", "supplier", "konversi_satuan", "bahan", "pergerakan_stok",

@@ -21,7 +21,7 @@ export default function GrafikOmzet({ data }: { data: TitikOmzet[] }) {
       </div>
 
       <div
-        role="img"
+        role="group"
         aria-label={`Omzet tujuh hari terakhir, total ${formatRupiah(total)}`}
         className="mt-5 flex h-44 items-end gap-2 sm:gap-3"
       >
@@ -33,9 +33,9 @@ export default function GrafikOmzet({ data }: { data: TitikOmzet[] }) {
               <span className="text-[10px] font-semibold text-tinta-lemah">
                 {d.omzet > 0 ? `${(d.omzet / 1000).toFixed(1).replace(/\.0$/, "")}rb` : "-"}
               </span>
+              <span className="visually-hidden">{d.tanggal}: {formatRupiah(d.omzet)}, {d.transaksi} transaksi</span>
               <div
-                role="img"
-                aria-label={`${d.tanggal}: ${formatRupiah(d.omzet)}, ${d.transaksi} transaksi`}
+                aria-hidden="true"
                 className="w-full max-w-12 rounded-t-lg bg-gradient-to-t from-utama to-utama-terang transition-[height] duration-500 ease-[var(--ease-halus)]"
                 style={{ height: `${persen}%` }}
               />

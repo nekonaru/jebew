@@ -3,13 +3,13 @@
 
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
-import { querySatu } from "./database.ts";
+import { jalankan, querySatu } from "./database.ts";
 
 const NAMA_COOKIE = "jebew_final_sesi";
 const DURASI = 60 * 60 * 12;
 
 export type Peran = "pemilik" | "kasir";
-export type PenggunaSesi = { id: number; nama: string; email: string; peran: Peran };
+export type PenggunaSesi = { id: number; nama: string; email: string; peran: Peran; versi?: number };
 
 function kunciRahasia(): string {
   const nilai = process.env.RAHASIA_SESI;
@@ -39,9 +39,11 @@ function tanda(payload: string): string {
   return createHmac("sha256", kunciRahasia()).update(payload).digest("hex");
 }
 
-export function buatToken(isi: PenggunaSesi): string {
+export function buatToken(isi: PenggunaSesi, versi = 0): string {
   const muatan = Buffer.from(JSON.stringify({
-    ...isi,
+    id: isi.id, nama: isi.nama, email: isi.email, peran: isi.peran,
+    versi,
+    nonce: randomBytes(12).toString("hex"),
     berlakuHingga: Math.floor(Date.now() / 1000) + DURASI,
   })).toString("base64url");
   return `${muatan}.${tanda(muatan)}`;
@@ -58,11 +60,12 @@ export function bacaToken(token: string | undefined): PenggunaSesi | null {
 
   try {
     const isi = JSON.parse(Buffer.from(muatan, "base64url").toString("utf8")) as PenggunaSesi & {
-      berlakuHingga?: number;
+      berlakuHingga?: number; versi?: number;
     };
     if (typeof isi.berlakuHingga !== "number" || isi.berlakuHingga <= Date.now() / 1000) return null;
+    if (typeof isi.versi !== "number") return null;
     if (isi.peran !== "pemilik" && isi.peran !== "kasir") return null;
-    return { id: isi.id, nama: isi.nama, email: isi.email, peran: isi.peran };
+    return { id: isi.id, nama: isi.nama, email: isi.email, peran: isi.peran, versi: isi.versi };
   } catch {
     return null;
   }
@@ -76,13 +79,13 @@ export async function penggunaSaatIni(): Promise<PenggunaSesi | null> {
   // Status dan peran selalu dibaca ulang dari database agar perubahan admin
   // langsung berlaku tanpa menunggu token kedaluwarsa.
   const baris = await querySatu<{
-    id: number; email: string; nama: string; peran: Peran; aktif: boolean;
+    id: number; email: string; nama: string; peran: Peran; aktif: boolean; sesi_versi: number;
   }>(
-    "SELECT id, email, nama, peran, aktif FROM pengguna WHERE id = $1 AND aktif = TRUE",
+    "SELECT id, email, nama, peran, aktif, sesi_versi FROM pengguna WHERE id = $1 AND aktif = TRUE",
     [dariToken.id],
   );
-  if (!baris) return null;
-  return { id: baris.id, email: baris.email, nama: baris.nama, peran: baris.peran };
+  if (!baris || Number(baris.sesi_versi) !== dariToken.versi) return null;
+  return { id: baris.id, email: baris.email, nama: baris.nama, peran: baris.peran, versi: baris.sesi_versi };
 }
 
 export async function verifikasiLogin(email: string, kataSandi: string): Promise<PenggunaSesi | null> {
@@ -93,10 +96,16 @@ export async function verifikasiLogin(email: string, kataSandi: string): Promise
     kata_sandi: string;
     peran: Peran;
     aktif: boolean;
-  }>("SELECT id, email, nama, kata_sandi, peran, aktif FROM pengguna WHERE email = $1", [email]);
+    sesi_versi: number;
+  }>("SELECT id, email, nama, kata_sandi, peran, aktif, sesi_versi FROM pengguna WHERE email = $1", [email]);
 
   if (!baris || !baris.aktif || !cocokKataSandi(kataSandi, baris.kata_sandi)) return null;
-  return { id: baris.id, email: baris.email, nama: baris.nama, peran: baris.peran };
+  return { id: baris.id, email: baris.email, nama: baris.nama, peran: baris.peran, versi: Number(baris.sesi_versi) };
+}
+
+/** Cabut semua sesi milik pengguna dengan menaikkan versi sesinya. */
+export async function cabutSesi(id: number): Promise<void> {
+  await jalankan("UPDATE pengguna SET sesi_versi = sesi_versi + 1 WHERE id = $1", [id]);
 }
 
 export const pilihanCookie = {

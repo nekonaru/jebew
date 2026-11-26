@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
+import { formatRupiah, formatWaktu, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { usePeran } from "./Panel.tsx";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tabel, Tombol, KepalaTabel, SelKepala, BarisKosong } from "./ui.tsx";
@@ -16,6 +16,7 @@ export default function HalamanKeuangan() {
   const [tutup, setTutup] = useState<Tutup[]>([]);
   const [audit, setAudit] = useState<Audit[]>([]);
   const [auditFilter, setAuditFilter] = useState({ aksi: "", tabel: "", cari: "" });
+  const [cariAudit, setCariAudit] = useState("");
   const [dialog, setDialog] = useState<"pengeluaran" | "tutup" | null>(null);
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"info" | "sukses" | "galat">("info");
@@ -42,6 +43,11 @@ export default function HalamanKeuangan() {
     } catch { /* abaikan */ }
   }, [pemilik, auditFilter]);
   useEffect(() => { void muatAudit(); }, [muatAudit]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setAuditFilter((f) => ({ ...f, cari: cariAudit })), 250);
+    return () => clearTimeout(t);
+  }, [cariAudit]);
 
   async function kirimPengeluaran(e: React.FormEvent) {
     e.preventDefault();
@@ -132,8 +138,8 @@ export default function HalamanKeuangan() {
               </div>
               <div>
                 <label htmlFor="au-cari">Cari catatan</label>
-                <input id="au-cari" type="search" value={auditFilter.cari} placeholder="Kata kunci atau nama pengguna"
-                  onChange={(e) => setAuditFilter({ ...auditFilter, cari: e.target.value })} />
+                <input id="au-cari" type="search" value={cariAudit} placeholder="Kata kunci atau nama pengguna"
+                  onChange={(e) => setCariAudit(e.target.value)} />
               </div>
             </div>
             <a
@@ -145,12 +151,13 @@ export default function HalamanKeuangan() {
           </Kartu>
           <Kartu>
             {audit.length === 0 && <p className="py-4 text-center text-sm text-tinta-lemah">Tidak ada aktivitas yang cocok.</p>}
+            {audit.length > 20 && <p className="mb-3 text-xs text-tinta-lemah">Menampilkan 20 aktivitas terbaru. Unduh CSV untuk melihat seluruhnya.</p>}
             <ul className="space-y-2 text-sm">
               {audit.slice(0, 20).map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2 border-b border-garis py-2 last:border-0">
                   <Badge>{a.aksi}</Badge><span className="font-medium">{a.tabel}</span>
                   <span className="text-tinta-lemah">{a.catatan}</span>
-                  <span className="ml-auto text-xs text-tinta-lemah">{a.nama_pengguna ?? "Sistem"} - {a.dibuat_pada.slice(0, 16).replace("T", " ")}</span>
+                  <span className="ml-auto text-xs text-tinta-lemah">{a.nama_pengguna ?? "Sistem"} - {formatWaktu(a.dibuat_pada)}</span>
                 </li>
               ))}
             </ul>

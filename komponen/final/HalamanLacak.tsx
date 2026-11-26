@@ -8,8 +8,8 @@ import { Badge, Kartu, Pesan, Tombol } from "./ui.tsx";
 
 type Hasil = {
   kode: string; kode_lacak: string; nama_pelanggan: string; waktu_ambil: string;
-  status: string; dibuat_pada: string;
-  items: { nama_menu: string; nama_varian: string; jumlah: number; subtotal: number }[];
+  status: string; dibuat_pada: string; antrean?: number;
+  items: { menu_id: number; varian_id: number | null; nama_menu: string; nama_varian: string; jumlah: number; subtotal: number }[];
   total: number;
 };
 
@@ -89,7 +89,7 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
         <form onSubmit={(e) => void cari(e)} className="mt-6 flex gap-2">
           <label htmlFor="kode" className="visually-hidden">Kode lacak</label>
           <input id="kode" value={kode} onChange={(e) => setKode(e.target.value)} placeholder="Contoh: A1B2C3D4" className="flex-1" />
-          <Tombol tipe="submit" nonaktif={loading}>{loading ? "Mencari..." : "Cari"}</Tombol>
+          <Tombol tipe="submit" nonaktif={loading || !kode.trim()}>{loading ? "Mencari..." : "Cari"}</Tombol>
         </form>
 
         <div className="mt-5"><Pesan teks={pesan} jenis="galat" /></div>
@@ -123,6 +123,13 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
                     </li>
                   ))}
                 </ol>
+                {hasil.status !== "selesai" && (
+                  <p className="mt-4 rounded-xl bg-latar px-4 py-3 text-xs text-tinta-lemah">
+                    {hasil.antrean === 0
+                      ? "Belum ada pesanan aktif sebelum kamu. Pesananmu berikutnya yang diproses."
+                      : `Ada ${hasil.antrean} pesanan aktif sebelum kamu. Kode lacak ini dipakai untuk mengecek progres.`}
+                  </p>
+                )}
               </Kartu>
             )}
 
@@ -138,6 +145,23 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
                 <li className="flex justify-between border-t border-garis pt-2 font-semibold"><span>Total</span><span>{formatRupiah(hasil.total)}</span></li>
               </ul>
             </Kartu>
+
+            <Tombol
+              onClick={() => {
+                try {
+                  localStorage.setItem("jebew_pesan_lagi", JSON.stringify({
+                    items: hasil.items.map((it) => ({ menu_id: it.menu_id, varian_id: it.varian_id, jumlah: it.jumlah })),
+                    nama: hasil.nama_pelanggan,
+                  }));
+                  window.location.href = "/";
+                } catch {
+                  setPesan("Browser tidak menyimpan data. Catat menu pesanan lalu pilih ulang di beranda.");
+                }
+              }}
+              kelas="w-full"
+            >
+              Pesan menu yang sama lagi
+            </Tombol>
           </div>
         )}
       </main>
