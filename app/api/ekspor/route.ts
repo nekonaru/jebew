@@ -34,12 +34,17 @@ export async function GET(req: Request) {
     // karena transaksi memakai satu koneksi.
     const data = await denganTransaksi(async () => {
       const hasil: Record<string, unknown> = {};
-      for (const nama of tabel) hasil[nama] = await query(`SELECT * FROM ${nama}`);
+      const dipotong: string[] = [];
+      for (const nama of tabel) {
+        const baris = await query(`SELECT * FROM ${nama} LIMIT 10001`);
+        if (baris.length > 10000) dipotong.push(nama);
+        hasil[nama] = baris.slice(0, 10000);
+      }
       // Kata sandi pengguna sengaja tidak ikut dicadangkan.
       hasil.pengguna = await query(
         "SELECT id, nama, email, peran, aktif, dibuat_pada FROM pengguna ORDER BY id",
       );
-      return hasil;
+      return { data: hasil, dipotong };
     }, "REPEATABLE READ");
 
     const isi = JSON.stringify({
@@ -47,7 +52,8 @@ export async function GET(req: Request) {
       versi: versiAplikasi(),
       diekspor_pada: new Date().toISOString(),
       zona_waktu: "Asia/Jakarta",
-      data,
+      dipotong: data.dipotong,
+      data: data.data,
     });
 
     return new Response(isi, {

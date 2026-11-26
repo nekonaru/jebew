@@ -117,7 +117,7 @@ export async function POST(req: Request) {
       kode: hasil.kode, kode_lacak: hasil.kode_lacak, total: hasil.total,
       items: hasil.items.map(({ hpp: _hpp, ...i }) => i),
       pesan,
-      tautan: nomorAdmin ? tautanWhatsApp(nomorAdmin, pesan) : null,
+      tautan: tautanWhatsApp(nomorAdmin, pesan) || null,
     }, { status: 201 });
   } catch (e) { return galat(e) as NextResponse; }
 }

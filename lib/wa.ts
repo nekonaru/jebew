@@ -52,8 +52,18 @@ export function susunPesanWhatsApp(rincian: RincianPreorder): string {
   return bagian.join("\n");
 }
 
-/** Membuat tautan wa.me. Nomor admin sudah disimpan tanpa tanda plus. */
+/** Ubah nomor lokal menjadi format internasional wa.me tanpa tanda plus. */
+export function nomorWhatsApp(nomor: string): string {
+  const angka = nomor.replace(/[^\d]/g, "");
+  if (!angka) return "";
+  if (angka.startsWith("0")) return `62${angka.slice(1)}`;
+  if (angka.startsWith("8")) return `62${angka}`;
+  return angka;
+}
+
+/** Membuat tautan wa.me dari nomor lokal maupun internasional. */
 export function tautanWhatsApp(nomorAdmin: string, pesan: string): string {
-  const nomorBersih = nomorAdmin.replace(/[^\d]/g, "");
+  const nomorBersih = nomorWhatsApp(nomorAdmin);
+  if (!nomorBersih) return "";
   return `https://wa.me/${nomorBersih}?text=${encodeURIComponent(pesan)}`;
 }

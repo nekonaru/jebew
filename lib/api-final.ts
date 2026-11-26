@@ -29,7 +29,8 @@ export function galat(kesalahan: unknown): Response {
       pesan: nama.includes("pengguna_email") ? "Email sudah dipakai" : "Data dengan nilai tersebut sudah ada",
     }, { status: 400 });
   }
-  if (typeof kesalahan === "object" && kesalahan !== null && "code" in kesalahan && kesalahan.code === "40P01") {
+  if (typeof kesalahan === "object" && kesalahan !== null && "code" in kesalahan
+    && ["40P01", "40001"].includes(String(kesalahan.code))) {
     return Response.json({ pesan: "Transaksi bentrok dengan permintaan lain. Coba lagi sebentar." }, { status: 400 });
   }
   const teks = kesalahan instanceof Error ? kesalahan.message : String(kesalahan);

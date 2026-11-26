@@ -484,6 +484,26 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         {hasil && (
           <div className="space-y-4">
             <Pesan teks={`Pesanan ${hasil.kode} berhasil. Simpan kode lacak ${hasil.kode_lacak} untuk mengecek status.`} jenis="sukses" />
+            <button type="button"
+              onClick={() => {
+                if (!navigator.clipboard?.writeText) {
+                  setToastGalat(true); setToast("Browser tidak mendukung penyalinan. Catat kode secara manual.");
+                  setToastUrut((n) => n + 1);
+                  return;
+                }
+                void navigator.clipboard.writeText(hasil.kode_lacak)
+                  .then(() => {
+                    setToastGalat(false); setToast(`Kode lacak ${hasil.kode_lacak} disalin.`);
+                    setToastUrut((n) => n + 1);
+                  })
+                  .catch(() => {
+                    setToastGalat(true); setToast("Kode lacak tidak berhasil disalin.");
+                    setToastUrut((n) => n + 1);
+                  });
+              }}
+              className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold text-utama transition hover:bg-latar">
+              Salin kode lacak {hasil.kode_lacak}
+            </button>
             <pre className="overflow-x-auto rounded-xl bg-latar p-4 text-xs leading-relaxed">{hasil.pesan}</pre>
             {hasil.tautan ? (
               <a href={hasil.tautan} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-sukses px-4 text-sm font-semibold text-white hover:brightness-95">Kirim ke WhatsApp</a>

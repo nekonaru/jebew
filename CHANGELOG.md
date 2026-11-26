@@ -1,5 +1,20 @@
 # Riwayat Perubahan
 
+## final-v2.10.0
+
+Audit putaran kedua puluh enam dan alur cadangan yang seimbang.
+
+### Fitur baru
+
+- **Salin kode di dialog sukses.** Pelanggan bisa langsung menyalin kode lacak setelah pesanan dibuat.
+
+### Perbaikan
+
+- **Nomor WhatsApp dinormalisasi.** Nomor lokal `08...` kini diterjemahkan ke format `wa.me/62...` untuk tautan admin maupun pelanggan.
+- **Ekspor sesuai batas pemulihan.** Tiap tabel dibatasi 10.000 baris dan berkas memuat daftar tabel yang dipotong, sehingga cadangan yang diunduh tetap bisa dipulihkan.
+- **Pemulihan memakai SERIALIZABLE.** Transaksi yang bentrok saat pemulihan gagal dengan pesan yang jelas, bukan data yatim.
+- **Dialog sukses lebih lengkap.** Tombol salin punya pesan galat bila browser tidak mendukung.
+
 ## final-v2.9.0
 
 Audit putaran kedua puluh lima dan kemudahan menghubungi pelanggan.

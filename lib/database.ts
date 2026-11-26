@@ -77,7 +77,7 @@ export async function jalankan(teks: string, nilai: unknown[] = []): Promise<num
 /** Satu unit kerja atomik. Kueri di dalam callback memakai koneksi dan transaksi yang sama. */
 export async function denganTransaksi<T>(
   kerja: () => Promise<T>,
-  isolasi: "READ COMMITTED" | "REPEATABLE READ" = "READ COMMITTED",
+  isolasi: "READ COMMITTED" | "REPEATABLE READ" | "SERIALIZABLE" = "READ COMMITTED",
 ): Promise<T> {
   const klien = await dapatkanKumpulan().connect();
   try {

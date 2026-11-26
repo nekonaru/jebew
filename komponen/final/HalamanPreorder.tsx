@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatRupiah } from "@/lib/format.ts";
+import { nomorWhatsApp } from "@/lib/wa.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
@@ -131,8 +132,10 @@ export default function HalamanPreorder() {
                 <div><p className="text-xs text-tinta-lemah">Pelanggan</p><p className="font-medium">{p.nama_pelanggan}</p></div>
                 <div>
                   <p className="text-xs text-tinta-lemah">WhatsApp</p>
-                  <a href={`https://wa.me/${p.whatsapp.replace(/[^\d]/g, "")}`} target="_blank" rel="noopener noreferrer"
-                    className="font-medium text-utama hover:underline">{p.whatsapp}</a>
+                  {nomorWhatsApp(p.whatsapp) ? (
+                    <a href={`https://wa.me/${nomorWhatsApp(p.whatsapp)}`} target="_blank" rel="noopener noreferrer"
+                      className="font-medium text-utama hover:underline">{p.whatsapp}</a>
+                  ) : <span className="font-medium">{p.whatsapp}</span>}
                 </div>
                 <div className="col-span-2"><p className="text-xs text-tinta-lemah">Waktu ambil</p><p className="font-medium">{p.waktu_ambil}</p></div>
               </div>

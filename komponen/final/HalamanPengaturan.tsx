@@ -154,6 +154,9 @@ export default function HalamanPengaturan() {
             Unduh cadangan
           </a>
         </div>
+        <p className="mt-3 text-xs text-tinta-lemah">
+          Setiap tabel dibatasi 10.000 baris agar berkas tetap bisa dipulihkan.
+        </p>
         <div className="mt-5 border-t border-garis pt-5">
           <h3 className="text-sm font-semibold">Pulihkan dari cadangan</h3>
           <p className="mt-1 text-xs text-tinta-lemah">

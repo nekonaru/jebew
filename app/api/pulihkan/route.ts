@@ -31,6 +31,7 @@ const UKURAN_BATCH = 200;
 const skema = z.object({
   aplikasi: z.literal("Jebew"),
   versi: z.string().max(20).optional(),
+  dipotong: z.array(z.string()).optional(),
   konfirmasi: z.literal("PULIHKAN"),
   data: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))),
 }).strict();
@@ -120,7 +121,7 @@ export async function POST(req: Request) {
       }
       await catatAudit(pengguna, "tambah", "pulihkan", `${Object.keys(dataCadangan).length} tabel dipulihkan`);
       return Object.values(dataCadangan).reduce((n, b) => n + b.length, 0);
-    });
+    }, "SERIALIZABLE");
 
     return NextResponse.json({ berhasil: true, jumlahBaris: hasil });
   } catch (kesalahan) {
