@@ -114,7 +114,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 
 | Fitur | Deskripsi |
 |-------|-----------|
-| **Kasir** | Pilih menu dan varian, diskon, metode bayar, catatan, dan struk yang bisa dicetak |
+| **Kasir** | Cari menu, pilih varian, diskon, metode bayar, catatan, dan cetak struk |
 | **Varian** | Level pedas dan topping punya harga dan resep sendiri |
 | **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, saring pesanan berdasarkan status, nama, atau tanggal, dan unduh CSV |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |

@@ -9,6 +9,11 @@ for (const b of baris) {
   if (m) env[m[1]] = m[2].replace(/^['"]|['"]$/g, "");
 }
 
+if (process.env.NODE_ENV === "production" || !process.argv.includes("--iya")) {
+  console.error("Tolak: jalankan hanya pada database uji dengan argumen --iya.");
+  process.exit(1);
+}
+
 const klien = new pg.Client({
   connectionString: env.DATABASE_URL,
   ssl: { rejectUnauthorized: env.DATABASE_TLS_VERIFY !== "false" },

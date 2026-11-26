@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Kartu, Pesan, Tombol } from "./ui.tsx";
@@ -22,27 +22,43 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
   const [pesan, setPesan] = useState("");
   const [loading, setLoading] = useState(false);
   const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
+  const pengendali = useRef<AbortController | null>(null);
 
   async function cari(e?: FormEvent) {
     e?.preventDefault();
     if (!kode.trim()) return;
+    pengendali.current?.abort();
+    pengendali.current = new AbortController();
     setLoading(true); setPesan(""); setHasil(null);
     try {
-      const data = await fetch(`/api/lacak?kode=${encodeURIComponent(kode.trim())}`).then(ambilJson<Hasil>);
+      const data = await fetch(`/api/lacak?kode=${encodeURIComponent(kode.trim())}`, {
+        signal: pengendali.current.signal,
+      }).then(ambilJson<Hasil>);
       setHasil(data);
-    } catch (err) { setPesan(err instanceof Error ? err.message : "Pesanan tidak ditemukan"); }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setPesan(err instanceof Error ? err.message : "Pesanan tidak ditemukan");
+    }
     finally { setLoading(false); }
   }
 
   useEffect(() => {
     if (!kodeAwal) return;
+    pengendali.current?.abort();
+    pengendali.current = new AbortController();
     setKode(kodeAwal); setHasil(null); setPesan(""); setLoading(true);
-    void fetch(`/api/lacak?kode=${encodeURIComponent(kodeAwal)}`).then(ambilJson<Hasil>)
+    void fetch(`/api/lacak?kode=${encodeURIComponent(kodeAwal)}`, { signal: pengendali.current.signal })
+      .then(ambilJson<Hasil>)
       .then(setHasil)
-      .catch((err: unknown) => setPesan(err instanceof Error ? err.message : "Pesanan tidak ditemukan"))
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setPesan(err instanceof Error ? err.message : "Pesanan tidak ditemukan");
+      })
       .finally(() => setLoading(false));
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [kodeAwal]);
+
+  useEffect(() => () => pengendali.current?.abort(), []);
 
   useEffect(() => {
     void fetch("/api/dashboard")

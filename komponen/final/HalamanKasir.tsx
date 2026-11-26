@@ -15,6 +15,7 @@ export default function HalamanKasir() {
   const [menu, setMenu] = useState<Menu[]>([]);
   const [keranjang, setKeranjang] = useState<Baris[]>([]);
   const [pilihMenu, setPilihMenu] = useState("");
+  const [cariMenu, setCariMenu] = useState("");
   const [pilihVarian, setPilihVarian] = useState("");
   const [jumlah, setJumlah] = useState("1");
   const [diskon, setDiskon] = useState("0");
@@ -44,7 +45,8 @@ export default function HalamanKasir() {
   }, []);
 
   const menuPilih = useMemo(() => menu.find((m) => m.id === Number(pilihMenu)), [menu, pilihMenu]);
-  const tersedia = useMemo(() => menu.filter((m) => m.tersedia), [menu]);
+  const tersedia = useMemo(() => menu.filter((m) => m.tersedia
+    && m.nama.toLowerCase().includes(cariMenu.trim().toLowerCase())), [menu, cariMenu]);
 
   const subtotal = keranjang.reduce((n, b) => {
     const tambahan = b.menu.varian.find((v) => v.id === b.varianId)?.harga_tambahan ?? 0;
@@ -105,7 +107,12 @@ export default function HalamanKasir() {
         <div className="space-y-5">
           <Kartu>
             <h2 className="mb-4 text-lg font-semibold">Tambah item</h2>
-            <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr_90px_auto] sm:items-end">
+            <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr_1fr_90px_auto] sm:items-end">
+              <div>
+                <label htmlFor="cari-menu">Cari menu</label>
+                <input id="cari-menu" type="search" value={cariMenu} placeholder="Ketik nama menu"
+                  onChange={(e) => setCariMenu(e.target.value)} />
+              </div>
               <div>
                 <label htmlFor="pilih-menu">Menu</label>
                 <select id="pilih-menu" value={pilihMenu} onChange={(e) => { setPilihMenu(e.target.value); setPilihVarian(""); }}>

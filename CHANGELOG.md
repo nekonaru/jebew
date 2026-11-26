@@ -1,5 +1,21 @@
 # Riwayat Perubahan
 
+## final-v2.5.0
+
+Audit putaran kedua puluh satu dan pencarian menu kasir.
+
+### Fitur baru
+
+- **Cari menu di kasir.** Kolom pencarian menyaring menu yang tersedia sehingga lebih cepat dipilih saat daftar panjang.
+
+### Perbaikan
+
+- **Ekspor sesuai ukuran pool.** Kueri cadangan dijalankan dalam kelompok lima agar tidak mengantre melebihi batas koneksi.
+- **Bersih laju lebih aman.** Perintah pembersihan menolak di lingkungan produksi dan memerlukan argumen eksplisit.
+- **Laporan satu tahun lebih awet.** Endpoint laporan kini memiliki batas durasi fungsi 60 detik.
+- **Pencarian riwayat lebih hemat.** Permintaan ditunda 250 ms setelah pengguna mengetik.
+- **Lacak tanpa balapan.** Permintaan lama dibatalkan saat kode berubah atau komponen ditutup.
+
 ## final-v2.4.0
 
 Audit putaran kedua puluh dan filter riwayat.

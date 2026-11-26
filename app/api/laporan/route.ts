@@ -6,6 +6,7 @@ import { penggunaSaatIni } from "@/lib/auth.ts";
 import { tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const batasTanggal = (v: string) => tanggalValid(v) && v <= tanggalHariIni();
 const skema = z.object({

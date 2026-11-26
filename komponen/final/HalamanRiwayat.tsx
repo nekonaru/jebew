@@ -26,6 +26,7 @@ export default function HalamanRiwayat() {
   const [dari, setDari] = useState(mundur(29));
   const [sampai, setSampai] = useState(tanggalHariIni());
   const [cari, setCari] = useState("");
+  const [cariAktif, setCariAktif] = useState("");
   const [metode, setMetode] = useState("");
   const [sumber, setSumber] = useState("");
   const [halaman, setHalaman] = useState(1);
@@ -38,14 +39,19 @@ export default function HalamanRiwayat() {
     setPesan("");
     try {
       const p = new URLSearchParams({
-        dari: dari || mundur(29), sampai: sampai || tanggalHariIni(), cari, halaman: String(halaman),
+        dari: dari || mundur(29), sampai: sampai || tanggalHariIni(), cari: cariAktif, halaman: String(halaman),
         metode, sumber,
       });
       setHasil(await ambilApi<Hasil>(`/api/riwayat?${p}`));
     } catch {
       setPesan("Riwayat tidak berhasil dimuat.");
     }
-  }, [dari, sampai, cari, metode, sumber, halaman]);
+  }, [dari, sampai, cariAktif, metode, sumber, halaman]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setCariAktif(cari.trim()), 250);
+    return () => clearTimeout(t);
+  }, [cari]);
 
   useEffect(() => { void muat(); }, [muat]);
 

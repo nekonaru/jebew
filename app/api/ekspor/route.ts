@@ -30,10 +30,14 @@ export async function GET(req: Request) {
       "penjualan", "item_penjualan",
       "kategori_pengeluaran", "pengeluaran", "tutup_kasir", "log_audit",
     ];
-    const hasil = await Promise.all(tabel.map((nama) => query(nama === "pengaturan"
-      ? "SELECT * FROM pengaturan"
-      : `SELECT * FROM ${nama}`)));
-    const data = Object.fromEntries(tabel.map((nama, i) => [nama, hasil[i]]));
+    const hasil: Record<string, unknown> = {};
+    // pool.max = 5, jadi jalankan paling banyak lima kueri bersamaan.
+    for (let i = 0; i < tabel.length; i += 5) {
+      const kelompok = tabel.slice(i, i + 5);
+      const nilai = await Promise.all(kelompok.map((nama) => query(`SELECT * FROM ${nama}`)));
+      kelompok.forEach((nama, n) => { hasil[nama] = nilai[n]; });
+    }
+    const data = hasil;
 
     // Kata sandi pengguna sengaja tidak ikut dicadangkan.
     data.pengguna = await query("SELECT id, nama, email, peran, aktif, dibuat_pada FROM pengguna ORDER BY id");
