@@ -12,10 +12,11 @@ export function galat(kesalahan: unknown): Response {
     return Response.json({ pesan: kesalahan.message }, { status: 400 });
   }
   if (kesalahan instanceof ZodError) {
-    const bagian = kesalahan.issues[0]?.path.join(".") ?? "";
-    return Response.json({
-      pesan: bagian ? `Data ${bagian} tidak valid` : "Data tidak valid",
-    }, { status: 400 });
+    const isu = kesalahan.issues[0];
+    const bagian = isu?.path.join(".") ?? "";
+    const bawaan = /^(expected|invalid|too |string must|number must|value)/i.test(isu?.message ?? "");
+    const pesan = isu?.message && !bawaan ? isu.message : (bagian ? `Data ${bagian} tidak valid` : "Data tidak valid");
+    return Response.json({ pesan }, { status: 400 });
   }
   if (typeof kesalahan === "object" && kesalahan !== null && "code" in kesalahan
     && ["23503", "22003", "22P02"].includes(String(kesalahan.code))) {

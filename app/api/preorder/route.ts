@@ -8,6 +8,7 @@ import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa.ts";
 import { jamMenitWIB, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const item = z.object({ menu_id: z.number().int().positive(), varian_id: z.number().int().positive().nullable(), jumlah: z.number().int().positive().max(100) }).strict();
 
@@ -92,7 +93,8 @@ export async function POST(req: Request) {
     if (pengaturan.toko_aktif === "false") {
       return NextResponse.json({ pesan: "Toko sedang tutup. Silakan coba lagi lain waktu." }, { status: 403 });
     }
-    const nomorAdmin = process.env.WHATSAPP_ADMIN ?? pengaturan.whatsapp_admin ?? "";
+    const dariLingkungan = (process.env.WHATSAPP_ADMIN ?? "").trim();
+    const nomorAdmin = dariLingkungan || (pengaturan.whatsapp_admin ?? "").trim();
     if (!nomorAdmin && process.env.NODE_ENV === "production") {
       return NextResponse.json({ pesan: "Nomor WhatsApp admin belum dikonfigurasi" }, { status: 500 });
     }

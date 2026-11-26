@@ -74,7 +74,8 @@ export async function POST(req: Request) {
         await jalankan(`DELETE FROM ${tabel}`);
       }
 
-      for (const [tabel, baris] of Object.entries(dataCadangan)) {
+      for (const tabel of TABEL) {
+        const baris = dataCadangan[tabel] ?? [];
         const diizinkan = petaKolom.get(tabel)!;
         const kunci = [...new Set(baris.flatMap((b) => Object.keys(b)))].filter((k) => diizinkan.has(k));
         if (kunci.length === 0) continue;

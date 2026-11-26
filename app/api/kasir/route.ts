@@ -4,6 +4,7 @@ import { aman, galat } from "@/lib/api-final.ts";
 import { catatPenjualan } from "@/lib/final/transaksi.ts";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const skema = z.object({
   items: z.array(z.object({

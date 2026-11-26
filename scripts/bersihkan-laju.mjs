@@ -23,6 +23,10 @@ if (!env.DATABASE_URL) {
   console.error("DATABASE_URL tidak ditemukan di .env.local.");
   process.exit(1);
 }
+if (env.IZINKAN_HAPUS_LAJU !== "1") {
+  console.error("Tolak: tambahkan IZINKAN_HAPUS_LAJU=1 pada .env.local hanya untuk database uji.");
+  process.exit(1);
+}
 
 const klien = new pg.Client({
   connectionString: env.DATABASE_URL,

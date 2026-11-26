@@ -56,7 +56,7 @@ export default function HalamanKasir() {
     const tambahan = b.menu.varian.find((v) => v.id === b.varianId)?.harga_tambahan ?? 0;
     return n + (b.menu.harga + tambahan) * b.jumlah;
   }, 0);
-  const diskonAngka = Math.min(Math.max(0, Number(diskon) || 0), subtotal);
+  const diskonAngka = Math.min(Math.max(0, Math.round(Number(diskon) || 0)), subtotal);
   const total = subtotal - diskonAngka;
 
   function tambah() {
@@ -199,7 +199,7 @@ export default function HalamanKasir() {
           <div className="mt-5 space-y-4 border-t border-garis pt-4">
             <div>
               <label htmlFor="diskon">Diskon (Rp)</label>
-              <input id="diskon" type="number" min={0} max={subtotal} value={diskon} onChange={(e) => setDiskon(e.target.value)} />
+              <input id="diskon" type="number" min={0} max={subtotal} step={1} value={diskon} onChange={(e) => setDiskon(e.target.value)} />
             </div>
             <div>
               <label htmlFor="metode">Metode pembayaran</label>
@@ -215,7 +215,7 @@ export default function HalamanKasir() {
             </div>
             <div className="rounded-xl bg-latar px-4 py-3">
               <div className="flex justify-between text-sm text-tinta-lemah"><span>Subtotal</span><span>{formatRupiah(subtotal)}</span></div>
-              <div className="mt-1 flex justify-between text-sm text-tinta-lemah"><span>Diskon</span><span>-{formatRupiah(Number(diskon) || 0)}</span></div>
+              <div className="mt-1 flex justify-between text-sm text-tinta-lemah"><span>Diskon</span><span>-{formatRupiah(diskonAngka)}</span></div>
               <div className="mt-2 flex items-center justify-between border-t border-garis pt-2">
                 <span className="font-semibold">Total</span>
                 <span className="font-judul text-xl font-semibold text-utama">{formatRupiah(total)}</span>

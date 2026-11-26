@@ -32,7 +32,7 @@ function dapatkanKumpulan(): pg.Pool {
   kumpulan = new Pool({
     connectionString: url,
     // Cukup untuk transaksi paralel ringan sementara kueri biasa tetap bisa masuk pool.
-    max: 5,
+    max: 2,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
     ssl: lokal ? undefined : { rejectUnauthorized: process.env.DATABASE_TLS_VERIFY !== "false" },
@@ -71,10 +71,13 @@ export async function jalankan(teks: string, nilai: unknown[] = []): Promise<num
 }
 
 /** Satu unit kerja atomik. Kueri di dalam callback memakai koneksi dan transaksi yang sama. */
-export async function denganTransaksi<T>(kerja: () => Promise<T>): Promise<T> {
+export async function denganTransaksi<T>(
+  kerja: () => Promise<T>,
+  isolasi: "READ COMMITTED" | "REPEATABLE READ" = "READ COMMITTED",
+): Promise<T> {
   const klien = await dapatkanKumpulan().connect();
   try {
-    await klien.query("BEGIN");
+    await klien.query(`BEGIN ISOLATION LEVEL ${isolasi}`);
     const hasil = await konteksTransaksi.run(klien, kerja);
     await klien.query("COMMIT");
     return hasil;

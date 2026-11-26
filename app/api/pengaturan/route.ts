@@ -18,10 +18,13 @@ const skema = z.object({
   tagline: z.string().trim().max(150),
   whatsapp_admin: z.string().trim().regex(/^[0-9+\-() ]{8,20}$/),
   hari_buka: z.string().trim().min(1).max(60),
-  jam_buka: z.string().trim().regex(/^\d{2}:\d{2}$/),
-  jam_tutup: z.string().trim().regex(/^\d{2}:\d{2}$/),
+  jam_buka: z.string().trim().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam: HH:mm"),
+  jam_tutup: z.string().trim().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam: HH:mm"),
   toko_aktif: z.enum(["true", "false"]),
-}).strict();
+}).strict().refine((v) => v.jam_buka < v.jam_tutup, {
+  message: "Jam tutup harus setelah jam buka",
+  path: ["jam_tutup"],
+});
 
 export async function PUT(req: Request) {
   try {

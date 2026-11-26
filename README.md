@@ -267,7 +267,7 @@ URL_UJI=http://localhost:3000 node scripts/uji-putaran-4.mjs
 URL_UJI=http://localhost:3000 node scripts/uji-putaran-5.mjs
 ```
 
-Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo.
+Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo. Perintah `npm run bersih:laju` hanya bekerja bila `IZINKAN_HAPUS_LAJU=1` terpasang di `.env.local`.
 
 ---
 

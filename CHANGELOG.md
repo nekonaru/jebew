@@ -1,5 +1,21 @@
 # Riwayat Perubahan
 
+## final-v2.7.0
+
+Audit putaran kedua puluh tiga dan konsistensi cadangan.
+
+### Perbaikan
+
+- **Ekspor benar-benar snapshot.** Transaksi cadangan memakai isolasi REPEATABLE READ sehingga seluruh tabel berasal dari satu titik waktu.
+- **Pesan validasi kembali jelas.** Pesan kustom Bahasa Indonesia seperti batas kata sandi dan format jam kini sampai ke pengguna.
+- **Angka kasir konsisten.** Ringkasan diskon memakai nilai yang sudah dibatasi dan input menerima bilangan bulat.
+- **Bersih laju lebih aman.** Skrip menolak bila penanda uji tidak diset di `.env.local`.
+- **Kolam koneksi dikurangi.** Jumlah koneksi per instance disesuaikan untuk serverless.
+- **Transaksi berat diperpanjang.** Endpoint kasir dan preorder memiliki batas durasi 60 detik.
+- **Jam usaha divalidasi.** Format jam ketat dan jam tutup harus setelah jam buka.
+- **Pemulihan mengikuti urutan tabel**, bukan urutan kunci berkas.
+- **Nomor WhatsApp kosong jatuh ke pengaturan** bila variabel lingkungan tidak berisi nilai.
+
 ## final-v2.6.0
 
 Audit putaran kedua puluh dua dan kerapian transaksi.

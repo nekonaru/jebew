@@ -40,7 +40,7 @@ export async function GET(req: Request) {
         "SELECT id, nama, email, peran, aktif, dibuat_pada FROM pengguna ORDER BY id",
       );
       return hasil;
-    });
+    }, "REPEATABLE READ");
 
     const isi = JSON.stringify({
       aplikasi: "Jebew",
