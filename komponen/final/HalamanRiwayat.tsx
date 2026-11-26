@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ambilApi } from "@/komponen/api-klien.ts";
 import { formatRupiah, formatWaktu, tanggalHariIni } from "@/lib/format.ts";
 import { Badge, BarisKosong, Dialog, Judul, Kartu, KepalaTabel, SelKepala, Tabel, Tombol } from "./ui.tsx";
@@ -35,16 +35,19 @@ export default function HalamanRiwayat() {
   const [pesan, setPesan] = useState("");
   const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
 
+  const urutMuat = useRef(0);
   const muat = useCallback(async () => {
     setPesan("");
+    const urut = ++urutMuat.current;
     try {
       const p = new URLSearchParams({
         dari: dari || mundur(29), sampai: sampai || tanggalHariIni(), cari: cariAktif, halaman: String(halaman),
         metode, sumber,
       });
-      setHasil(await ambilApi<Hasil>(`/api/riwayat?${p}`));
+      const hasilMuat = await ambilApi<Hasil>(`/api/riwayat?${p}`);
+      if (urut === urutMuat.current) setHasil(hasilMuat);
     } catch {
-      setPesan("Riwayat tidak berhasil dimuat.");
+      if (urut === urutMuat.current) setPesan("Riwayat tidak berhasil dimuat.");
     }
   }, [dari, sampai, cariAktif, metode, sumber, halaman]);
 
@@ -110,7 +113,7 @@ export default function HalamanRiwayat() {
             </select>
           </div>
           <div className="sm:col-span-3">
-            <a href={`/api/riwayat?dari=${dari || mundur(29)}&sampai=${sampai || tanggalHariIni()}&cari=${encodeURIComponent(cari)}&metode=${metode}&sumber=${sumber}&format=csv`}
+            <a href={`/api/riwayat?dari=${dari || mundur(29)}&sampai=${sampai || tanggalHariIni()}&cari=${encodeURIComponent(cariAktif)}&metode=${metode}&sumber=${sumber}&format=csv`}
               className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold hover:bg-latar">
               Unduh CSV
             </a>

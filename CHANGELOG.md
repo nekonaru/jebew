@@ -1,5 +1,19 @@
 # Riwayat Perubahan
 
+## final-v2.6.0
+
+Audit putaran kedua puluh dua dan kerapian transaksi.
+
+### Perbaikan
+
+- **Kasir memakai data segar.** Daftar menu diambil dari endpoint terautentikasi tanpa cache, dan galat pemuatan kini ditampilkan.
+- **Pilihan kasir konsisten.** Menu yang tersaring hilang dari pilihan akan dikosongkan, diskon dibatasi tidak negatif, dan catatan dibatasi 200 karakter.
+- **Lacak dan riwayat tanpa balapan.** Permintaan lama dibatalkan atau diabaikan sehingga hasil selalu sesuai filter terbaru.
+- **Bersih laju benar-benar aman.** Guard diperiksa sebelum membaca berkas, lingkungan produksi ditolak, dan argumen tidak disematkan dalam skrip npm.
+- **Cadangan konsisten.** Seluruh tabel dibaca dalam satu transaksi sebagai snapshot.
+- **Pesan validasi Bahasa Indonesia.** Galat Zod tidak lagi menampilkan teks Inggris.
+- **Jam operasional memakai kontrol waktu** pada halaman Pengaturan.
+
 ## final-v2.5.0
 
 Audit putaran kedua puluh satu dan pencarian menu kasir.

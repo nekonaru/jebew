@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { aman, galat } from "@/lib/api-final.ts";
-import { query } from "@/lib/database.ts";
+import { denganTransaksi, query } from "@/lib/database.ts";
 import { tanggalHariIni } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
@@ -30,17 +30,17 @@ export async function GET(req: Request) {
       "penjualan", "item_penjualan",
       "kategori_pengeluaran", "pengeluaran", "tutup_kasir", "log_audit",
     ];
-    const hasil: Record<string, unknown> = {};
-    // pool.max = 5, jadi jalankan paling banyak lima kueri bersamaan.
-    for (let i = 0; i < tabel.length; i += 5) {
-      const kelompok = tabel.slice(i, i + 5);
-      const nilai = await Promise.all(kelompok.map((nama) => query(`SELECT * FROM ${nama}`)));
-      kelompok.forEach((nama, n) => { hasil[nama] = nilai[n]; });
-    }
-    const data = hasil;
-
-    // Kata sandi pengguna sengaja tidak ikut dicadangkan.
-    data.pengguna = await query("SELECT id, nama, email, peran, aktif, dibuat_pada FROM pengguna ORDER BY id");
+    // Satu transaksi menghasilkan snapshot konsisten. Kueri dijalankan berurutan
+    // karena transaksi memakai satu koneksi.
+    const data = await denganTransaksi(async () => {
+      const hasil: Record<string, unknown> = {};
+      for (const nama of tabel) hasil[nama] = await query(`SELECT * FROM ${nama}`);
+      // Kata sandi pengguna sengaja tidak ikut dicadangkan.
+      hasil.pengguna = await query(
+        "SELECT id, nama, email, peran, aktif, dibuat_pada FROM pengguna ORDER BY id",
+      );
+      return hasil;
+    });
 
     const isi = JSON.stringify({
       aplikasi: "Jebew",

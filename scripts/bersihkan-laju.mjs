@@ -1,16 +1,26 @@
-// Membersihkan tabel pembatasan laju agar uji berulang tidak terkena 429.
-import { readFileSync } from "node:fs";
+// Membersihkan tabel pembatasan laju hanya pada database uji.
+import { existsSync, readFileSync } from "node:fs";
 import pg from "pg";
 
-const baris = readFileSync(".env.local", "utf8").split(/\r?\n/);
+const berkasEnv = ".env.local";
 const env = {};
-for (const b of baris) {
-  const m = b.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/);
-  if (m) env[m[1]] = m[2].replace(/^['"]|['"]$/g, "");
+if (existsSync(berkasEnv)) {
+  for (const b of readFileSync(berkasEnv, "utf8").split(/\r?\n/)) {
+    const m = b.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/);
+    if (m) env[m[1]] = m[2].replace(/^['"]|['"]$/g, "");
+  }
 }
 
-if (process.env.NODE_ENV === "production" || !process.argv.includes("--iya")) {
-  console.error("Tolak: jalankan hanya pada database uji dengan argumen --iya.");
+if (env.NODE_ENV === "production" || process.env.NODE_ENV === "production") {
+  console.error("Tolak: perintah ini tidak boleh dijalankan pada lingkungan produksi.");
+  process.exit(1);
+}
+if (!process.argv.includes("--iya")) {
+  console.error("Tolak: sertakan argumen --iya untuk mengonfirmasi penghapusan.");
+  process.exit(1);
+}
+if (!env.DATABASE_URL) {
+  console.error("DATABASE_URL tidak ditemukan di .env.local.");
   process.exit(1);
 }
 

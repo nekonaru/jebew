@@ -195,8 +195,8 @@ export default function HalamanPengaturan() {
               <input id="s-hari" value={pengaturan.hari_buka ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, hari_buka: e.target.value })} placeholder="Senin - Minggu" />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><label htmlFor="s-buka">Jam buka</label><input id="s-buka" value={pengaturan.jam_buka ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, jam_buka: e.target.value })} /></div>
-              <div><label htmlFor="s-tutup">Jam tutup</label><input id="s-tutup" value={pengaturan.jam_tutup ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, jam_tutup: e.target.value })} /></div>
+              <div><label htmlFor="s-buka">Jam buka</label><input id="s-buka" type="time" value={pengaturan.jam_buka ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, jam_buka: e.target.value })} /></div>
+              <div><label htmlFor="s-tutup">Jam tutup</label><input id="s-tutup" type="time" value={pengaturan.jam_tutup ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, jam_tutup: e.target.value })} /></div>
             </div>
             <div><label htmlFor="s-aktif">Status toko</label><select id="s-aktif" value={pengaturan.toko_aktif ?? "true"} onChange={(e) => setPengaturan({ ...pengaturan, toko_aktif: e.target.value })}><option value="true">Buka</option><option value="false">Tutup</option></select></div>
             <Tombol tipe="submit">Simpan pengaturan</Tombol>

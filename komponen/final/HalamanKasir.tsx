@@ -32,11 +32,15 @@ export default function HalamanKasir() {
 
   const muat = useCallback(async () => {
     try {
-      const data = await fetch("/api/dashboard").then(ambilJson<{ menu: Menu[] }>);
+      const data = await fetch("/api/menu").then(ambilJson<{ menu: Menu[] }>);
       setMenu(data.menu);
-    } catch { /* abaikan */ }
+    } catch {
+      setJenis("galat");
+      setPesan("Daftar menu tidak berhasil dimuat. Muat ulang halaman untuk mencoba lagi.");
+    }
   }, []);
   useEffect(() => { void muat(); }, [muat]);
+  useEffect(() => { setPilihMenu(""); setPilihVarian(""); }, [cariMenu]);
 
   useEffect(() => {
     void fetch("/api/pengaturan").then(ambilJson<Record<string, string>>)
@@ -44,15 +48,16 @@ export default function HalamanKasir() {
       .catch(() => {});
   }, []);
 
-  const menuPilih = useMemo(() => menu.find((m) => m.id === Number(pilihMenu)), [menu, pilihMenu]);
   const tersedia = useMemo(() => menu.filter((m) => m.tersedia
     && m.nama.toLowerCase().includes(cariMenu.trim().toLowerCase())), [menu, cariMenu]);
+  const menuPilih = useMemo(() => tersedia.find((m) => m.id === Number(pilihMenu)), [tersedia, pilihMenu]);
 
   const subtotal = keranjang.reduce((n, b) => {
     const tambahan = b.menu.varian.find((v) => v.id === b.varianId)?.harga_tambahan ?? 0;
     return n + (b.menu.harga + tambahan) * b.jumlah;
   }, 0);
-  const total = Math.max(0, subtotal - (Number(diskon) || 0));
+  const diskonAngka = Math.min(Math.max(0, Number(diskon) || 0), subtotal);
+  const total = subtotal - diskonAngka;
 
   function tambah() {
     const m = menuPilih;
@@ -79,7 +84,7 @@ export default function HalamanKasir() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: keranjang.map((b) => ({ menu_id: b.menu.id, varian_id: b.varianId, jumlah: b.jumlah })),
-          diskon: Number(diskon) || 0,
+          diskon: diskonAngka,
           metode,
           catatan,
         }),
@@ -206,7 +211,7 @@ export default function HalamanKasir() {
             </div>
             <div>
               <label htmlFor="catatan">Catatan</label>
-              <textarea id="catatan" value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Opsional" />
+              <textarea id="catatan" maxLength={200} value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Opsional" />
             </div>
             <div className="rounded-xl bg-latar px-4 py-3">
               <div className="flex justify-between text-sm text-tinta-lemah"><span>Subtotal</span><span>{formatRupiah(subtotal)}</span></div>

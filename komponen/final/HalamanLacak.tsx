@@ -28,33 +28,37 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
     e?.preventDefault();
     if (!kode.trim()) return;
     pengendali.current?.abort();
-    pengendali.current = new AbortController();
+    const kontrol = new AbortController();
+    pengendali.current = kontrol;
     setLoading(true); setPesan(""); setHasil(null);
     try {
       const data = await fetch(`/api/lacak?kode=${encodeURIComponent(kode.trim())}`, {
-        signal: pengendali.current.signal,
+        signal: kontrol.signal,
       }).then(ambilJson<Hasil>);
       setHasil(data);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setPesan(err instanceof Error ? err.message : "Pesanan tidak ditemukan");
     }
-    finally { setLoading(false); }
+    finally {
+      if (pengendali.current === kontrol) setLoading(false);
+    }
   }
 
   useEffect(() => {
     if (!kodeAwal) return;
     pengendali.current?.abort();
-    pengendali.current = new AbortController();
+    const kontrol = new AbortController();
+    pengendali.current = kontrol;
     setKode(kodeAwal); setHasil(null); setPesan(""); setLoading(true);
-    void fetch(`/api/lacak?kode=${encodeURIComponent(kodeAwal)}`, { signal: pengendali.current.signal })
+    void fetch(`/api/lacak?kode=${encodeURIComponent(kodeAwal)}`, { signal: kontrol.signal })
       .then(ambilJson<Hasil>)
       .then(setHasil)
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         setPesan(err instanceof Error ? err.message : "Pesanan tidak ditemukan");
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (pengendali.current === kontrol) setLoading(false); });
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [kodeAwal]);
 
