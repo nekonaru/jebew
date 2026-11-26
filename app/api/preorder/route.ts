@@ -28,16 +28,20 @@ export async function GET(req: Request) {
       dari,
       sampai,
     };
-    const daftar = await ambilPreorder(filter);
-    if (p.get("format") === "csv") {
+    const csvMode = p.get("format") === "csv";
+    const daftar = await ambilPreorder(csvMode ? { ...filter, batas: 501 } : filter);
+    if (csvMode) {
       const amanCsv = (teks: string) => {
         const nilai = /^[=+\-@\t\r]/.test(teks) ? `'${teks}` : teks;
         return `"${nilai.replace(/"/g, '""')}"`;
       };
       const baris = ["Kode,Kode lacak,Pelanggan,WhatsApp,Waktu ambil,Status,Total"];
-      for (const po of daftar) {
+      if (daftar.length > 500) {
+        baris.push("# Dipotong: menampilkan 500 pesanan terbaru. Persempit filter untuk melihat sisanya.");
+      }
+      for (const po of daftar.slice(0, 500)) {
         baris.push([
-          po.kode, po.kode_lacak, amanCsv(po.nama_pelanggan), po.whatsapp,
+          po.kode, po.kode_lacak, amanCsv(po.nama_pelanggan), amanCsv(po.whatsapp),
           amanCsv(po.waktu_ambil), po.status, po.total,
         ].join(","));
       }

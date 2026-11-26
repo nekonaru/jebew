@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aman, galat } from "@/lib/api-final.ts";
+import { aman, galat, izinLaju } from "@/lib/api-final.ts";
 import { ambilSlotWaktu, simpanSlotWaktu } from "@/lib/final/pengaturan.ts";
 import { penggunaSaatIni } from "@/lib/auth.ts";
 import { jamMenitWIB, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const kunci = `slot:${req.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() ?? "lokal"}`;
+    if (!(await izinLaju(kunci, 40, 60 * 1000))) {
+      return NextResponse.json({ pesan: "Terlalu banyak permintaan. Coba lagi sebentar." }, { status: 429 });
+    }
     const semua = await ambilSlotWaktu();
     const sekarang = jamMenitWIB();
     const menitSekarang = sekarang.jam * 60 + sekarang.menit;

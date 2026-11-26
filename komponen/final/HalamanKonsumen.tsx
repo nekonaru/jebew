@@ -60,6 +60,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [kodeLacak, setKodeLacak] = useState("");
   const [toast, setToast] = useState("");
   const [toastGalat, setToastGalat] = useState(false);
+  const [toastUrut, setToastUrut] = useState(0);
 
   const muat = useCallback(async () => {
     try {
@@ -103,13 +104,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     setPesan("");
     setToastGalat(false);
     setToast(`${menu.nama} masuk keranjang`);
+    setToastUrut((n) => n + 1);
   }
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(""), 2600);
+    const t = setTimeout(() => { setToast(""); setToastGalat(false); }, 2600);
     return () => clearTimeout(t);
-  }, [toast]);
+  }, [toast, toastUrut]);
 
   function klikMenu(menu: Menu) {
     if (!menu.tersedia) return;
@@ -127,6 +129,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     if (!slotId && !waktu.trim()) {
       setToastGalat(true);
       setToast("Pilih slot waktu atau isi waktu ambil terlebih dahulu.");
+      setToastUrut((n) => n + 1);
       setDialogKeranjang(false);
       return;
     }
@@ -149,7 +152,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         }),
       });
       const dataHasil = await ambilJson<Hasil>(respons);
-      setHasil(dataHasil); setDialogCheckout(false); setHasilDialog(true);
+      setHasil(dataHasil); setKodeLacak(dataHasil.kode_lacak); setDialogCheckout(false); setHasilDialog(true);
       setKeranjang([]); setNama(""); setWhatsapp(""); setSlotId(""); setWaktu(""); setCatatan("");
       void muat();
     } catch (err) { setPesan(err instanceof Error ? err.message : "Gagal mengirim pre-order"); }

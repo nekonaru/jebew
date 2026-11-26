@@ -14,6 +14,10 @@ export function galat(kesalahan: unknown): Response {
   if (kesalahan instanceof ZodError) {
     return Response.json({ pesan: kesalahan.issues[0]?.message ?? "Data tidak valid" }, { status: 400 });
   }
+  if (typeof kesalahan === "object" && kesalahan !== null && "code" in kesalahan
+    && ["23503", "22003", "22P02"].includes(String(kesalahan.code))) {
+    return Response.json({ pesan: "Data tidak valid" }, { status: 400 });
+  }
   if (typeof kesalahan === "object" && kesalahan !== null && "code" in kesalahan && kesalahan.code === "23505") {
     const nama = "constraint" in kesalahan ? String(kesalahan.constraint) : "";
     return Response.json({

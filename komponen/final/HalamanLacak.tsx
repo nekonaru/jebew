@@ -34,7 +34,14 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
     finally { setLoading(false); }
   }
 
-  useEffect(() => { if (kodeAwal) void cari(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kodeAwal]);
+  useEffect(() => {
+    if (!kodeAwal) return;
+    setKode(kodeAwal);
+    void fetch(`/api/lacak?kode=${encodeURIComponent(kodeAwal)}`).then(ambilJson<Hasil>)
+      .then(setHasil)
+      .catch(() => setHasil(null));
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [kodeAwal]);
 
   useEffect(() => {
     void fetch("/api/dashboard")

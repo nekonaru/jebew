@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   try {
-    const { penolakan } = await aman(req, "masuk");
+    const { penolakan } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
     return NextResponse.json({
       konversi: await query("SELECT dari_satuan, ke_satuan, faktor FROM konversi_satuan ORDER BY dari_satuan"),

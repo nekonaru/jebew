@@ -22,6 +22,7 @@ export default function HalamanPengaturan() {
   const [konfirmasi, setKonfirmasi] = useState("");
   const [memulihkan, setMemulihkan] = useState(false);
   const [tampilSandi, setTampilSandi] = useState(false);
+  const [editPengguna, setEditPengguna] = useState<number | null>(null);
 
   const muat = useCallback(async () => {
     try {
@@ -55,15 +56,28 @@ export default function HalamanPengaturan() {
     } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); }
   }
 
+  function bukaPengguna(u?: Pengguna) {
+    setEditPengguna(u?.id ?? null);
+    setFormP({
+      email: u?.email ?? "", nama: u?.nama ?? "", kata_sandi: "",
+      peran: (u?.peran as "pemilik" | "kasir") ?? "kasir", aktif: u?.aktif ?? true,
+    });
+    setTampilSandi(false);
+    setDialog("pengguna");
+  }
+
   async function simpanPengguna(e: React.FormEvent) {
     e.preventDefault();
     try {
+      const badan = editPengguna ? { id: editPengguna, data: formP } : formP;
       const respons = await fetch("/api/pengguna", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formP),
+        method: editPengguna ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(badan),
       });
       await ambilJson(respons);
-      setDialog(null); setFormP({ email: "", nama: "", kata_sandi: "", peran: "kasir", aktif: true }); setTampilSandi(false);
-      setJenis("sukses"); setPesan("Pengguna ditambahkan."); void muat();
+      setDialog(null); setFormP({ email: "", nama: "", kata_sandi: "", peran: "kasir", aktif: true });
+      setTampilSandi(false); setEditPengguna(null);
+      setJenis("sukses"); setPesan(editPengguna ? "Pengguna diperbarui." : "Pengguna ditambahkan."); void muat();
     } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); }
   }
 
@@ -193,7 +207,7 @@ export default function HalamanPengaturan() {
           <Kartu>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Pengguna</h2>
-              <Tombol onClick={() => setDialog("pengguna")} kelas="min-h-[38px] px-3 text-xs">Tambah</Tombol>
+              <Tombol onClick={() => bukaPengguna()} kelas="min-h-[38px] px-3 text-xs">Tambah</Tombol>
             </div>
             <ul className="mt-4 space-y-2">
               {pengguna.map((u) => (
@@ -201,6 +215,7 @@ export default function HalamanPengaturan() {
                   <div className="min-w-0 flex-1"><p className="font-medium">{u.nama}</p><p className="truncate text-xs text-tinta-lemah">{u.email}</p></div>
                   <Badge warna={u.peran === "pemilik" ? "peringatan" : "info"}>{u.peran}</Badge>
                   <Badge warna={u.aktif ? "sukses" : "bahaya"}>{u.aktif ? "Aktif" : "Nonaktif"}</Badge>
+                  <Tombol jenis="kosong" kelas="min-h-[36px] px-2 text-xs" onClick={() => bukaPengguna(u)}>Ubah</Tombol>
                 </li>
               ))}
             </ul>
@@ -234,14 +249,14 @@ export default function HalamanPengaturan() {
         </div>
       </div>
 
-      <Dialog terbuka={dialog === "pengguna"} judul="Tambah pengguna" padaTutup={() => setDialog(null)}>
+      <Dialog terbuka={dialog === "pengguna"} judul={editPengguna ? "Ubah pengguna" : "Tambah pengguna"} padaTutup={() => { setDialog(null); setEditPengguna(null); }}>
         <form onSubmit={simpanPengguna} className="space-y-4">
           <div><label htmlFor="u-nama">Nama</label><input id="u-nama" required value={formP.nama} onChange={(e) => setFormP({ ...formP, nama: e.target.value })} /></div>
           <div><label htmlFor="u-email">Email</label><input id="u-email" type="email" required value={formP.email} onChange={(e) => setFormP({ ...formP, email: e.target.value })} /></div>
           <div>
-            <label htmlFor="u-sandi">Kata sandi</label>
+            <label htmlFor="u-sandi">Kata sandi {editPengguna && <span className="text-tinta-lemah">(kosongkan bila tidak diubah)</span>}</label>
             <div className="relative">
-              <input id="u-sandi" type={tampilSandi ? "text" : "password"} minLength={6} required className="pr-12"
+              <input id="u-sandi" type={tampilSandi ? "text" : "password"} minLength={6} required={!editPengguna} className="pr-12"
                 value={formP.kata_sandi} onChange={(e) => setFormP({ ...formP, kata_sandi: e.target.value })} />
               <button type="button"
                 onClick={() => setTampilSandi((nilai) => !nilai)}

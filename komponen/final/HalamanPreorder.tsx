@@ -99,6 +99,7 @@ export default function HalamanPreorder() {
         ))}
       </div>
 
+      <p className="mb-3 text-xs text-tinta-lemah">Menampilkan maksimal 500 pesanan terbaru sesuai filter.</p>
       <ul className="grid gap-4 lg:grid-cols-2">
         {tampil.map((p) => (
           <li key={p.id}>

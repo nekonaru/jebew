@@ -120,7 +120,7 @@ export type FilterAudit = { aksi?: string; tabel?: string; cari?: string; batas?
 export async function ambilAudit(filter: FilterAudit = {}): Promise<{
   id: number; aksi: string; tabel: string; catatan: string; dibuat_pada: string; nama_pengguna: string | null;
 }[]> {
-  const batas = Math.min(Math.max(1, filter.batas ?? 200), 5000);
+  const batas = Math.min(Math.max(1, filter.batas ?? 200), 5001);
   const syarat: string[] = [];
   const nilai: unknown[] = [];
   if (filter.aksi) {

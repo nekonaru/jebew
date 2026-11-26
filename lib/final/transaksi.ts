@@ -180,6 +180,9 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
         throw new GalatBisnis("Waktu ambil sudah lewat");
       }
     }
+    // Kunci menu yang dipesan agar penghapusan menu tidak bisa menyela preprocessing.
+    const idsMenu = [...new Set(input.items.map((i) => i.menu_id))];
+    await query("SELECT id FROM menu WHERE id = ANY($1::int[]) FOR SHARE", [idsMenu]);
     const { barang } = await siapkanBarang(input.items);
     const total = barang.reduce((n, b) => n + b.subtotal, 0);
     const kode = `JBW-${kodePendek(3)}`;
@@ -214,7 +217,7 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
   });
 }
 
-export type FilterPreorder = { cari?: string; dari?: string; sampai?: string; status?: string };
+export type FilterPreorder = { cari?: string; dari?: string; sampai?: string; status?: string; batas?: number };
 
 export async function ambilPreorder(filter: FilterPreorder = {}) {
   const syarat: string[] = [];
@@ -240,7 +243,8 @@ export async function ambilPreorder(filter: FilterPreorder = {}) {
     id: number; kode: string; kode_lacak: string; nama_pelanggan: string; whatsapp: string;
     waktu_ambil: string; catatan: string; status: string; penjualan_id: number | null; dibuat_pada: string;
   }>(`SELECT id, kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, catatan, status, penjualan_id, dibuat_pada
-      FROM preorder ${where} ORDER BY id DESC LIMIT 500`, nilai);
+      FROM preorder ${where} ORDER BY id DESC LIMIT $${nilai.length + 1}`,
+      [...nilai, Math.min(Math.max(1, filter.batas ?? 500), 501)]);
   const ids = daftar.map((p) => p.id);
   const semuaItem = ids.length === 0 ? [] : await query<Barang & { preorder_id: number }>(
     `SELECT preorder_id, menu_id, varian_id, nama_menu, nama_varian, harga_satuan, jumlah, subtotal, hpp

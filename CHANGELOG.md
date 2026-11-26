@@ -1,5 +1,23 @@
 # Riwayat Perubahan
 
+## final-v2.3.0
+
+Audit putaran kesembilan belas dan kelola pengguna.
+
+### Fitur baru
+
+- **Ubah pengguna.** Halaman Pengaturan kini bisa mengubah nama, email, peran, status, dan kata sandi pengguna yang sudah ada.
+
+### Perbaikan
+
+- **Catatan pemotongan audit benar.** Ekspor CSV kini benar-benar menandai bila hasil melebihi 5000 entri.
+- **Preorder dan penghapusan menu aman.** Preorder mengunci menu yang dipakai, sehingga penghapusan menu tidak bisa menyela dan membuat pesanan mangkrak.
+- **Ekspor preorder jujur.** CSV memberi catatan bila dipotong pada 500 baris dan nomor WhatsApp diamankan dari rumus spreadsheet.
+- **Galat database lebih jelas.** Kode galat umum seperti kunci asing dan tipe salah kini menjadi respons 400.
+- **Pelacakan mengikuti parameter.** Halaman lacak menyinkronkan input saat kode berubah, dan kode lacak otomatis terisi setelah pesanan berhasil.
+- **Toast lebih konsisten.** Pesan galat memakai gaya dan peran yang tepat, dengan timer yang direset setiap kali.
+- **Endpoint publik dibatasi.** Slot memiliki pembatas laju, konversi satuan khusus pemilik, dan batas login sukses dinaikkan agar alamat bersama tidak terkunci.
+
 ## final-v2.2.0
 
 Audit putaran kedelapan belas dan ekspor pre-order.
@@ -16,7 +34,7 @@ Audit putaran kedelapan belas dan ekspor pre-order.
 - **Validasi stok ketat.** Id bahan harus bilangan bulat positif dalam rentang integer.
 - **Tampilan konsisten.** Resep disembunyikan untuk kasir dan toast galat memakai gaya serta peran yang berbeda dari toast sukses.
 - **Ekspor audit jujur.** Berkas CSV memberi catatan bila hasil dipotong pada 5000 entri.
-- **Laporan keamanan diberi penanda.** Berkas lama dinyatakan khusus prototipe agar tidak disalahartikan sebagai bukti produk jadi.
+- **Dokumentasi keamanan diperjelas.** `SECURITY.md` kini membedakan prototipe dan produk jadi, termasuk kredensial demo dan kewajiban `RAHASIA_SESI`.
 
 ## final-v2.1.0
 

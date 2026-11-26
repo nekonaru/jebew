@@ -31,7 +31,8 @@ export async function POST(permintaan: Request) {
       ?? "lokal";
     const kunci = `login:${alamat}:${email}`;
     const kunciKasar = `login-kasar:${alamat}`;
-    if (!(await izinLaju(kunciKasar, 20, 10 * 60 * 1000))) {
+    // Batas total permintaan login untuk melindungi biaya scrypt; batas kegagalan tetap di bawah.
+    if (!(await izinLaju(kunciKasar, 100, 10 * 60 * 1000))) {
       return NextResponse.json({ pesan: "Terlalu banyak percobaan. Coba lagi beberapa menit." }, { status: 429 });
     }
 
