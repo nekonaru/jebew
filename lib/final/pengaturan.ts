@@ -101,7 +101,8 @@ export async function hapusPengguna(id: number, actorId?: number): Promise<void>
             + (SELECT COUNT(*) FROM pembelian WHERE pengguna_id = $1)
             + (SELECT COUNT(*) FROM pengeluaran WHERE pengguna_id = $1)
             + (SELECT COUNT(*) FROM pergerakan_stok WHERE pengguna_id = $1)
-            + (SELECT COUNT(*) FROM tutup_kasir WHERE kasir_id = $1) AS jumlah`,
+            + (SELECT COUNT(*) FROM tutup_kasir WHERE kasir_id = $1)
+            + (SELECT COUNT(*) FROM stok_opname WHERE pengguna_id = $1) AS jumlah`,
       [id],
     );
     const pelaku = actorId ? { id: actorId } : null;

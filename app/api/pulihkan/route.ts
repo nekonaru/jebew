@@ -60,6 +60,7 @@ export async function POST(req: Request) {
 
     const petaKolom = new Map<string, Set<string>>();
     const hasil = await denganTransaksi(async () => {
+      await query("SELECT pg_advisory_xact_lock(hashtext('pulihkan-data'))");
       for (const tabel of TABEL) {
         const kolom = await query<{ column_name: string }>(
           "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1", [tabel],

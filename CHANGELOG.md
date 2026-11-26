@@ -1,5 +1,23 @@
 # Riwayat Perubahan
 
+## final-v2.9.0
+
+Audit putaran kedua puluh lima dan kemudahan menghubungi pelanggan.
+
+### Fitur baru
+
+- **Hubungi pelanggan dari pre-order.** Nomor WhatsApp pada kartu pesanan kini menjadi tautan langsung.
+
+### Perbaikan
+
+- **Pool lebih tangguh.** Galat koneksi idle dicatat tanpa menghentikan proses, dan koneksi baru dibuat otomatis.
+- **Pemulihan dikunci.** Kunci advisory mencegah transaksi lain menyela saat data diganti.
+- **Salin lebih aman.** Tombol salin kode lacak memberi pesan bila browser tidak mendukung.
+- **Hapus pengguna lengkap.** Riwayat opname ikut diperiksa sebelum akun dihapus.
+- **Cadangan lebih ringkas.** JSON diekspor tanpa indentasi agar ukurannya lebih kecil.
+- **Daftar preorder tanpa balapan.** Respons lama diabaikan agar hasil sesuai filter terbaru.
+- **Dokumentasi.** Petunjuk bersih laju memuat argumen yang benar dan klaim status hapus diperbaiki.
+
 ## final-v2.8.0
 
 Audit putaran kedua puluh empat dan kemudahan berbagi kode lacak.
@@ -14,7 +32,7 @@ Audit putaran kedua puluh empat dan kemudahan berbagi kode lacak.
 - **Server sibuk lebih jelas.** Timeout koneksi kini menghasilkan 503 dengan pesan singkat, bukan galat server umum.
 - **Pool disesuaikan.** Jumlah koneksi per instance dinaikkan ke empat agar ekspor dan pemulihan tidak menguras koneksi kasir.
 - **Pesan field ekstra diterjemahkan.** Galat Zod `unrecognized_keys` kini memakai Bahasa Indonesia.
-- **Hapus master valid.** Menghapus menu atau bahan yang tidak ada kini menghasilkan 404, bukan berhasil palsu.
+- **Hapus master valid.** Menghapus menu atau bahan yang tidak ada kini menghasilkan galat "tidak ditemukan", bukan berhasil palsu.
 - **Skrip lebih tangguh.** Koneksi ditutup walau kueri gagal, dan `.env.example` memuat penanda uji pembersihan laju.
 
 ## final-v2.7.0

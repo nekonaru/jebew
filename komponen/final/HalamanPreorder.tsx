@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
@@ -25,13 +25,15 @@ export default function HalamanPreorder() {
   const [aksi, setAksi] = useState<{ id: number; status: "diproses" | "selesai" | "batal" } | null>(null);
   const [metode, setMetode] = useState<"tunai" | "qris" | "transfer">("tunai");
 
+  const urutMuat = useRef(0);
   const muat = useCallback(async () => {
+    const urut = ++urutMuat.current;
     try {
       const p = new URLSearchParams({ cari, status: filter });
       if (dari) p.set("dari", dari);
       if (sampai) p.set("sampai", sampai);
       const data = await fetch(`/api/preorder?${p}`).then(ambilJson<{ preorder: Preorder[] }>);
-      setDaftar(data.preorder ?? []);
+      if (urut === urutMuat.current) setDaftar(data.preorder ?? []);
     } catch { /* abaikan */ }
   }, [cari, dari, sampai, filter]);
   useEffect(() => { void muat(); }, [muat]);
@@ -110,11 +112,15 @@ export default function HalamanPreorder() {
                   <div className="mt-0.5 flex items-center gap-2">
                     <p className="text-xs text-tinta-lemah">Lacak: {p.kode_lacak}</p>
                     <button type="button" aria-label={`Salin kode lacak ${p.kode_lacak}`}
-                      onClick={() => { void navigator.clipboard?.writeText(p.kode_lacak).then(() => {
-                        setJenis("sukses"); setPesan(`Kode lacak ${p.kode_lacak} disalin.`);
-                      }).catch(() => {
-                        setJenis("galat"); setPesan("Kode lacak tidak berhasil disalin.");
-                      }); }}
+                      onClick={() => {
+                        if (!navigator.clipboard?.writeText) {
+                          setJenis("galat"); setPesan("Browser tidak mendukung penyalinan otomatis. Salin kode secara manual.");
+                          return;
+                        }
+                        void navigator.clipboard.writeText(p.kode_lacak)
+                          .then(() => { setJenis("sukses"); setPesan(`Kode lacak ${p.kode_lacak} disalin.`); })
+                          .catch(() => { setJenis("galat"); setPesan("Kode lacak tidak berhasil disalin."); });
+                      }}
                       className="text-[11px] font-semibold text-utama hover:underline">Salin</button>
                   </div>
                 </div>
@@ -123,7 +129,11 @@ export default function HalamanPreorder() {
 
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 <div><p className="text-xs text-tinta-lemah">Pelanggan</p><p className="font-medium">{p.nama_pelanggan}</p></div>
-                <div><p className="text-xs text-tinta-lemah">WhatsApp</p><p className="font-medium">{p.whatsapp}</p></div>
+                <div>
+                  <p className="text-xs text-tinta-lemah">WhatsApp</p>
+                  <a href={`https://wa.me/${p.whatsapp.replace(/[^\d]/g, "")}`} target="_blank" rel="noopener noreferrer"
+                    className="font-medium text-utama hover:underline">{p.whatsapp}</a>
+                </div>
                 <div className="col-span-2"><p className="text-xs text-tinta-lemah">Waktu ambil</p><p className="font-medium">{p.waktu_ambil}</p></div>
               </div>
 

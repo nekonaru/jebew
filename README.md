@@ -116,7 +116,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 |-------|-----------|
 | **Kasir** | Cari menu, pilih varian, diskon, metode bayar, catatan, dan cetak struk |
 | **Varian** | Level pedas dan topping punya harga dan resep sendiri |
-| **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, saring pesanan berdasarkan status, nama, atau tanggal, dan unduh CSV |
+| **Pre-order** | Pilih slot waktu dengan kuota, kirim pesan WhatsApp siap pakai, hubungi pelanggan langsung, saring pesanan, dan unduh CSV |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
@@ -267,7 +267,7 @@ URL_UJI=http://localhost:3000 node scripts/uji-putaran-4.mjs
 URL_UJI=http://localhost:3000 node scripts/uji-putaran-5.mjs
 ```
 
-Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo. Perintah `npm run bersih:laju` hanya bekerja bila `IZINKAN_HAPUS_LAJU=1` terpasang di `.env.local`.
+Skrip `uji:api` membuat satu penjualan dan satu pre-order uji, jadi jalankan hanya pada database demo. Perintah `npm run bersih:laju -- --iya` hanya bekerja bila `IZINKAN_HAPUS_LAJU=1` terpasang di `.env.local`.
 
 ---
 

@@ -48,7 +48,7 @@ export async function GET(req: Request) {
       diekspor_pada: new Date().toISOString(),
       zona_waktu: "Asia/Jakarta",
       data,
-    }, null, 2);
+    });
 
     return new Response(isi, {
       headers: {

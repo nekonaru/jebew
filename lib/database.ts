@@ -37,6 +37,10 @@ function dapatkanKumpulan(): pg.Pool {
     connectionTimeoutMillis: 10000,
     ssl: lokal ? undefined : { rejectUnauthorized: process.env.DATABASE_TLS_VERIFY !== "false" },
   });
+  // Koneksi idle bisa diputus server. Catat dan buang, jangan sampai proses berhenti.
+  kumpulan.on("error", (kesalahan) => {
+    console.error("Koneksi database idle terputus:", kesalahan.message);
+  });
 
   return kumpulan;
 }
