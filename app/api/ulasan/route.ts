@@ -21,6 +21,7 @@ const skema = z.object({
   kode_lacak: z.string().trim().min(4).max(20),
   rating: z.number().int().min(1).max(5),
   komentar: z.string().trim().max(500),
+  foto: z.string().startsWith("data:image/").max(300000).optional(),
 }).strict();
 
 /** Pelanggan mengirim ulasan memakai kode lacak. */
@@ -33,7 +34,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ pesan: "Terlalu banyak pengiriman. Coba lagi sebentar." }, { status: 429 });
     }
     const badan = skema.parse(await bacaJsonTerbatasi(req));
-    await simpanUlasan(badan.kode_lacak, badan.rating, badan.komentar);
+    if (badan.foto && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(badan.foto)) {
+      return NextResponse.json({ pesan: "Format foto tidak didukung" }, { status: 400 });
+    }
+    await simpanUlasan(badan.kode_lacak, badan.rating, badan.komentar, badan.foto);
     return NextResponse.json({ berhasil: true });
   } catch (e) { return galat(e) as NextResponse; }
 }

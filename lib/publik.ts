@@ -31,6 +31,8 @@ export function pengaturanPublik(pengaturan: Record<string, string>) {
     batal_batas_menit: pengaturan.batal_batas_menit ?? "120",
     qris_gambar: pengaturan.qris_gambar ?? "",
     qris_teks: pengaturan.qris_teks ?? "",
+    ppn_aktif: pengaturan.ppn_aktif ?? "false",
+    ppn_persen: pengaturan.ppn_persen ?? "0",
   };
 }
 

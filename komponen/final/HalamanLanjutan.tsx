@@ -5,7 +5,7 @@ import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
-const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional", "Zona kirim"] as const;
+const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional", "Zona kirim", "Keuangan"] as const;
 type Tab = typeof TAB[number];
 const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -23,6 +23,7 @@ export default function HalamanLanjutan() {
   const [formPromo, setFormPromo] = useState({
     kode: "", jenis: "nominal", nilai: "5000", minimum_belanja: "0", kuota: "100",
     berlaku_dari: tanggalHariIni(), berlaku_sampai: tanggalHariIni(), aktif: true,
+    jam_mulai: "00:00", jam_selesai: "23:59",
   });
   const [formTarget, setFormTarget] = useState({ tanggal: tanggalHariIni(), target_omzet: "500000", target_transaksi: "20" });
   const [formLibur, setFormLibur] = useState({ tanggal: "", keterangan: "" });
@@ -46,6 +47,13 @@ export default function HalamanLanjutan() {
   const [formLimbah, setFormLimbah] = useState({ jumlah: "1", alasan: "" });
   const [zona, setZona] = useState<Baris[]>([]);
   const [formZona, setFormZona] = useState({ nama: "", tarif: "0", keterangan: "" });
+  const [keuangan, setKeuangan] = useState<{
+    kas: Baris[]; anggaran: Baris[]; hutang: Baris[]; rfm: Baris[];
+    retensi: { total: number; kembali: number; persen: number };
+  }>({ kas: [], anggaran: [], hutang: [], rfm: [], retensi: { total: 0, kembali: 0, persen: 0 } });
+  const [formAnggaran, setFormAnggaran] = useState({
+    kategori: "", bulan: tanggalHariIni().slice(0, 7), jumlah: "0",
+  });
 
   const muat = useCallback(async () => {
     try {
@@ -67,6 +75,13 @@ export default function HalamanLanjutan() {
         const d = await fetch(`/api/target?dari=${tanggalHariIni()}&sampai=${tanggalHariIni()}`)
           .then(ambilJson<{ target: Baris[] }>);
         setData(d.target ?? []);
+      } else if (tab === "Keuangan") {
+        const d = await fetch("/api/keuangan-lanjutan").then(ambilJson<{
+          kas: Baris[]; anggaran: Baris[]; hutang: Baris[]; rfm: Baris[];
+          retensi: { total: number; kembali: number; persen: number };
+        }>);
+        setKeuangan({ kas: d.kas ?? [], anggaran: d.anggaran ?? [], hutang: d.hutang ?? [],
+          rfm: d.rfm ?? [], retensi: d.retensi ?? { total: 0, kembali: 0, persen: 0 } });
       } else if (tab === "Zona kirim") {
         const d = await fetch("/api/zona-kirim").then(ambilJson<{ zona: Baris[] }>);
         setZona(d.zona ?? []);
@@ -436,6 +451,107 @@ export default function HalamanLanjutan() {
         </div>
       )}
 
+      {tab === "Keuangan" && (
+        <div className="space-y-5">
+          <Kartu>
+            <h2 className="text-lg font-semibold">Arus kas periode ini</h2>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead><tr className="text-left text-xs uppercase text-tinta-lemah">
+                  <th className="px-3 py-2">Tanggal</th><th className="px-3 py-2">Masuk</th>
+                  <th className="px-3 py-2">Keluar</th><th className="px-3 py-2">Saldo</th>
+                </tr></thead>
+                <tbody>
+                  {keuangan.kas.slice(-14).map((k) => (
+                    <tr key={String(k.tanggal)} className="border-t border-garis">
+                      <td className="px-3 py-2">{String(k.tanggal)}</td>
+                      <td className="px-3 py-2 text-sukses">{formatRupiah(Number(k.pemasukan))}</td>
+                      <td className="px-3 py-2 text-bahaya">{formatRupiah(Number(k.pengeluaran))}</td>
+                      <td className="px-3 py-2 font-semibold">{formatRupiah(Number(k.saldo))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {keuangan.kas.length === 0 && <p className="mt-3 text-sm text-tinta-lemah">Belum ada transaksi pada periode ini.</p>}
+          </Kartu>
+
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Kartu>
+              <h2 className="text-lg font-semibold">Anggaran bulan ini</h2>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                void fetch("/api/keuangan-lanjutan", {
+                  method: "POST", headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ aksi: "anggaran", ...formAnggaran, jumlah: Number(formAnggaran.jumlah) }),
+                }).then(ambilJson).then(() => {
+                  setJenis("sukses"); setPesan("Anggaran tersimpan."); void muat();
+                }).catch((err) => { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); });
+              }} className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div><label htmlFor="ag-kategori">Kategori</label><input id="ag-kategori" required maxLength={100} value={formAnggaran.kategori} onChange={(e) => setFormAnggaran({ ...formAnggaran, kategori: e.target.value })} /></div>
+                <div><label htmlFor="ag-bulan">Bulan</label><input id="ag-bulan" type="month" required value={formAnggaran.bulan} onChange={(e) => setFormAnggaran({ ...formAnggaran, bulan: e.target.value })} /></div>
+                <div><label htmlFor="ag-jumlah">Jumlah</label><input id="ag-jumlah" type="number" min={0} required value={formAnggaran.jumlah} onChange={(e) => setFormAnggaran({ ...formAnggaran, jumlah: e.target.value })} /></div>
+                <div className="sm:col-span-3"><Tombol tipe="submit">Simpan anggaran</Tombol></div>
+              </form>
+              <ul className="mt-4 space-y-2">
+                {keuangan.anggaran.map((a) => {
+                  const persen = Number(a.jumlah) > 0 ? Math.min(100, Math.round(Number(a.realisasi) / Number(a.jumlah) * 100)) : 0;
+                  return (
+                    <li key={String(a.id)} className="rounded-xl border border-garis p-3 text-sm">
+                      <div className="flex justify-between"><span className="font-semibold">{String(a.kategori)}</span><span className="text-xs text-tinta-lemah">{formatRupiah(Number(a.realisasi))} / {formatRupiah(Number(a.jumlah))}</span></div>
+                      <div role="progressbar" aria-valuenow={persen} aria-valuemin={0} aria-valuemax={100}
+                        aria-label={`Anggaran ${String(a.kategori)}`}
+                        className="mt-2 h-1.5 overflow-hidden rounded-full bg-latar">
+                        <div className={`h-full rounded-full ${persen >= 100 ? "bg-bahaya" : "bg-utama"}`} style={{ width: `${persen}%` }} />
+                      </div>
+                    </li>
+                  );
+                })}
+                {keuangan.anggaran.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada anggaran.</li>}
+              </ul>
+            </Kartu>
+
+            <Kartu>
+              <h2 className="text-lg font-semibold">Hutang supplier</h2>
+              <ul className="mt-4 space-y-2">
+                {keuangan.hutang.map((h) => (
+                  <li key={String(h.id)} className="flex items-center gap-2 rounded-xl border border-garis px-3 py-2 text-sm">
+                    <span className="font-semibold">{String(h.supplier ?? "-")}</span>
+                    <span className="text-xs text-tinta-lemah">{String(h.nomor)}</span>
+                    <span className="ml-auto font-semibold">{formatRupiah(Number(h.total))}</span>
+                    <Tombol jenis="sekunder" kelas="min-h-[36px] px-2 text-xs"
+                      onClick={() => void fetch("/api/keuangan-lanjutan", {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ aksi: "lunas", id: Number(h.id) }),
+                      }).then(ambilJson).then(() => { setJenis("sukses"); setPesan("Tagihan lunas."); void muat(); })
+                        .catch((err) => { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal melunasi"); })}>Lunas</Tombol>
+                  </li>
+                ))}
+                {keuangan.hutang.length === 0 && <li className="text-sm text-tinta-lemah">Tidak ada hutang supplier.</li>}
+              </ul>
+              <div className="mt-4 rounded-xl bg-latar p-3 text-xs">
+                <p className="font-semibold">Retensi pelanggan</p>
+                <p className="mt-1">{keuangan.retensi.kembali} dari {keuangan.retensi.total} pelanggan kembali, {keuangan.retensi.persen} persen.</p>
+              </div>
+            </Kartu>
+          </div>
+
+          <Kartu>
+            <h2 className="text-lg font-semibold">Segmentasi pelanggan</h2>
+            <ul className="mt-4 space-y-2">
+              {keuangan.rfm.slice(0, 30).map((r, i) => (
+                <li key={i} className="flex flex-wrap items-center gap-2 rounded-xl border border-garis px-3 py-2 text-xs">
+                  <span className="font-semibold">{String(r.whatsapp)}</span>
+                  <Badge warna={r.segmen === "Loyal" ? "sukses" : r.segmen === "Berisiko pergi" ? "bahaya" : "info"}>{String(r.segmen)}</Badge>
+                  <span className="text-tinta-lemah">{Number(r.frekuensi)} pesanan - {formatRupiah(Number(r.omzet))} - terakhir {Number(r.hari)} hari lalu</span>
+                </li>
+              ))}
+              {keuangan.rfm.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada data pelanggan.</li>}
+            </ul>
+          </Kartu>
+        </div>
+      )}
+
       {tab === "Zona kirim" && (
         <Kartu>
           <h2 className="text-lg font-semibold">Zona kirim</h2>
@@ -604,6 +720,8 @@ export default function HalamanLanjutan() {
             <div><label htmlFor="pr-kuota">Kuota</label><input id="pr-kuota" type="number" min={1} required value={formPromo.kuota} onChange={(e) => setFormPromo({ ...formPromo, kuota: e.target.value })} /></div>
             <div><label htmlFor="pr-dari">Berlaku dari</label><input id="pr-dari" type="date" required value={formPromo.berlaku_dari} onChange={(e) => setFormPromo({ ...formPromo, berlaku_dari: e.target.value })} /></div>
             <div><label htmlFor="pr-sampai">Berlaku sampai</label><input id="pr-sampai" type="date" required min={formPromo.berlaku_dari} value={formPromo.berlaku_sampai} onChange={(e) => setFormPromo({ ...formPromo, berlaku_sampai: e.target.value })} /></div>
+            <div><label htmlFor="pr-jam-mulai">Jam mulai</label><input id="pr-jam-mulai" type="time" value={formPromo.jam_mulai} onChange={(e) => setFormPromo({ ...formPromo, jam_mulai: e.target.value })} /></div>
+            <div><label htmlFor="pr-jam-selesai">Jam selesai</label><input id="pr-jam-selesai" type="time" value={formPromo.jam_selesai} onChange={(e) => setFormPromo({ ...formPromo, jam_selesai: e.target.value })} /></div>
           </div>
           <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={formPromo.aktif} onChange={(e) => setFormPromo({ ...formPromo, aktif: e.target.checked })} /> Aktif</label>
           <Tombol tipe="submit" kelas="w-full">Simpan promo</Tombol>

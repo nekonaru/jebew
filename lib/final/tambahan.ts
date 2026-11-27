@@ -91,23 +91,25 @@ export async function simpanPromo(input: {
   id?: number; kode: string; jenis: "persen" | "nominal"; nilai: number;
   minimum_belanja: number; kuota: number; berlaku_dari: string;
   berlaku_sampai: string; aktif: boolean;
+  jam_mulai?: string; jam_selesai?: string;
 }): Promise<void> {
   const kode = input.kode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (kode.length < 3 || kode.length > 20) throw new GalatBisnis("Kode promo 3 sampai 20 karakter");
   if (input.jenis === "persen" && input.nilai > 100) throw new GalatBisnis("Persentase maksimal 100");
   const nilai = [kode, input.jenis, input.nilai, input.minimum_belanja, input.kuota,
-    input.berlaku_dari, input.berlaku_sampai, input.aktif];
+    input.berlaku_dari, input.berlaku_sampai, input.aktif,
+    input.jam_mulai ?? "00:00", input.jam_selesai ?? "23:59"];
   if (input.id) {
     await jalankan(
       `UPDATE promo SET kode=$1, jenis=$2, nilai=$3, minimum_belanja=$4, kuota=$5,
-       berlaku_dari=$6, berlaku_sampai=$7, aktif=$8 WHERE id=$9`,
+       berlaku_dari=$6, berlaku_sampai=$7, aktif=$8, jam_mulai=$9, jam_selesai=$10 WHERE id=$11`,
       [...nilai, input.id],
     );
     return;
   }
   await jalankan(
-    `INSERT INTO promo (kode, jenis, nilai, minimum_belanja, kuota, berlaku_dari, berlaku_sampai, aktif)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+    `INSERT INTO promo (kode, jenis, nilai, minimum_belanja, kuota, berlaku_dari, berlaku_sampai, aktif, jam_mulai, jam_selesai)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     nilai,
   );
 }
@@ -120,12 +122,16 @@ export async function hapusPromo(id: number): Promise<void> {
 export async function validasiPromo(kode: string, subtotal: number): Promise<{
   kode: string; diskon: number; jenis: string; nilai: number;
 }> {
+  const sekarang = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(new Date());
   const bersih = kode.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (!bersih) throw new GalatBisnis("Kode promo wajib diisi");
   const promo = await querySatu<{
     id: number; kode: string; jenis: string; nilai: number;
     minimum_belanja: number; kuota: number; terpakai: number;
     berlaku_dari: string; berlaku_sampai: string; aktif: boolean;
+    jam_mulai: string; jam_selesai: string;
   }>("SELECT * FROM promo WHERE kode = $1 AND aktif = TRUE", [bersih]);
   if (!promo) throw new GalatBisnis("Kode promo tidak ditemukan atau tidak aktif");
   if (subtotal < angka(promo.minimum_belanja)) {
@@ -135,6 +141,12 @@ export async function validasiPromo(kode: string, subtotal: number): Promise<{
   const hari = new Date().toISOString().slice(0, 10);
   if (hari < String(promo.berlaku_dari).slice(0, 10) || hari > String(promo.berlaku_sampai).slice(0, 10)) {
     throw new GalatBisnis("Promo di luar masa berlaku");
+  }
+  const mulai = String(promo.jam_mulai ?? "00:00");
+  const selesai = String(promo.jam_selesai ?? "23:59");
+  if ((mulai < selesai && (sekarang < mulai || sekarang >= selesai))
+    || (mulai > selesai && sekarang < mulai && sekarang >= selesai)) {
+    throw new GalatBisnis("Promo hanya berlaku pada jam tertentu");
   }
   const diskon = promo.jenis === "persen"
     ? Math.floor(subtotal * Math.min(100, angka(promo.nilai)) / 100)
@@ -250,7 +262,7 @@ export async function tukarPoin(whatsapp: string, poin: number): Promise<number>
 
 /** Ulasan dari pelanggan memakai kode lacak. */
 export async function simpanUlasan(
-  kodeLacak: string, rating: number, komentar: string,
+  kodeLacak: string, rating: number, komentar: string, foto = "",
 ): Promise<void> {
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new GalatBisnis("Rating 1 sampai 5");
   const ada = await querySatu<{ id: number }>(
@@ -258,10 +270,11 @@ export async function simpanUlasan(
   );
   if (!ada) throw new GalatBisnis("Pesanan tidak ditemukan");
   await jalankan(
-    `INSERT INTO ulasan (kode_lacak, rating, komentar) VALUES ($1,$2,$3)
+    `INSERT INTO ulasan (kode_lacak, rating, komentar, foto) VALUES ($1,$2,$3,$4)
      ON CONFLICT (kode_lacak) DO UPDATE SET rating = EXCLUDED.rating,
-     komentar = EXCLUDED.komentar, status = 'menunggu', ditinjau_pada = NULL`,
-    [kodeLacak.trim().toUpperCase(), rating, komentar.slice(0, 500)],
+     komentar = EXCLUDED.komentar, foto = EXCLUDED.foto,
+     status = 'menunggu', ditinjau_pada = NULL`,
+    [kodeLacak.trim().toUpperCase(), rating, komentar.slice(0, 500), foto],
   );
 }
 

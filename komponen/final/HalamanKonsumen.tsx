@@ -22,6 +22,7 @@ type PengaturanTampil = {
   email_usaha?: string; instagram_usaha?: string; logo_url?: string;
   banner_judul?: string; banner_isi?: string; banner_tautan?: string;
   minimum_preorder?: string; biaya_kirim?: string; qris_gambar?: string; qris_teks?: string;
+  ppn_aktif?: string; ppn_persen?: string;
 };
 type DataAwal = { menu: Menu[]; pengaturan: PengaturanTampil };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
@@ -89,7 +90,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [zonaId, setZonaId] = useState("");
   const [buktiGambar, setBuktiGambar] = useState("");
   const [ulasanPublik, setUlasanPublik] = useState<{
-    rating: number; komentar: string; dibuat_pada: string;
+    rating: number; komentar: string; dibuat_pada: string; foto?: string;
   }[]>([]);
   const [kesalahan, setKesalahan] = useState<{
     nama?: string; whatsapp?: string; waktu?: string; setuju?: string;
@@ -124,7 +125,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       .catch(() => setZonaList([]));
     void fetch("/api/ulasan/publik")
       .then((r) => r.ok ? r.json() : null)
-      .then((d: { ulasan?: { rating: number; komentar: string; dibuat_pada: string }[] } | null) =>
+      .then((d: { ulasan?: { rating: number; komentar: string; dibuat_pada: string; foto?: string }[] } | null) =>
         setUlasanPublik(d?.ulasan ?? []))
       .catch(() => setUlasanPublik([]));
     void muat();
@@ -383,7 +384,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const zonaDipilih = zonaList.find((z) => z.id === Number(zonaId));
   const ongkirDiperkirakan = tipePesanan === "kirim"
     ? (zonaDipilih?.tarif ?? Math.max(0, Number(data.pengaturan.biaya_kirim ?? 0))) : 0;
-  const totalAkhir = Math.max(0, totalCheckout - diskonPromo - diskonPoin + ongkirDiperkirakan);
+  const dasarTotal = Math.max(0, totalCheckout - diskonPromo - diskonPoin + ongkirDiperkirakan);
+  const pajakDiperkirakan = data.pengaturan.ppn_aktif === "true"
+    ? Math.floor(dasarTotal * Math.min(100, Number(data.pengaturan.ppn_persen ?? 0)) / 100) : 0;
+  const totalAkhir = dasarTotal + pajakDiperkirakan;
 
   async function kirim(e: FormEvent) {
     e.preventDefault();
@@ -860,6 +864,9 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             {ongkirDiperkirakan > 0 && (
               <div className="flex justify-between"><span>Estimasi ongkir</span><span>{formatRupiah(ongkirDiperkirakan)}</span></div>
             )}
+            {pajakDiperkirakan > 0 && (
+              <div className="flex justify-between"><span>PPN</span><span>{formatRupiah(pajakDiperkirakan)}</span></div>
+            )}
             <div className="flex justify-between border-t border-garis pt-2 font-bold"><span>Total bayar</span><span>{formatRupiah(totalAkhir)}</span></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -1149,6 +1156,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                     {"★".repeat(u.rating)}{"☆".repeat(5 - u.rating)}
                   </div>
                   <blockquote className="mt-2 text-sm text-tinta">{u.komentar || "Pelanggan memberikan rating tanpa komentar."}</blockquote>
+                  {u.foto && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={u.foto} alt="Foto dari pelanggan" className="mt-3 h-24 rounded-xl object-cover" />
+                  )}
                 </figure>
               ))}
             </div>

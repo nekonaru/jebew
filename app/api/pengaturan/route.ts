@@ -46,6 +46,8 @@ const skema = z.object({
   batal_batas_menit: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
   qris_gambar: z.string().trim().max(500).optional(),
   qris_teks: z.string().trim().max(300).optional(),
+  ppn_aktif: z.enum(["true", "false"]).optional(),
+  ppn_persen: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
 }).strict();
 
 export async function PUT(req: Request) {

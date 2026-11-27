@@ -22,6 +22,7 @@ export type RincianPreorder = {
   ongkir?: number;
   buktiBayar?: string;
   zona?: string;
+  pajak?: number;
 };
 
 /** Menyusun pesan teks rapi yang siap dikirim lewat wa.me. */
@@ -52,6 +53,7 @@ export function susunPesanWhatsApp(rincian: RincianPreorder): string {
     `Subtotal: ${formatRupiah(total)}`,
     ...(rincian.zona ? [`Zona kirim: ${rincian.zona}`] : []),
     ...(rincian.ongkir ? [`Ongkir: ${formatRupiah(rincian.ongkir)}`] : []),
+    ...(rincian.pajak ? [`PPN: ${formatRupiah(rincian.pajak)}`] : []),
     `Total bayar: ${formatRupiah(rincian.totalAkhir ?? total)}`,
   ];
 

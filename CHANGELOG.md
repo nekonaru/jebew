@@ -1,5 +1,24 @@
 # Riwayat Perubahan
 
+## final-v6.0.0
+
+Keuangan usaha, loyalitas data, dan otomatisasi promo lanjutan.
+
+### Fitur baru
+
+- **Arus kas.** Ringkasan pemasukan, pengeluaran, dan saldo berjalan per tanggal.
+- **Anggaran bulanan.** Pemilik menetapkan anggaran per kategori dan melihat realisasinya.
+- **Hutang supplier.** Purchase order yang diterima belum lunas tampil sebagai tagihan, dengan tombol pelunasan.
+- **Segmentasi pelanggan.** RFM dan retensi 30 hari tampil di halaman Keuangan lanjutan.
+- **PPN opsional.** Pemilik mengaktifkan persentase pajak. Pajak dihitung server dan tampil di pesan WhatsApp.
+- **Flash sale berbasis jam.** Promo bisa dibatasi pada rentang jam tertentu dan hanya tampil saat aktif.
+- **Ulasan dengan foto.** Pelanggan menambahkan foto kecil, admin menyetujui sebelum tampil publik.
+- **Survei kepuasan.** Dua pertanyaan singkat setelah pesanan selesai.
+
+### Perbaikan
+
+- **Migrasi lengkap.** Tabel anggaran, survei, riwayat resep, langganan, artikel, dan kolom pajak ditambahkan tanpa menghapus data.
+
 ## final-v5.1.0
 
 Pengiriman, pembayaran, dan loyalitas yang lebih lengkap.

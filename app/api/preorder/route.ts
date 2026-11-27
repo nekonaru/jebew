@@ -147,6 +147,10 @@ export async function POST(req: Request) {
       ...badan,
       zona_kirim: namaZona,
       tingkat: (await ambilPoin(badan.whatsapp)).tingkat,
+      ppn: {
+        aktif: (pengaturan.ppn_aktif ?? "false") === "true",
+        persen: Number(pengaturan.ppn_persen ?? 0),
+      },
       minimum: Number(pengaturan.minimum_preorder ?? 0),
       ongkir: badan.zona_id ? tarifZona : Number(pengaturan.biaya_kirim ?? 0),
       bundling: {
@@ -175,6 +179,7 @@ export async function POST(req: Request) {
       ongkir: hasil.ongkir,
       buktiBayar: badan.bukti_bayar,
       zona: hasil.zona_kirim || undefined,
+      pajak: hasil.pajak,
     });
     return NextResponse.json({
       kode: hasil.kode, kode_lacak: hasil.kode_lacak, total: hasil.total, ongkir: hasil.ongkir,

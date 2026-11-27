@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     const { penolakan } = await aman(req, "publik");
     if (penolakan) return penolakan;
     const ulasan = await query<{ rating: number; komentar: string; dibuat_pada: string }>(
-      `SELECT rating, komentar, dibuat_pada FROM ulasan
+      `SELECT rating, komentar, foto, dibuat_pada FROM ulasan
        WHERE status = 'diterima' ORDER BY dibuat_pada DESC LIMIT 6`,
     );
     const rata = ulasan.length > 0

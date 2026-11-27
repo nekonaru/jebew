@@ -25,6 +25,7 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
   const [rating, setRating] = useState(5);
   const [komentar, setKomentar] = useState("");
   const [ulasanTerkirim, setUlasanTerkirim] = useState(false);
+  const [fotoUlasan, setFotoUlasan] = useState("");
   const [member, setMember] = useState<{
     poin: number; total_belanja: number; tingkat: string; kode_undangan: string;
   } | null>(null);
@@ -66,7 +67,7 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
     try {
       const respons = await fetch("/api/ulasan", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kode_lacak: hasil.kode_lacak, rating, komentar }),
+        body: JSON.stringify({ kode_lacak: hasil.kode_lacak, rating, komentar, foto: fotoUlasan || undefined }),
       });
       await ambilJson(respons);
       setUlasanTerkirim(true);
@@ -209,6 +210,35 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
               Pesan menu yang sama lagi
             </Tombol>
 
+            {hasil.status === "selesai" && (
+              <Kartu>
+                <h2 className="text-lg font-semibold">Penilaian singkat</h2>
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const nilai = Number((new FormData(e.currentTarget).get("nilai") ?? 5));
+                  const komentar = String(new FormData(e.currentTarget).get("komentar-survei") ?? "");
+                  void fetch("/api/survei", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ kode_lacak: hasil.kode_lacak, nilai, komentar }),
+                  }).then((r) => r.ok ? r.json() : Promise.reject(new Error("Gagal menyimpan penilaian")))
+                    .then(() => { setPesan("Terima kasih atas penilaianmu."); })
+                    .catch((err) => setPesan(err instanceof Error ? err.message : "Gagal menyimpan penilaian"));
+                }} className="mt-4 space-y-3">
+                  <div>
+                    <label htmlFor="survei-nilai">Seberapa mudah memesan?</label>
+                    <select id="survei-nilai" name="nilai" defaultValue={5}>
+                      {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n} - {n >= 4 ? "Mudah" : n === 3 ? "Cukup" : "Sulit"}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="survei-komentar">Saran, opsional</label>
+                    <input id="survei-komentar" name="komentar-survei" maxLength={300} placeholder="Apa yang bisa kami perbaiki?" />
+                  </div>
+                  <Tombol tipe="submit" kelas="w-full">Kirim penilaian</Tombol>
+                </form>
+              </Kartu>
+            )}
+
             {member && (
               <Kartu>
                 <div className="flex flex-wrap items-end justify-between gap-3">
@@ -247,6 +277,18 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
                       <label htmlFor="ulasan-komentar">Komentar</label>
                       <textarea id="ulasan-komentar" maxLength={500} value={komentar}
                         onChange={(e) => setKomentar(e.target.value)} placeholder="Ceritakan pengalamanmu" />
+                    </div>
+                    <div>
+                      <label htmlFor="ulasan-foto">Foto, opsional, maksimal 300 KB</label>
+                      <input id="ulasan-foto" type="file" accept="image/png,image/jpeg,image/webp"
+                        className="text-xs" onChange={(e) => {
+                          const berkas = e.target.files?.[0];
+                          if (!berkas) return;
+                          if (berkas.size > 300 * 1024) { setPesan("Foto maksimal 300 KB."); return; }
+                          const pembaca = new FileReader();
+                          pembaca.onload = () => setFotoUlasan(String(pembaca.result));
+                          pembaca.readAsDataURL(berkas);
+                        }} />
                     </div>
                     <Tombol tipe="submit" kelas="w-full">Kirim ulasan</Tombol>
                   </form>

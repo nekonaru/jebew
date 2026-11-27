@@ -151,6 +151,12 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **QRIS statis** | Teks rekening atau gambar QRIS tampil di checkout |
 | **Pesan dari meja** | Tautan meja mengisi nomor meja otomatis |
 | **Manfaat tingkat** | Diskon otomatis untuk pelanggan Silver, Gold, dan Platinum |
+| **Arus kas dan anggaran** | Pemasukan, pengeluaran, saldo, dan anggaran per kategori |
+| **Hutang supplier** | Tagihan purchase order yang belum lunas |
+| **Segmentasi pelanggan** | RFM dan retensi 30 hari di halaman Keuangan |
+| **PPN opsional** | Pajak dihitung server dan tampil di pesanan |
+| **Flash sale** | Promo dibatasi pada jam tertentu |
+| **Ulasan foto dan survei** | Foto pelanggan dan penilaian singkat pasca pesanan |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
