@@ -239,6 +239,29 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
               </Kartu>
             )}
 
+            {hasil.whatsapp && (
+              <div className="flex flex-wrap gap-2 rounded-xl border border-garis p-3">
+                <button type="button" onClick={() => {
+                  void fetch(`/api/privasi?whatsapp=${encodeURIComponent(hasil.whatsapp ?? "")}`)
+                    .then((r) => r.ok ? r.blob() : Promise.reject(new Error("Gagal mengunduh data")))
+                    .then((blob) => {
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url; a.download = "data-saya-jebew.json"; a.click();
+                      URL.revokeObjectURL(url);
+                    })
+                    .catch((err) => setPesan(err instanceof Error ? err.message : "Gagal mengunduh data"));
+                }} className="text-xs font-semibold text-utama hover:underline">Unduh data saya</button>
+                <button type="button" onClick={() => {
+                  const alamat = `?konfirmasi=HAPUS&whatsapp=${encodeURIComponent(hasil.whatsapp ?? "")}`;
+                  void fetch(`/api/privasi${alamat}`, { method: "DELETE" })
+                    .then((r) => r.ok ? r.json() : Promise.reject(new Error("Gagal menghapus data")))
+                    .then(() => setPesan("Data pelanggan berhasil dianonimisasi."))
+                    .catch((err) => setPesan(err instanceof Error ? err.message : "Gagal menghapus data"));
+                }} className="text-xs font-semibold text-bahaya hover:underline">Anonimisasi data saya</button>
+              </div>
+            )}
+
             {member && (
               <Kartu>
                 <div className="flex flex-wrap items-end justify-between gap-3">

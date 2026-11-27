@@ -68,6 +68,7 @@ ALTER TABLE preorder
 ALTER TABLE preorder ADD COLUMN IF NOT EXISTS zona_kirim TEXT NOT NULL DEFAULT '';
 
 ALTER TABLE preorder ADD COLUMN IF NOT EXISTS pajak INTEGER NOT NULL DEFAULT 0 CHECK (pajak >= 0);
+ALTER TABLE bahan ADD COLUMN IF NOT EXISTS kode_barcode TEXT NOT NULL DEFAULT '';
 
 -- Anggaran bulanan per kategori pengeluaran.
 CREATE TABLE IF NOT EXISTS anggaran (

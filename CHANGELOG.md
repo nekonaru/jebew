@@ -1,5 +1,24 @@
 # Riwayat Perubahan
 
+## final-v6.1.0
+
+Tahap penutup roadmap v6: privasi data, dapur cerdas, katering, konten, dan integrasi.
+
+### Fitur baru
+
+- **Privasi pelanggan.** Pelanggan mengunduh seluruh datanya atau menganonimisasi data dengan konfirmasi eksplisit.
+- **Barcode bahan.** Pemilik menyimpan kode barcode, lalu mencari bahan lewat kode tersebut.
+- **Riwayat resep.** Setiap perubahan menu dan takaran tercatat beserta harga saat itu.
+- **Peringatan kedaluwarsa.** Endpoint Cron membuat notifikasi untuk batch yang kedaluwarsa dalam tiga hari.
+- **Langganan katering.** Pemilik mengelola pelanggan langganan beserta menu, jumlah, hari, dan jam ambil.
+- **Artikel dan resep.** Pemilik menulis artikel, halaman publik menampilkannya, dan sitemap mengikutsertakannya.
+- **Sitemap dinamis.** Sitemap kini memuat menu aktif dan artikel aktif.
+- **Webhook WhatsApp.** Endpoint bertanda tangan menerima pesan dan membalas status dari kode lacak.
+
+### Perbaikan
+
+- **Otomatisasi lebih aman.** Endpoint Cron kedaluwarsa dan webhook memakai proteksi token atau tanda tangan.
+
 ## final-v6.0.0
 
 Keuangan usaha, loyalitas data, dan otomatisasi promo lanjutan.

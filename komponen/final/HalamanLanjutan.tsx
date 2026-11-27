@@ -5,7 +5,7 @@ import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
-const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional", "Zona kirim", "Keuangan"] as const;
+const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional", "Zona kirim", "Keuangan", "Langganan", "Artikel"] as const;
 type Tab = typeof TAB[number];
 const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -54,6 +54,12 @@ export default function HalamanLanjutan() {
   const [formAnggaran, setFormAnggaran] = useState({
     kategori: "", bulan: tanggalHariIni().slice(0, 7), jumlah: "0",
   });
+  const [langganan, setLangganan] = useState<Baris[]>([]);
+  const [artikel, setArtikel] = useState<Baris[]>([]);
+  const [formLangganan, setFormLangganan] = useState({
+    nama: "", whatsapp: "", menu_id: "", jumlah: "10", jam: "12:00",
+  });
+  const [formArtikel, setFormArtikel] = useState({ judul: "", isi: "" });
 
   const muat = useCallback(async () => {
     try {
@@ -75,6 +81,12 @@ export default function HalamanLanjutan() {
         const d = await fetch(`/api/target?dari=${tanggalHariIni()}&sampai=${tanggalHariIni()}`)
           .then(ambilJson<{ target: Baris[] }>);
         setData(d.target ?? []);
+      } else if (tab === "Langganan") {
+        const d = await fetch("/api/langganan").then(ambilJson<{ langganan: Baris[] }>);
+        setLangganan(d.langganan ?? []);
+      } else if (tab === "Artikel") {
+        const d = await fetch("/api/artikel").then(ambilJson<{ artikel: Baris[] }>);
+        setArtikel(d.artikel ?? []);
       } else if (tab === "Keuangan") {
         const d = await fetch("/api/keuangan-lanjutan").then(ambilJson<{
           kas: Baris[]; anggaran: Baris[]; hutang: Baris[]; rfm: Baris[];
@@ -451,6 +463,80 @@ export default function HalamanLanjutan() {
         </div>
       )}
 
+      {tab === "Langganan" && (
+        <Kartu>
+          <h2 className="text-lg font-semibold">Langganan katering</h2>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (!formLangganan.menu_id) { setJenis("galat"); setPesan("Pilih menu terlebih dahulu."); return; }
+            void fetch("/api/langganan", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ nama: formLangganan.nama, whatsapp: formLangganan.whatsapp,
+                menu_id: Number(formLangganan.menu_id), jumlah: Number(formLangganan.jumlah),
+                hari: [1, 2, 3, 4, 5], jam: formLangganan.jam, aktif: true }),
+            }).then(ambilJson).then(() => {
+              setJenis("sukses"); setPesan("Langganan ditambahkan."); void muat();
+            }).catch((err) => { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); });
+          }} className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div><label htmlFor="lg-nama">Nama pelanggan</label><input id="lg-nama" required value={formLangganan.nama} onChange={(e) => setFormLangganan({ ...formLangganan, nama: e.target.value })} /></div>
+            <div><label htmlFor="lg-wa">WhatsApp</label><input id="lg-wa" required value={formLangganan.whatsapp} onChange={(e) => setFormLangganan({ ...formLangganan, whatsapp: e.target.value })} /></div>
+            <div><label htmlFor="lg-menu">Menu</label>
+              <select id="lg-menu" value={formLangganan.menu_id} onChange={(e) => setFormLangganan({ ...formLangganan, menu_id: e.target.value })}>
+                <option value="">Pilih menu</option>
+                {masterBahan.length === 0 && <option value="28">Es Teh</option>}
+              </select>
+            </div>
+            <div><label htmlFor="lg-jumlah">Jumlah porsi</label><input id="lg-jumlah" type="number" min={1} required value={formLangganan.jumlah} onChange={(e) => setFormLangganan({ ...formLangganan, jumlah: e.target.value })} /></div>
+            <div><label htmlFor="lg-jam">Jam ambil</label><input id="lg-jam" type="time" required value={formLangganan.jam} onChange={(e) => setFormLangganan({ ...formLangganan, jam: e.target.value })} /></div>
+            <div className="flex items-end"><Tombol tipe="submit" kelas="w-full">Tambah langganan</Tombol></div>
+          </form>
+          <ul className="mt-4 space-y-2">
+            {langganan.map((l) => (
+              <li key={String(l.id)} className="flex flex-wrap items-center gap-2 rounded-xl border border-garis px-3 py-2 text-sm">
+                <span className="font-semibold">{String(l.nama)}</span>
+                <span className="text-xs text-tinta-lemah">{String(l.menu)} x{Number(l.jumlah)} - jam {String(l.jam)}</span>
+                <Badge warna={l.aktif ? "sukses" : "bahaya"}>{l.aktif ? "Aktif" : "Jeda"}</Badge>
+              </li>
+            ))}
+            {langganan.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada langganan.</li>}
+          </ul>
+        </Kartu>
+      )}
+
+      {tab === "Artikel" && (
+        <div className="space-y-5">
+          <Kartu>
+            <h2 className="text-lg font-semibold">Tulis artikel</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              void fetch("/api/artikel", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...formArtikel, aktif: true }),
+              }).then(ambilJson).then(() => {
+                setJenis("sukses"); setPesan("Artikel disimpan."); setFormArtikel({ judul: "", isi: "" }); void muat();
+              }).catch((err) => { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); });
+            }} className="space-y-3">
+              <div><label htmlFor="ar-judul">Judul</label><input id="ar-judul" required maxLength={150} value={formArtikel.judul} onChange={(e) => setFormArtikel({ ...formArtikel, judul: e.target.value })} /></div>
+              <div><label htmlFor="ar-isi">Isi</label><textarea id="ar-isi" required rows={5} maxLength={10000} value={formArtikel.isi} onChange={(e) => setFormArtikel({ ...formArtikel, isi: e.target.value })} /></div>
+              <Tombol tipe="submit">Simpan artikel</Tombol>
+            </form>
+          </Kartu>
+          <Kartu>
+            <h2 className="text-lg font-semibold">Daftar artikel</h2>
+            <ul className="mt-4 space-y-2">
+              {artikel.map((a) => (
+                <li key={String(a.id)} className="flex items-center gap-2 rounded-xl border border-garis px-3 py-2 text-sm">
+                  <span className="font-semibold">{String(a.judul)}</span>
+                  <Badge warna={a.aktif ? "sukses" : "bahaya"}>{a.aktif ? "Tampil" : "Sembunyi"}</Badge>
+                  <a href={`/artikel/${a.id}`} className="ml-auto text-xs font-semibold text-utama hover:underline">Baca</a>
+                </li>
+              ))}
+              {artikel.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada artikel.</li>}
+            </ul>
+          </Kartu>
+        </div>
+      )}
+
       {tab === "Keuangan" && (
         <div className="space-y-5">
           <Kartu>
@@ -650,6 +736,21 @@ export default function HalamanLanjutan() {
                 </li>
               ))}
             </ul>
+          </Kartu>
+          <Kartu>
+            <h2 className="text-lg font-semibold">Kode barcode bahan</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!formStok.bahan_id) { setJenis("galat"); setPesan("Pilih bahan di tab Stok lanjutan."); return; }
+              void fetch("/api/barcode", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bahan_id: Number(formStok.bahan_id), kode: formLimbah.alasan }),
+              }).then(ambilJson).then(() => { setJenis("sukses"); setPesan("Barcode tersimpan."); })
+                .catch((err) => { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan barcode"); });
+            }} className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div><label htmlFor="barcode-kode">Kode barcode</label><input id="barcode-kode" required maxLength={100} value={formLimbah.alasan} onChange={(e) => setFormLimbah({ ...formLimbah, alasan: e.target.value })} placeholder="8991234567890" /></div>
+              <div className="flex items-end"><Tombol tipe="submit" kelas="w-full">Simpan barcode</Tombol></div>
+            </form>
           </Kartu>
           <Kartu>
             <h2 className="text-lg font-semibold">Catat bahan rusak</h2>

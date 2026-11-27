@@ -206,6 +206,12 @@ export async function simpanMenu(
         [menuId, r.bahan_id, r.jumlah_per_porsi],
       );
     }
+    await jalankan(
+      `INSERT INTO resep_log (menu_id, aksi, rincian, pengguna_id)
+       VALUES ($1,$2,$3,$4)`,
+      [menuId, id === undefined ? "tambah" : "ubah",
+        JSON.stringify({ harga: input.harga, resep: input.resep }), pengguna?.id ?? null],
+    );
     const dipakai = new Set<number>();
     for (const v of input.varian) {
       let varianId: number;

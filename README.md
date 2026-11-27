@@ -157,6 +157,13 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **PPN opsional** | Pajak dihitung server dan tampil di pesanan |
 | **Flash sale** | Promo dibatasi pada jam tertentu |
 | **Ulasan foto dan survei** | Foto pelanggan dan penilaian singkat pasca pesanan |
+| **Privasi pelanggan** | Unduh atau anonimisasi data pelanggan dengan konfirmasi |
+| **Barcode bahan** | Simpan dan cari bahan berdasarkan kode barcode |
+| **Riwayat resep** | Setiap perubahan takaran dan harga tercatat |
+| **Kedaluwarsa** | Notifikasi otomatis untuk batch yang segera kedaluwarsa |
+| **Langganan katering** | Kelola pelanggan langganan beserta jadwalnya |
+| **Artikel** | Tulis artikel dan resep yang tampil di halaman publik |
+| **Webhook WhatsApp** | Balas status pesanan dari kode lacak melalui webhook bertanda tangan |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
