@@ -47,6 +47,9 @@ export default function HalamanDapur() {
   const [metode, setMetode] = useState<"tunai" | "qris" | "transfer">("tunai");
   const [sibuk, setSibuk] = useState(false);
   const [memuat, setMuat] = useState(true);
+  const [detik, setDetik] = useState(Date.now());
+  const [undo, setUndo] = useState<{ id: number; status: "diproses" } | null>(null);
+  const [label, setLabel] = useState<Preorder | null>(null);
 
   const muat = useCallback(async () => {
     if (document.visibilityState !== "visible") return;
@@ -63,8 +66,18 @@ export default function HalamanDapur() {
   useEffect(() => {
     void muat();
     const t = setInterval(() => void muat(), 15000);
-    return () => clearInterval(t);
+    const j = setInterval(() => setDetik(Date.now()), 30000);
+    return () => { clearInterval(t); clearInterval(j); };
   }, [muat]);
+
+  function sisaWaktu(teks: string): string {
+    const selisih = waktuAmbil(teks) - detik;
+    const menit = Math.round(Math.abs(selisih) / 60000);
+    if (selisih < 0) return `Lewat ${menit} menit`;
+    if (menit < 1) return "Kurang dari 1 menit";
+    if (menit < 60) return `${menit} menit lagi`;
+    return `${Math.floor(menit / 60)} jam lagi`;
+  }
 
   async function ubah(id: number, status: "diproses" | "siap" | "selesai" | "batal") {
     if (sibuk) return;
@@ -76,6 +89,7 @@ export default function HalamanDapur() {
       });
       await ambilJson(respons);
       setJenis("sukses"); setPesan(`Status berhasil diubah menjadi ${status}.`);
+      setUndo(status === "siap" ? { id, status: "diproses" } : null);
       setSelesaiId(null);
       void muat();
     } catch (e) {
@@ -83,10 +97,32 @@ export default function HalamanDapur() {
     } finally { setSibuk(false); }
   }
 
+  async function urungkan() {
+    if (!undo || sibuk) return;
+    setSibuk(true);
+    try {
+      const respons = await fetch("/api/preorder", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: undo.id, status: undo.status }),
+      });
+      await ambilJson(respons);
+      setJenis("info"); setPesan("Status dikembalikan ke diproses."); setUndo(null);
+      void muat();
+    } catch (e) {
+      setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal membatalkan");
+    } finally { setSibuk(false); }
+  }
+
   return (
     <div>
       <Judul anak="Papan dapur" sub="Pesanan berjalan dari masuk hingga siap diambil. Data menyegarkan tiap 15 detik." />
       <Pesan teks={pesan} jenis={jenis} />
+      {undo && (
+        <div role="status" className="animasi-toast mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-garis bg-latar px-4 py-3 text-sm">
+          <span className="font-semibold">Pesanan ditandai siap.</span>
+          <Tombol jenis="kosong" kelas="min-h-[36px] px-2 text-xs" onClick={() => void urungkan()}>Urungkan</Tombol>
+        </div>
+      )}
 
       <Kartu kelas="mb-5">
         <h2 className="text-lg font-semibold">Notifikasi pelanggan</h2>
@@ -129,7 +165,12 @@ export default function HalamanDapur() {
                       </div>
                       <span className="rounded-full bg-latar px-2 py-1 text-[10px] font-semibold text-tinta-lemah">{durasi(p.dibuat_pada)}</span>
                     </div>
-                    <p className="mt-2 text-xs font-semibold">Ambil {p.waktu_ambil} WIB</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <p className="text-xs font-semibold">Ambil {p.waktu_ambil} WIB</p>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        segeraDiambil(p.waktu_ambil) ? "bg-amber-100 text-amber-800" : "bg-latar text-tinta-lemah"
+                      }`}>{sisaWaktu(p.waktu_ambil)}</span>
+                    </div>
                     <ul className="mt-1 text-xs text-tinta-lemah">
                       {p.items.map((i, n) => <li key={n}>{i.nama_menu}{i.nama_varian ? ` (${i.nama_varian})` : ""} x{i.jumlah}</li>)}
                     </ul>
@@ -146,6 +187,8 @@ export default function HalamanDapur() {
                         <Tombol nonaktif={sibuk} kelas="min-h-[38px] px-3 text-xs" onClick={() => { setMetode("tunai"); setSelesaiId(p.id); }}>Selesai</Tombol>
                       )}
                       <Tombol jenis="hapus" nonaktif={sibuk} kelas="min-h-[38px] px-3 text-xs" onClick={() => void ubah(p.id, "batal")}>Batal</Tombol>
+                      <Tombol jenis="sekunder" kelas="min-h-[38px] px-3 text-xs"
+                        onClick={() => { setLabel(p); setTimeout(() => window.print(), 50); }}>Cetak label</Tombol>
                     </div>
                   </article>
                 ))}
@@ -171,6 +214,18 @@ export default function HalamanDapur() {
           <Tombol jenis="sukses" kelas="flex-1" nonaktif={sibuk} onClick={() => selesaiId !== null && void ubah(selesaiId, "selesai")}>Selesaikan</Tombol>
         </div>
       </Dialog>
+
+      {label && (
+        <div id="label-dapur" className="hidden">
+          <h1>MIE JEBEW</h1>
+          <p>{label.kode} / {label.kode_lacak}</p>
+          <p>Nama: {label.nama_pelanggan}</p>
+          <p>Ambil: {label.waktu_ambil} WIB</p>
+          <ul>{label.items.map((i, n) => <li key={n}>{i.nama_menu}{i.nama_varian ? ` (${i.nama_varian})` : ""} x{i.jumlah}</li>)}</ul>
+          <p>Total: {formatRupiah(label.total)}</p>
+          {label.catatan && <p>Catatan: {label.catatan}</p>}
+        </div>
+      )}
     </div>
   );
 }

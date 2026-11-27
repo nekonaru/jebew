@@ -217,7 +217,9 @@ dialog[open]::backdrop {
 /* Cetak hanya area yang ditandai, bukan seluruh panel admin. */
 @media print {
   body * { visibility: hidden !important; }
-  #struk, #struk *, #struk-kasir, #struk-kasir *, #laporan-cetak, #laporan-cetak * { visibility: visible !important; }
+  #struk, #struk *, #struk-kasir, #struk-kasir *, #laporan-cetak, #laporan-cetak *,
+  #label-dapur, #label-dapur * { visibility: visible !important; }
+  #label-dapur { display: block !important; position: static !important; width: auto !important; padding: 0 !important; }
   #struk, #struk-kasir, #laporan-cetak {
     position: absolute;
     left: 0;
@@ -227,6 +229,23 @@ dialog[open]::backdrop {
   }
   #struk button, #struk-kasir button, #laporan-cetak button,
   #struk .tidak-cetak, #struk-kasir .tidak-cetak, #laporan-cetak .tidak-cetak { display: none !important; }
+}
+
+/* Perpindaan halaman memakai View Transitions bila browser mendukung. */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root) {
+  animation: geserKeluar 140ms var(--ease-keluar) both;
+}
+::view-transition-new(root) {
+  animation: munculMasuk 240ms var(--ease-masuk) both;
+}
+@keyframes geserKeluar {
+  to { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes munculMasuk {
+  from { opacity: 0; transform: translateY(8px); }
 }
 
 /* Pengguna yang meminta pengurangan gerak mendapat versi statis. */

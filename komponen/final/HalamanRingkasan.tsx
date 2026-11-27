@@ -52,8 +52,25 @@ export default function HalamanRingkasan() {
   const [pesan, setPesan] = useState("");
   const [gagal, setGagal] = useState(false);
   const [statusSibuk, setStatusSibuk] = useState(false);
+  const [langkahPanduan, setLangkahPanduan] = useState<number[]>([]);
 
   const muatPublik = () => fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik);
+
+  useEffect(() => {
+    try {
+      const teks = localStorage.getItem("jebew_panduan");
+      const daftar = teks ? JSON.parse(teks) : [];
+      if (Array.isArray(daftar)) setLangkahPanduan(daftar.filter((n) => Number.isInteger(n)));
+    } catch { /* abaikan data rusak */ }
+  }, []);
+
+  function centangPanduan(indeks: number) {
+    setLangkahPanduan((d) => {
+      const baru = d.includes(indeks) ? d.filter((n) => n !== indeks) : [...d, indeks];
+      try { localStorage.setItem("jebew_panduan", JSON.stringify(baru)); } catch { /* abaikan */ }
+      return baru;
+    });
+  }
 
   useEffect(() => {
     void fetch("/api/statistik").then(ambilJson<Ringkasan>).then(setStatistik)
@@ -118,6 +135,33 @@ export default function HalamanRingkasan() {
               );
             })}
           </div>
+        </Kartu>
+      )}
+
+      {langkahPanduan.length < 4 && (
+        <Kartu>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Mulai dengan Jebew</h2>
+              <p className="mt-1 text-xs text-tinta-lemah">Empat langkah singkat agar warung siap menerima pesanan.</p>
+            </div>
+            <Badge>{langkahPanduan.length} dari 4</Badge>
+          </div>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            {[
+              { teks: "Isi identitas dan jam usaha", href: "/admin/pengaturan" },
+              { teks: "Tambah bahan dan resep menu", href: "/admin/menu" },
+              { teks: "Coba satu transaksi kasir", href: "/admin/kasir" },
+              { teks: "Buka papan dapur dan cek pre-order", href: "/admin/dapur" },
+            ].map((langkah, i) => (
+              <li key={langkah.teks} className="flex items-center gap-2 rounded-xl border border-garis px-3 py-2.5 text-sm">
+                <input type="checkbox" id={`panduan-${i}`} checked={langkahPanduan.includes(i)}
+                  onChange={() => centangPanduan(i)} />
+                <label htmlFor={`panduan-${i}`} className="mb-0 flex-1 normal-case tracking-normal text-tinta">{langkah.teks}</label>
+                <Link href={langkah.href} className="text-xs font-semibold text-utama hover:underline">Buka</Link>
+              </li>
+            ))}
+          </ul>
         </Kartu>
       )}
 

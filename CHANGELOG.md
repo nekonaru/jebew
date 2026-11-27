@@ -1,5 +1,30 @@
 # Riwayat Perubahan
 
+## final-v3.2.0
+
+Pendalaman pengalaman: identitas visual, pemilihan waktu, validasi, dan alur kerja yang lebih cepat.
+
+### Fitur baru
+
+- **Ilustrasi hero lokal.** Ilustrasi mie dan chili oil berbasis SVG lokal, tanpa ketergantungan gambar luar jaringan.
+- **Foto menu.** Menu yang memiliki foto kini menampilkannya di kartu dengan rasio tetap dan pemuatan malas.
+- **Kalender ambil.** Tanggal dan jam pre-order dipilih lewat tombol tanggal dan grid slot, bukan daftar drop-down.
+- **Langkah periksa pesanan.** Checkout memuat ringkasan akhir dan konfirmasi wajib sebelum pesanan dikirim.
+- **Draft lokal.** Nama, WhatsApp, catatan, promo, poin, dan waktu tersimpan otomatis di perangkat hingga pesanan berhasil.
+- **Validasi kolom.** Galat ditampilkan di dekat kolom, dengan fokus otomatis ke kolom pertama yang bermasalah.
+- **Pusat notifikasi di panel.** Jumlah notifikasi tertunda ditampilkan di header dan tautan mengarah ke papan dapur.
+- **Panduan pertama kali.** Checklist empat langkah di ringkasan membantu pemilik menyiapkan warung.
+
+### Perbaikan
+
+- **Hitung mundur dapur.** Tiap kartu menunjukkan sisa waktu ambil dan penanda mendesak saat kurang dari 30 menit.
+- **Urungkan status.** Penandaan siap dapat dibatalkan langsung dari papan dapur.
+- **Cetak label.** Kartu pesanan bisa dicetak menjadi label berisi kode, pelanggan, waktu ambil, dan rincian menu.
+- **Perpindaan halaman.** View Transitions API dipakai bila browser mendukung, dengan penghormatan `prefers-reduced-motion`.
+- **Kontras badge.** Badan menu habis memakai teks yang lebih gelap agar lolos pemeriksaan kontras.
+- **Polling lebih ringan.** Penyegaran beranda dan dapur dijalankan hanya saat tab terlihat.
+- **Muat contoh lengkap.** `npm run muat:contoh` kini menghapus seluruh tabel fitur lanjutan sebelum memuat data contoh, sehingga tidak lagi gagal karena kunci asing baru.
+
 ## final-v3.1.0
 
 Pembaruan desain, animasi, alur, dan aksesibilitas tanpa mengubah data.

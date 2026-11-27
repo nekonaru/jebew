@@ -29,10 +29,13 @@ const klien = new pg.Client({
 
 const URUTAN_HAPUS = [
   "item_penjualan", "item_preorder", "item_pembelian", "item_opname", "item_varian",
+  "riwayat_status_preorder", "notifikasi", "promo_pemakaian", "poin_mutasi", "ulasan",
+  "item_purchase_order", "purchase_order", "supplier_harga", "batch_bahan",
   "log_audit", "tutup_kasir", "pengeluaran", "pergerakan_stok",
   "penjualan", "preorder", "pembelian", "stok_opname", "resep", "varian",
   "menu", "bahan", "slot_waktu", "supplier", "konversi_satuan",
-  "kategori_pengeluaran", "pengguna", "pengaturan", "pembatasan_laju",
+  "jadwal_harian", "hari_libur", "target_harian", "totp_secret", "push_subscription",
+  "promo", "poin_pelanggan", "kategori_pengeluaran", "pengguna", "pengaturan", "pembatasan_laju",
 ];
 
 try {

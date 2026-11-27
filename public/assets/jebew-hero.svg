@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="Ilustrasi semangkuk Mie Jebew dengan chili oil">
+  <defs>
+    <linearGradient id="kuah" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F29A2E"/>
+      <stop offset="1" stop-color="#D8432B"/>
+    </linearGradient>
+    <linearGradient id="mangkok" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF1D6"/>
+      <stop offset="1" stop-color="#EADCC3"/>
+    </linearGradient>
+  </defs>
+  <circle cx="240" cy="180" r="150" fill="#FFF1D6"/>
+  <circle cx="240" cy="180" r="120" fill="none" stroke="#D8432B" stroke-opacity="0.12" stroke-width="2" stroke-dasharray="6 10"/>
+  <g fill="none" stroke="#3A2218" stroke-opacity="0.28" stroke-width="5" stroke-linecap="round">
+    <path d="M190 96c-12-14 10-22 0-38"/>
+    <path d="M240 84c-12-14 10-22 0-38"/>
+    <path d="M290 96c-12-14 10-22 0-38"/>
+  </g>
+  <path d="M96 196h288c0 62-64 108-144 108S96 258 96 196z" fill="url(#mangkok)" stroke="#3A2218" stroke-opacity="0.18" stroke-width="3"/>
+  <ellipse cx="240" cy="196" rx="144" ry="42" fill="url(#kuah)"/>
+  <g stroke="#FFF1D6" stroke-width="7" stroke-linecap="round" fill="none">
+    <path d="M150 190c22-18 42 16 64-2s44 14 66-4 44 12 50-2"/>
+    <path d="M158 208c20-16 40 14 60-2s42 12 62-4 42 10 48-4"/>
+  </g>
+  <g fill="#FFF1D6" stroke="#D8432B" stroke-opacity="0.35" stroke-width="2">
+    <ellipse cx="196" cy="180" rx="18" ry="12"/>
+    <ellipse cx="268" cy="184" rx="18" ry="12"/>
+    <ellipse cx="320" cy="176" rx="14" ry="10"/>
+  </g>
+  <g stroke="#3A2218" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round">
+    <path d="M332 70l58 96"/>
+    <path d="M356 62l58 96"/>
+  </g>
+  <g fill="#D8432B">
+    <circle cx="206" cy="172" r="6"/>
+    <circle cx="282" cy="178" r="5"/>
+    <circle cx="312" cy="194" r="4"/>
+  </g>
+  <path d="M104 242c26 34 74 54 136 54s110-20 136-54" fill="none" stroke="#3A2218" stroke-opacity="0.12" stroke-width="3"/>
+</svg>

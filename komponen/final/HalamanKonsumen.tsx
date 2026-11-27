@@ -64,6 +64,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [favorit, setFavorit] = useState<number[]>([]);
   const [rekomendasi, setRekomendasi] = useState<{ id: number; nama: string; jumlah: number }[]>([]);
   const [slotId, setSlotId] = useState("");
+  const [tanggalPilih, setTanggalPilih] = useState("");
   const [waktu, setWaktu] = useState("");
   const [catatan, setCatatan] = useState("");
   const [kodePromo, setKodePromo] = useState("");
@@ -72,6 +73,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [saldoPoin, setSaldoPoin] = useState(0);
   const [infoDiskon, setInfoDiskon] = useState("");
   const [pesananBesar, setPesananBesar] = useState(false);
+  const [setuju, setSetuju] = useState(false);
+  const [kesalahan, setKesalahan] = useState<{
+    nama?: string; whatsapp?: string; waktu?: string; setuju?: string;
+  }>({});
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"galat">("galat");
   const [loading, setLoading] = useState(false);
@@ -111,6 +116,22 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         if (typeof kontak.whatsapp === "string") setWhatsapp(kontak.whatsapp.slice(0, 30));
       }
     } catch { /* abaikan data rusak */ }
+    try {
+      const draf = localStorage.getItem("jebew_draf");
+      if (draf) {
+        const isi = JSON.parse(draf) as {
+          nama?: string; whatsapp?: string; catatan?: string; kodePromo?: string;
+          poinDipakai?: string; waktu?: string; pesananBesar?: boolean;
+        };
+        if (typeof isi.nama === "string") setNama(isi.nama.slice(0, 100));
+        if (typeof isi.whatsapp === "string") setWhatsapp(isi.whatsapp.slice(0, 30));
+        if (typeof isi.catatan === "string") setCatatan(isi.catatan.slice(0, 300));
+        if (typeof isi.kodePromo === "string") setKodePromo(isi.kodePromo.slice(0, 20));
+        if (typeof isi.poinDipakai === "string") setPoinDipakai(isi.poinDipakai.slice(0, 10));
+        if (typeof isi.waktu === "string") setWaktu(isi.waktu.slice(0, 30));
+        if (typeof isi.pesananBesar === "boolean") setPesananBesar(isi.pesananBesar);
+      }
+    } catch { /* abaikan draf rusak */ }
   }, []);
 
   useEffect(() => {
@@ -130,6 +151,17 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         setRekomendasi(d?.rekomendasi ?? []))
       .catch(() => setRekomendasi([]));
   }, [keranjang]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem("jebew_draf", JSON.stringify({
+          nama, whatsapp, catatan, kodePromo, poinDipakai, waktu, pesananBesar,
+        }));
+      } catch { /* penyimpanan lokal tidak tersedia */ }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [nama, whatsapp, catatan, kodePromo, poinDipakai, waktu, pesananBesar]);
 
   useEffect(() => {
     if (whatsapp.trim().length < 8) { setSaldoPoin(0); return; }
@@ -203,6 +235,12 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     return [...peta.entries()];
   }, [slotTersedia]);
 
+  useEffect(() => {
+    if (tanggalPilih) return;
+    const pertama = slotPerTanggal[0]?.[0];
+    if (pertama) setTanggalPilih(pertama);
+  }, [slotPerTanggal, tanggalPilih]);
+
   function toggleFavorit(id: number) {
     setFavorit((d) => {
       const baru = d.includes(id) ? d.filter((n) => n !== id) : [...d, id];
@@ -269,6 +307,21 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
 
   async function kirim(e: FormEvent) {
     e.preventDefault();
+    const galatBaru: typeof kesalahan = {};
+    if (!nama.trim()) galatBaru.nama = "Nama wajib diisi";
+    const angkaWa = whatsapp.replace(/\D/g, "");
+    if (angkaWa.length < 8 || angkaWa.length > 16) galatBaru.whatsapp = "Nomor WhatsApp harus 8 sampai 16 angka";
+    if (!slotId && !waktu.trim()) galatBaru.waktu = "Pilih slot atau ketik waktu ambil";
+    if (!setuju) galatBaru.setuju = "Periksa pesanan lalu centang konfirmasi";
+    setKesalahan(galatBaru);
+    if (Object.keys(galatBaru).length > 0) {
+      const urutan: [keyof typeof galatBaru, string][] = [
+        ["nama", "p-nama"], ["whatsapp", "p-wa"], ["waktu", "p-waktu"], ["setuju", "p-setuju"],
+      ];
+      const pertama = urutan.find(([kunci]) => galatBaru[kunci]);
+      if (pertama) document.getElementById(pertama[1])?.focus();
+      return;
+    }
     if (pesananBesar && jumlahItem < 10) {
       setJenis("galat");
       setPesan("Pesanan besar minimal 10 porsi. Tambahkan menu atau matikan pilihan pesanan besar.");
@@ -307,7 +360,8 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         else localStorage.removeItem("jebew_kontak");
       } catch { /* penyimpanan lokal tidak tersedia */ }
       setKeranjang([]); setNama(""); setWhatsapp(""); setSlotId(""); setWaktu(""); setCatatan("");
-      setKodePromo(""); setDiskonPromo(0); setPoinDipakai(""); setInfoDiskon(""); setPesananBesar(false);
+      setKodePromo(""); setDiskonPromo(0); setPoinDipakai(""); setInfoDiskon(""); setPesananBesar(false); setSetuju(false); setKesalahan({});
+      try { localStorage.removeItem("jebew_draf"); } catch { /* abaikan */ }
       void muat();
     } catch (err) { setPesan(err instanceof Error ? err.message : "Gagal mengirim pre-order"); }
     finally { setLoading(false); }
@@ -391,12 +445,15 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             className="pointer-events-none absolute -right-10 -top-20 hidden h-80 w-80 opacity-[0.06] md:block" />
           <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-aksen/5" aria-hidden="true" />
           <div className="relative grid gap-8 md:grid-cols-[1.5fr_0.7fr] md:items-end">
-            <div>
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/jebew-hero.svg" alt="" aria-hidden="true"
+                className="pointer-events-none absolute -right-6 top-1 hidden h-56 w-56 opacity-90 lg:block" />
               <div className="animasi-geser flex items-center gap-3">
                 <span className="h-px w-10 bg-utama" aria-hidden="true" />
                 <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-utama">Mie Jebew Chili Oil · Pre-order</p>
               </div>
-              <h1 className="animasi-muncul mt-4 font-judul text-3xl font-semibold leading-[1.12] tracking-tight text-tinta sm:text-[2.7rem]" style={{ animationDelay: "60ms" }}>
+              <h1 className="animasi-muncul mt-4 max-w-xl font-judul text-3xl font-semibold leading-[1.12] tracking-tight text-tinta sm:text-[2.7rem]" style={{ animationDelay: "60ms" }}>
                 Mie hangat,<br /><span className="text-utama">pesan lebih mudah.</span>
               </h1>
               <p className="animasi-muncul mt-4 max-w-lg text-sm leading-relaxed text-tinta-lemah" style={{ animationDelay: "120ms" }}>
@@ -507,10 +564,15 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                     </span>
                     <span className={`h-0.5 w-8 rounded-full transition-all duration-[var(--gerak-standar)] group-hover:w-14 ${AKSESEN_KATEGORI[m.kategori]?.garis ?? "bg-tinta-lemah"}`} aria-hidden="true" />
                   </div>
+                  {m.foto && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.foto} alt="" loading="lazy" referrerPolicy="no-referrer"
+                      className="mb-3 h-32 w-full rounded-xl object-cover" />
+                  )}
                   <div className="flex items-start justify-between gap-3">
                     <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${AKSESEN_KATEGORI[m.kategori]?.teks ?? "text-tinta-lemah"}`}>{m.kategori}</p>
                     <span className={`mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
-                      !preorderBuka ? "bg-red-50 text-bahaya" : m.tersedia ? "bg-sukses-terang text-sukses" : "bg-stone-100 text-stone-500"
+                      !preorderBuka ? "bg-red-50 text-bahaya" : m.tersedia ? "bg-sukses-terang text-sukses" : "bg-stone-100 text-stone-600"
                     }`}>
                       <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${!preorderBuka ? "bg-bahaya" : m.tersedia ? "bg-sukses" : "bg-stone-400"}`} />
                       {!preorderBuka ? statusPreorderSaatIni.label : m.tersedia ? "Tersedia" : "Habis"}
@@ -656,7 +718,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       </Dialog>
 
       <Dialog terbuka={dialogCheckout} judul="Langkah 2 dari 3 - Isi data pemesanan" padaTutup={() => setDialogCheckout(false)} lebar="42rem">
-        <form onSubmit={kirim} className="space-y-5">
+        <form onSubmit={kirim} noValidate className="space-y-5">
           <Langkah langkah={2} aktif={2} judul={["Pilih menu", "Isi data", "Kirim WA"]} />
           <div>
             <h3 className="font-judul text-lg font-semibold text-tinta">Data diri dan waktu ambil</h3>
@@ -672,8 +734,20 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             <div className="flex justify-between border-t border-garis pt-2 font-bold"><span>Total bayar</span><span>{formatRupiah(totalAkhir)}</span></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div><label htmlFor="p-nama">Nama kamu</label><input id="p-nama" required value={nama} onChange={(e) => setNama(e.target.value)} /></div>
-            <div><label htmlFor="p-wa">Nomor WhatsApp</label><input id="p-wa" inputMode="tel" required value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="08..." /></div>
+            <div>
+              <label htmlFor="p-nama">Nama kamu</label>
+              <input id="p-nama" required value={nama} aria-invalid={Boolean(kesalahan.nama)}
+                aria-describedby={kesalahan.nama ? "p-nama-galat" : undefined}
+                onChange={(e) => setNama(e.target.value)} />
+              {kesalahan.nama && <p id="p-nama-galat" className="mt-1 text-xs text-bahaya">{kesalahan.nama}</p>}
+            </div>
+            <div>
+              <label htmlFor="p-wa">Nomor WhatsApp</label>
+              <input id="p-wa" inputMode="tel" required value={whatsapp} aria-invalid={Boolean(kesalahan.whatsapp)}
+                aria-describedby={kesalahan.whatsapp ? "p-wa-galat" : undefined}
+                onChange={(e) => setWhatsapp(e.target.value)} placeholder="08..." />
+              {kesalahan.whatsapp && <p id="p-wa-galat" className="mt-1 text-xs text-bahaya">{kesalahan.whatsapp}</p>}
+            </div>
           </div>
           <label className="flex items-start gap-2 text-xs text-tinta-lemah">
             <input type="checkbox" className="mt-0.5" checked={ingatKontak}
@@ -702,24 +776,42 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           <div className="rounded-xl border border-garis bg-latar/60 p-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-utama">Wajib diisi</p>
             <div className="mt-3">
-              <label htmlFor="p-slot">Pilih slot waktu ambil</label>
-              <select id="p-slot" value={slotId} onChange={(e) => setSlotId(e.target.value)} aria-describedby="p-slot-bantuan">
-                <option value="">Pilih slot yang tersedia</option>
-                {slotPerTanggal.map(([tanggal, daftar]) => (
-                  <optgroup key={tanggal} label={tanggal}>
-                    {daftar.map((s) => <option key={s.id} value={s.id}>{s.jam} WIB (sisa {s.kuota - s.dipakai})</option>)}
-                  </optgroup>
+              <p id="p-tanggal-label" className="mb-2 text-xs font-semibold uppercase tracking-wide text-tinta-lemah">Pilih tanggal ambil</p>
+              <div role="group" aria-labelledby="p-tanggal-label" className="flex gap-2 overflow-x-auto pb-2">
+                {slotPerTanggal.map(([tanggal]) => (
+                  <button key={tanggal} type="button" aria-pressed={tanggalPilih === tanggal}
+                    onClick={() => { setTanggalPilih(tanggal); setSlotId(""); }}
+                    className={`shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                      tanggalPilih === tanggal ? "border-utama bg-utama text-white" : "border-garis bg-white text-tinta-lemah hover:border-utama/40"
+                    }`}>
+                    {tanggal}
+                  </button>
                 ))}
-              </select>
-              <p id="p-slot-bantuan" className="mt-1.5 text-[11px] leading-relaxed text-tinta-lemah">
-                Pilih salah satu. Bila tidak ada slot, isi waktu manual di bawah.
+                {slotPerTanggal.length === 0 && <p className="text-xs text-tinta-lemah">Belum ada slot tersedia.</p>}
+              </div>
+              <div role="group" aria-label="Pilih jam ambil" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {(slotPerTanggal.find(([t]) => t === tanggalPilih)?.[1] ?? []).map((s) => (
+                  <button key={s.id} type="button" aria-pressed={slotId === String(s.id)}
+                    onClick={() => setSlotId(String(s.id))}
+                    className={`rounded-xl border px-3 py-2.5 text-xs font-semibold transition ${
+                      slotId === String(s.id) ? "border-sukses bg-sukses-terang text-sukses" : "border-garis bg-white text-tinta hover:border-utama/40"
+                    }`}>
+                    {s.jam} WIB
+                    <span className="mt-0.5 block text-[10px] font-normal text-tinta-lemah">sisa {s.kuota - s.dipakai}</span>
+                  </button>
+                ))}
+              </div>
+              <p id="p-slot-bantuan" className="mt-2 text-[11px] leading-relaxed text-tinta-lemah">
+                Pilih salah satu jam. Bila tidak ada slot, isi waktu manual di bawah.
               </p>
             </div>
             {!slotId && (
               <div className="mt-3">
                 <label htmlFor="p-waktu">Atau ketik waktu ambil sendiri</label>
-                <input id="p-waktu" aria-describedby="p-waktu-bantuan" value={waktu} onChange={(e) => setWaktu(e.target.value)}
+                <input id="p-waktu" aria-describedby={kesalahan.waktu ? "p-waktu-galat" : "p-waktu-bantuan"}
+                  aria-invalid={Boolean(kesalahan.waktu)} value={waktu} onChange={(e) => setWaktu(e.target.value)}
                   placeholder={`${besokWIB()} 18:00`} />
+                {kesalahan.waktu && <p id="p-waktu-galat" className="mt-1 text-xs text-bahaya">{kesalahan.waktu}</p>}
                 <p id="p-waktu-bantuan" className="mt-1.5 text-[11px] text-tinta-lemah">
                   Format: tanggal jam, contoh 2026-11-26 18:00. Semua waktu memakai WIB.
                 </p>
@@ -729,6 +821,28 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           <div>
             <label htmlFor="p-catatan">Catatan (opsional)</label>
             <textarea id="p-catatan" maxLength={300} rows={2} value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Misalnya: level pedas 2, tanpa daun bawang" />
+          </div>
+          <details className="rounded-xl border border-garis bg-latar/60 px-4 py-3">
+            <summary className="cursor-pointer text-sm font-semibold text-utama">Periksa pesanan sebelum kirim</summary>
+            <dl className="mt-3 space-y-1 text-xs text-tinta-lemah">
+              <div className="flex justify-between gap-3"><dt>Nama</dt><dd className="font-semibold text-tinta">{nama || "-"}</dd></div>
+              <div className="flex justify-between gap-3"><dt>WhatsApp</dt><dd className="font-semibold text-tinta">{whatsapp || "-"}</dd></div>
+              <div className="flex justify-between gap-3"><dt>Waktu ambil</dt><dd className="font-semibold text-tinta">{slot.find((s) => s.id === Number(slotId)) ? `${slot.find((s) => s.id === Number(slotId))?.tanggal} ${slot.find((s) => s.id === Number(slotId))?.jam} WIB` : waktu || "-"}</dd></div>
+              <div className="flex justify-between gap-3"><dt>Jumlah</dt><dd className="font-semibold text-tinta">{jumlahItem} porsi</dd></div>
+              {kodePromo && <div className="flex justify-between gap-3"><dt>Promo</dt><dd className="font-semibold text-tinta">{kodePromo}</dd></div>}
+              {diskonPoin > 0 && <div className="flex justify-between gap-3"><dt>Poin</dt><dd className="font-semibold text-tinta">{poinDipakai} poin</dd></div>}
+              <div className="flex justify-between gap-3 border-t border-garis pt-2 text-sm"><dt className="font-semibold text-tinta">Total bayar</dt><dd className="font-bold text-utama">{formatRupiah(totalAkhir)}</dd></div>
+            </dl>
+          </details>
+          <div>
+            <label className="flex items-start gap-2 text-xs text-tinta-lemah">
+              <input id="p-setuju" type="checkbox" className="mt-0.5" checked={setuju}
+                aria-invalid={Boolean(kesalahan.setuju)}
+                aria-describedby={kesalahan.setuju ? "p-setuju-galat" : undefined}
+                onChange={(e) => setSetuju(e.target.checked)} />
+              Saya sudah memeriksa menu, waktu ambil, dan total pembayaran di atas.
+            </label>
+            {kesalahan.setuju && <p id="p-setuju-galat" className="mt-1 text-xs text-bahaya">{kesalahan.setuju}</p>}
           </div>
           <Pesan teks={pesan} jenis={jenis} />
           <Tombol tipe="submit" nonaktif={loading} kelas="w-full">{loading ? "Mengirim..." : `Kirim pre-order - ${formatRupiah(totalAkhir)}`}</Tombol>
