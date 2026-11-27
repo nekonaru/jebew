@@ -87,6 +87,8 @@ const skema = z.object({
   meja: z.string().trim().max(20).optional(),
   alamat_kirim: z.string().trim().max(300).optional(),
   kode_undangan: z.string().trim().max(20).optional(),
+  metode_bayar: z.enum(["tunai", "qris", "transfer"]).optional(),
+  bukti_bayar: z.string().trim().max(300).optional(),
 }).strict();
 
 export async function POST(req: Request) {
@@ -124,7 +126,11 @@ export async function POST(req: Request) {
     if (badan.tipe_pesanan === "kirim" && !badan.alamat_kirim?.trim()) {
       return NextResponse.json({ pesan: "Alamat kirim wajib diisi untuk pesanan dikirim" }, { status: 400 });
     }
-    const hasil = await simpanPreorder(badan);
+    const hasil = await simpanPreorder({
+      ...badan,
+      minimum: Number(pengaturan.minimum_preorder ?? 0),
+      ongkir: Number(pengaturan.biaya_kirim ?? 0),
+    });
     if (hasil.kode_promo) await pakaiPromo(hasil.kode_promo, hasil.kode_lacak, hasil.diskon ?? 0);
     if (hasil.poin_dipakai) await tukarPoin(badan.whatsapp, hasil.poin_dipakai);
     const pesan = susunPesanWhatsApp({
@@ -139,9 +145,14 @@ export async function POST(req: Request) {
         jumlah: i.jumlah,
       })),
       namaUsaha: pengaturan.nama_usaha ?? "Warung Kak Ikaa",
+      totalAkhir: hasil.total,
+      tipe: badan.tipe_pesanan ?? "ambil",
+      metode: badan.metode_bayar ?? "tunai",
+      ongkir: hasil.ongkir,
+      buktiBayar: badan.bukti_bayar,
     });
     return NextResponse.json({
-      kode: hasil.kode, kode_lacak: hasil.kode_lacak, total: hasil.total,
+      kode: hasil.kode, kode_lacak: hasil.kode_lacak, total: hasil.total, ongkir: hasil.ongkir,
       items: hasil.items.map(({ hpp: _hpp, ...i }) => i),
       pesan,
       tautan: tautanWhatsApp(nomorAdmin, pesan) || null,

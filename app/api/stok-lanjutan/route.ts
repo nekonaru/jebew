@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { aman, bacaJsonTerbatasi, galat } from "@/lib/api-final.ts";
 import {
-  ambilPurchaseOrder, ambilSupplierHarga, prediksiStok,
-  simpanPurchaseOrder, simpanSupplierHarga, terimaPurchaseOrder,
+  ambilBatch, ambilPurchaseOrder, ambilSupplierHarga, prediksiStok,
+  simpanBatch, simpanPurchaseOrder, simpanSupplierHarga, terimaPurchaseOrder,
 } from "@/lib/final/stok-lanjutan.ts";
 
 export const runtime = "nodejs";
@@ -13,10 +13,10 @@ export async function GET(req: Request) {
   try {
     const { penolakan } = await aman(req, "pemilik");
     if (penolakan) return penolakan;
-    const [prediksi, harga, purchaseOrder] = await Promise.all([
-      prediksiStok(), ambilSupplierHarga(), ambilPurchaseOrder(),
+    const [prediksi, harga, purchaseOrder, batch] = await Promise.all([
+      prediksiStok(), ambilSupplierHarga(), ambilPurchaseOrder(), ambilBatch(),
     ]);
-    return NextResponse.json({ prediksi, harga, purchaseOrder });
+    return NextResponse.json({ prediksi, harga, purchaseOrder, batch });
   } catch (e) { return galat(e) as NextResponse; }
 }
 
@@ -45,7 +45,17 @@ const terimaSkema = z.object({
   id: z.number().int().positive(),
 }).strict();
 
-const skema = z.discriminatedUnion("aksi", [hargaSkema, poSkema, terimaSkema]);
+const batchSkema = z.object({
+  aksi: z.literal("batch"),
+  bahan_id: z.number().int().positive(),
+  nomor_batch: z.string().trim().min(1).max(50),
+  tanggal_masuk: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  tanggal_kedaluwarsa: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)]),
+  jumlah: z.number().positive().max(1000000),
+  harga_satuan: z.number().int().min(0).max(100000000),
+}).strict();
+
+const skema = z.discriminatedUnion("aksi", [hargaSkema, poSkema, terimaSkema, batchSkema]);
 
 export async function POST(req: Request) {
   try {
@@ -57,6 +67,8 @@ export async function POST(req: Request) {
     } else if (badan.aksi === "purchase_order") {
       const nomor = await simpanPurchaseOrder(badan, pengguna?.id);
       return NextResponse.json({ berhasil: true, nomor });
+    } else if (badan.aksi === "batch") {
+      await simpanBatch(badan);
     } else {
       await terimaPurchaseOrder(badan.id, pengguna?.id);
     }

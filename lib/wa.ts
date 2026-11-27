@@ -16,6 +16,11 @@ export type RincianPreorder = {
   catatan: string;
   items: BarangPesanan[];
   namaUsaha: string;
+  totalAkhir?: number;
+  tipe?: string;
+  metode?: string;
+  ongkir?: number;
+  buktiBayar?: string;
 };
 
 /** Menyusun pesan teks rapi yang siap dikirim lewat wa.me. */
@@ -37,15 +42,22 @@ export function susunPesanWhatsApp(rincian: RincianPreorder): string {
     `Nama: ${rincian.namaPelanggan}`,
     `WhatsApp: ${rincian.whatsapp}`,
     `Waktu ambil: ${rincian.waktuAmbil}`,
+    `Jenis: ${rincian.tipe === "dine_in" ? "Makan di tempat" : rincian.tipe === "kirim" ? "Dikirim" : "Ambil di warung"}`,
+    `Metode bayar: ${rincian.metode ?? "tunai"}`,
     "",
     "Rincian pesanan:",
     ...barisItems,
     "",
-    `Total: ${formatRupiah(total)}`,
+    `Subtotal: ${formatRupiah(total)}`,
+    ...(rincian.ongkir ? [`Ongkir: ${formatRupiah(rincian.ongkir)}`] : []),
+    `Total bayar: ${formatRupiah(rincian.totalAkhir ?? total)}`,
   ];
 
   if (rincian.catatan.trim() !== "") {
     bagian.push("", `Catatan: ${rincian.catatan.trim()}`);
+  }
+  if (rincian.buktiBayar?.trim()) {
+    bagian.push(`Bukti bayar: ${rincian.buktiBayar.trim()}`);
   }
 
   bagian.push("", "Mohon dikonfirmasi. Terima kasih.");

@@ -21,6 +21,7 @@ type PengaturanTampil = {
   alamat_usaha?: string; peta_usaha?: string; deskripsi_usaha?: string;
   email_usaha?: string; instagram_usaha?: string; logo_url?: string;
   banner_judul?: string; banner_isi?: string; banner_tautan?: string;
+  minimum_preorder?: string; biaya_kirim?: string;
 };
 type DataAwal = { menu: Menu[]; pengaturan: PengaturanTampil };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
@@ -82,6 +83,8 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [meja, setMeja] = useState("");
   const [alamatKirim, setAlamatKirim] = useState("");
   const [kodeUndangan, setKodeUndangan] = useState("");
+  const [metodeBayar, setMetodeBayar] = useState<"tunai" | "qris" | "transfer">("tunai");
+  const [buktiBayar, setBuktiBayar] = useState("");
   const [ulasanPublik, setUlasanPublik] = useState<{
     rating: number; komentar: string; dibuat_pada: string;
   }[]>([]);
@@ -145,6 +148,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           nama?: string; whatsapp?: string; catatan?: string; kodePromo?: string;
           poinDipakai?: string; waktu?: string; pesananBesar?: boolean;
           tipePesanan?: string; meja?: string; alamatKirim?: string;
+          metodeBayar?: string; buktiBayar?: string;
         };
         if (typeof isi.nama === "string") setNama(isi.nama.slice(0, 100));
         if (typeof isi.whatsapp === "string") setWhatsapp(isi.whatsapp.slice(0, 30));
@@ -158,6 +162,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         }
         if (typeof isi.meja === "string") setMeja(isi.meja.slice(0, 20));
         if (typeof isi.alamatKirim === "string") setAlamatKirim(isi.alamatKirim.slice(0, 300));
+        if (["tunai", "qris", "transfer"].includes(isi.metodeBayar ?? "")) {
+          setMetodeBayar(isi.metodeBayar as "tunai" | "qris" | "transfer");
+        }
+        if (typeof isi.buktiBayar === "string") setBuktiBayar(isi.buktiBayar.slice(0, 300));
       }
     } catch { /* abaikan draf rusak */ }
   }, []);
@@ -185,12 +193,13 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       try {
         localStorage.setItem("jebew_draf", JSON.stringify({
           nama, whatsapp, catatan, kodePromo, poinDipakai, waktu, pesananBesar,
-          tipePesanan, meja, alamatKirim,
+          tipePesanan, meja, alamatKirim, metodeBayar, buktiBayar,
         }));
       } catch { /* penyimpanan lokal tidak tersedia */ }
     }, 300);
     return () => clearTimeout(t);
-  }, [nama, whatsapp, catatan, kodePromo, poinDipakai, waktu, pesananBesar, tipePesanan, meja, alamatKirim]);
+  }, [nama, whatsapp, catatan, kodePromo, poinDipakai, waktu, pesananBesar,
+    tipePesanan, meja, alamatKirim, metodeBayar, buktiBayar]);
 
   useEffect(() => {
     if (whatsapp.trim().length < 8) { setSaldoPoin(0); return; }
@@ -335,7 +344,9 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   }
 
   const diskonPoin = Math.min(1000000, Math.floor(Number(poinDipakai || 0) / 100) * 5000);
-  const totalAkhir = Math.max(0, totalCheckout - diskonPromo - diskonPoin);
+  const ongkirDiperkirakan = tipePesanan === "kirim"
+    ? Math.max(0, Number(data.pengaturan.biaya_kirim ?? 0)) : 0;
+  const totalAkhir = Math.max(0, totalCheckout - diskonPromo - diskonPoin + ongkirDiperkirakan);
 
   async function kirim(e: FormEvent) {
     e.preventDefault();
@@ -390,6 +401,8 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           meja: tipePesanan === "dine_in" ? meja : "",
           alamat_kirim: tipePesanan === "kirim" ? alamatKirim : "",
           kode_undangan: kodeUndangan || undefined,
+          metode_bayar: metodeBayar,
+          bukti_bayar: metodeBayar === "transfer" ? buktiBayar : "",
         }),
       });
       const dataHasil = await ambilJson<Hasil>(respons);
@@ -782,6 +795,9 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             {(diskonPromo > 0 || diskonPoin > 0) && (
               <div className="flex justify-between text-sukses"><span>Diskon</span><span>- {formatRupiah(diskonPromo + diskonPoin)}</span></div>
             )}
+            {ongkirDiperkirakan > 0 && (
+              <div className="flex justify-between"><span>Estimasi ongkir</span><span>{formatRupiah(ongkirDiperkirakan)}</span></div>
+            )}
             <div className="flex justify-between border-t border-garis pt-2 font-bold"><span>Total bayar</span><span>{formatRupiah(totalAkhir)}</span></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -838,6 +854,28 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                   placeholder="Nama jalan, nomor rumah, patokan" />
                 {kesalahan.alamat && <p className="mt-1 text-xs text-bahaya">{kesalahan.alamat}</p>}
                 <p className="mt-1 text-[11px] text-tinta-lemah">Admin akan menghubungi untuk konfirmasi biaya kirim.</p>
+              </div>
+            )}
+          </fieldset>
+          <fieldset className="rounded-xl border border-garis p-4">
+            <legend className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-utama">Metode bayar</legend>
+            <div className="flex flex-wrap gap-2">
+              {(["tunai", "qris", "transfer"] as const).map((nilai) => (
+                <label key={nilai} className={`rounded-lg border px-3 py-2 text-xs font-semibold ${
+                  metodeBayar === nilai ? "border-utama bg-utama/5 text-utama" : "border-garis text-tinta-lemah"
+                }`}>
+                  <input type="radio" name="metode-bayar" value={nilai} className="mr-1.5"
+                    checked={metodeBayar === nilai} onChange={() => setMetodeBayar(nilai)} />
+                  {nilai === "tunai" ? "Tunai" : nilai === "qris" ? "QRIS" : "Transfer"}
+                </label>
+              ))}
+            </div>
+            {metodeBayar === "transfer" && (
+              <div className="mt-3">
+                <label htmlFor="p-bukti">Nomor referensi transfer</label>
+                <input id="p-bukti" maxLength={300} value={buktiBayar}
+                  onChange={(e) => setBuktiBayar(e.target.value)}
+                  placeholder="Contoh: BNI 1234567890 atas nama Kak Ika" />
               </div>
             )}
           </fieldset>
@@ -920,6 +958,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               {kodePromo && <div className="flex justify-between gap-3"><dt>Promo</dt><dd className="font-semibold text-tinta">{kodePromo}</dd></div>}
               {diskonPoin > 0 && <div className="flex justify-between gap-3"><dt>Poin</dt><dd className="font-semibold text-tinta">{poinDipakai} poin</dd></div>}
               {kodeUndangan && <div className="flex justify-between gap-3"><dt>Undangan</dt><dd className="font-semibold text-tinta">{kodeUndangan}</dd></div>}
+              <div className="flex justify-between gap-3"><dt>Bayar</dt><dd className="font-semibold text-tinta">{metodeBayar === "tunai" ? "Tunai" : metodeBayar === "qris" ? "QRIS" : `Transfer${buktiBayar ? `, ${buktiBayar}` : ""}`}</dd></div>
               <div className="flex justify-between gap-3 border-t border-garis pt-2 text-sm"><dt className="font-semibold text-tinta">Total bayar</dt><dd className="font-bold text-utama">{formatRupiah(totalAkhir)}</dd></div>
             </dl>
           </details>

@@ -23,6 +23,8 @@ export function pengaturanPublik(pengaturan: Record<string, string>) {
     banner_judul: pengaturan.banner_judul ?? "",
     banner_isi: pengaturan.banner_isi ?? "",
     banner_tautan: pengaturan.banner_tautan ?? "",
+    minimum_preorder: pengaturan.minimum_preorder ?? "0",
+    biaya_kirim: pengaturan.biaya_kirim ?? "0",
   };
 }
 

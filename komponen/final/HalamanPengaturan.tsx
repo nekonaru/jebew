@@ -82,6 +82,8 @@ export default function HalamanPengaturan() {
           banner_judul: pengaturan.banner_judul ?? "",
           banner_isi: pengaturan.banner_isi ?? "",
           banner_tautan: pengaturan.banner_tautan ?? "",
+          minimum_preorder: pengaturan.minimum_preorder ?? "0",
+          biaya_kirim: pengaturan.biaya_kirim ?? "0",
         }),
       });
       await ambilJson(respons);
@@ -271,6 +273,8 @@ export default function HalamanPengaturan() {
                 <div><label htmlFor="s-email">Email</label><input id="s-email" type="email" value={pengaturan.email_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, email_usaha: e.target.value })} /></div>
                 <div><label htmlFor="s-instagram">Instagram</label><input id="s-instagram" value={pengaturan.instagram_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, instagram_usaha: e.target.value })} /></div>
                 <div className="sm:col-span-2"><label htmlFor="s-logo">URL logo</label><input id="s-logo" value={pengaturan.logo_url ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, logo_url: e.target.value })} placeholder="https://... atau /assets/logo.svg" /></div>
+                <div><label htmlFor="s-minimum">Minimum preorder</label><input id="s-minimum" type="number" min={0} value={pengaturan.minimum_preorder ?? "0"} onChange={(e) => setPengaturan({ ...pengaturan, minimum_preorder: e.target.value })} /></div>
+                <div><label htmlFor="s-ongkir">Biaya kirim</label><input id="s-ongkir" type="number" min={0} value={pengaturan.biaya_kirim ?? "0"} onChange={(e) => setPengaturan({ ...pengaturan, biaya_kirim: e.target.value })} /></div>
                 <div className="sm:col-span-2"><label htmlFor="s-deskripsi">Deskripsi singkat</label><textarea id="s-deskripsi" rows={2} maxLength={1000} value={pengaturan.deskripsi_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, deskripsi_usaha: e.target.value })} /></div>
                 <div><label htmlFor="s-banner-judul">Judul banner</label><input id="s-banner-judul" value={pengaturan.banner_judul ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, banner_judul: e.target.value })} /></div>
                 <div><label htmlFor="s-banner-tautan">Tautan banner</label><input id="s-banner-tautan" value={pengaturan.banner_tautan ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, banner_tautan: e.target.value })} /></div>

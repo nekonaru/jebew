@@ -1,5 +1,25 @@
 # Riwayat Perubahan
 
+## final-v4.1.0
+
+Penjualan multikanal ringan, batch bahan, dan otomatisasi pengingat.
+
+### Fitur baru
+
+- **Minimum preorder.** Pemilik menetapkan minimum rupiah pesanan. Pesanan di bawah minimum ditolak server.
+- **Biaya kirim.** Biaya kirim diatur dari Pengaturan dan otomatis masuk ke total pesanan bertipe kirim.
+- **Metode bayar.** Pelanggan memilih tunai, QRIS, atau transfer. Nomor referensi transfer tampil di pesan WhatsApp.
+- **Batch bahan.** Pemilik menambah batch dengan tanggal masuk dan kedaluwarsa. Potongan stok memakai batch terdekat kedaluwarsa lebih dulu.
+- **Target versus realisasi.** Ringkasan pemilik menampilkan progres omzet dan transaksi terhadap target harian.
+- **Pengingat otomatis.** Endpoint Cron mengirim pengingat ambil untuk pesanan besok dengan proteksi token.
+- **Service worker.** Shell aplikasi dapat dipasang dan dibuka kembali saat jaringan terputus.
+
+### Perbaikan
+
+- **Pesan WhatsApp lebih lengkap.** Subtotal, ongkir, total bayar, jenis pesanan, dan metode bayar kini tercantum.
+- **Stok batch konsisten.** Penambahan batch langsung menambah stok bahan dan tercatat di riwayat.
+- **Auto-batal aman.** Endpoint pembatalan otomatis kini menerima token Cron atau Izinkan pemilik.
+
 ## final-v4.0.0
 
 Fondasi platform Jebew v4: peran kerja, keamanan akun, profil usaha, dan penjualan lebih fleksibel.

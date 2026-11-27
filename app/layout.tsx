@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import PendaftarSW from "@/komponen/PendaftarSW.tsx";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function LayoutUtama({ children }: { children: React.ReactNode })
     <html lang="id">
       <body>
         <a href="#konten-utama" className="lewati">Lompat ke konten utama</a>
+        <PendaftarSW />
         {children}
       </body>
     </html>

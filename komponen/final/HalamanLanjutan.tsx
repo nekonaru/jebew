@@ -28,11 +28,14 @@ export default function HalamanLanjutan() {
   const [formLibur, setFormLibur] = useState({ tanggal: "", keterangan: "" });
   const [stokLanjutan, setStokLanjutan] = useState<{
     prediksi: Baris[]; harga: Baris[]; purchaseOrder: Baris[];
-  }>({ prediksi: [], harga: [], purchaseOrder: [] });
+  } & { batch?: Baris[] }>({ prediksi: [], harga: [], purchaseOrder: [], batch: [] });
   const [masterBahan, setMasterBahan] = useState<{ id: number; nama: string }[]>([]);
   const [masterSupplier, setMasterSupplier] = useState<{ id: number; nama: string }[]>([]);
   const [formStok, setFormStok] = useState({
     bahan_id: "", jumlah: "1", harga_satuan: "0", supplier_id: "", tanggal: tanggalHariIni(),
+  });
+  const [formBatch, setFormBatch] = useState({
+    nomor_batch: "", tanggal_masuk: tanggalHariIni(), tanggal_kedaluwarsa: "", jumlah: "1", harga_satuan: "0",
   });
 
   const muat = useCallback(async () => {
@@ -58,12 +61,15 @@ export default function HalamanLanjutan() {
       } else {
         const [d, bahan, supplier] = await Promise.all([
           fetch("/api/stok-lanjutan").then(ambilJson<{
-            prediksi: Baris[]; harga: Baris[]; purchaseOrder: Baris[];
+            prediksi: Baris[]; harga: Baris[]; purchaseOrder: Baris[]; batch?: Baris[];
           }>),
           fetch("/api/bahan").then(ambilJson<{ bahan: { id: number; nama: string }[] }>),
           fetch("/api/supplier").then(ambilJson<{ supplier: { id: number; nama: string }[] }>),
         ]);
-        setStokLanjutan({ prediksi: d.prediksi ?? [], harga: d.harga ?? [], purchaseOrder: d.purchaseOrder ?? [] });
+        setStokLanjutan({
+          prediksi: d.prediksi ?? [], harga: d.harga ?? [],
+          purchaseOrder: d.purchaseOrder ?? [], batch: d.batch ?? [],
+        });
         setMasterBahan(bahan.bahan ?? []); setMasterSupplier(supplier.supplier ?? []);
       }
     } catch (e) { setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal memuat data"); }
@@ -134,6 +140,27 @@ export default function HalamanLanjutan() {
       setJenis("sukses"); setPesan(hasil.nomor ? `Purchase order ${hasil.nomor} dibuat.` : "Harga supplier tercatat.");
       void muat();
     } catch (e) { setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal menyimpan data stok"); }
+  }
+
+  async function simpanBatchData(e: React.FormEvent) {
+    e.preventDefault();
+    if (!formStok.bahan_id) { setJenis("galat"); setPesan("Pilih bahan terlebih dahulu."); return; }
+    try {
+      const respons = await fetch("/api/stok-lanjutan", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aksi: "batch", bahan_id: Number(formStok.bahan_id),
+          nomor_batch: formBatch.nomor_batch,
+          tanggal_masuk: formBatch.tanggal_masuk,
+          tanggal_kedaluwarsa: formBatch.tanggal_kedaluwarsa,
+          jumlah: Number(formBatch.jumlah), harga_satuan: Number(formBatch.harga_satuan),
+        }),
+      });
+      await ambilJson(respons);
+      setJenis("sukses"); setPesan("Batch ditambahkan dan stok bertambah.");
+      setFormBatch({ nomor_batch: "", tanggal_masuk: tanggalHariIni(), tanggal_kedaluwarsa: "", jumlah: "1", harga_satuan: "0" });
+      void muat();
+    } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menambah batch"); }
   }
 
   async function terimaPO(id: number) {
@@ -316,6 +343,34 @@ export default function HalamanLanjutan() {
                   <span className="ml-auto text-xs">{b.sisa_hari === null ? "Belum ada pemakaian" : `${b.sisa_hari} hari`}</span>
                 </li>
               ))}
+            </ul>
+          </Kartu>
+          <Kartu>
+            <h2 className="text-lg font-semibold">Batch bahan dan kedaluwarsa</h2>
+            <p className="mt-1 text-xs text-tinta-lemah">Stok dipotong dari batch dengan tanggal kedaluwarsa terdekat lebih dulu.</p>
+            <form onSubmit={(e) => void simpanBatchData(e)} className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div><label htmlFor="b-bahan">Bahan</label>
+                <select id="b-bahan" value={formStok.bahan_id} onChange={(e) => setFormStok({ ...formStok, bahan_id: e.target.value })}>
+                  <option value="">Pilih bahan</option>
+                  {masterBahan.map((b) => <option key={b.id} value={b.id}>{b.nama}</option>)}
+                </select>
+              </div>
+              <div><label htmlFor="b-nomor">Nomor batch</label><input id="b-nomor" required maxLength={50} value={formBatch.nomor_batch} onChange={(e) => setFormBatch({ ...formBatch, nomor_batch: e.target.value })} /></div>
+              <div><label htmlFor="b-masuk">Tanggal masuk</label><input id="b-masuk" type="date" required value={formBatch.tanggal_masuk} onChange={(e) => setFormBatch({ ...formBatch, tanggal_masuk: e.target.value })} /></div>
+              <div><label htmlFor="b-kedaluwarsa">Kedaluwarsa</label><input id="b-kedaluwarsa" type="date" value={formBatch.tanggal_kedaluwarsa} onChange={(e) => setFormBatch({ ...formBatch, tanggal_kedaluwarsa: e.target.value })} /></div>
+              <div><label htmlFor="b-jumlah">Jumlah</label><input id="b-jumlah" type="number" min={0.01} step="any" required value={formBatch.jumlah} onChange={(e) => setFormBatch({ ...formBatch, jumlah: e.target.value })} /></div>
+              <div className="flex items-end"><Tombol tipe="submit" kelas="w-full">Tambah batch</Tombol></div>
+            </form>
+            <ul className="mt-4 space-y-2">
+              {(stokLanjutan.batch ?? []).map((b) => (
+                <li key={String(b.id)} className="flex flex-wrap items-center gap-2 rounded-xl border border-garis px-3 py-2 text-xs">
+                  <span className="font-semibold">{String(b.bahan)}</span>
+                  <span>{String(b.nomor_batch)}</span>
+                  <span className="text-tinta-lemah">sisa {Number(b.sisa)}</span>
+                  {Boolean(b.tanggal_kedaluwarsa) && <Badge warna="peringatan">EXP {String(b.tanggal_kedaluwarsa)}</Badge>}
+                </li>
+              ))}
+              {(stokLanjutan.batch ?? []).length === 0 && <li className="text-sm text-tinta-lemah">Belum ada batch.</li>}
             </ul>
           </Kartu>
           <Kartu>

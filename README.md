@@ -133,6 +133,10 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Jenis pesanan** | Ambil di warung, makan di tempat dengan meja, atau kirim ke alamat |
 | **Loyalitas** | Tingkat pelanggan, kode undangan, dan ulasan publik |
 | **PWA dan SEO** | Manifest aplikasi, robots, sitemap, dan metadata Open Graph |
+| **Minimum dan ongkir** | Minimum preorder dan biaya kirim diatur dari panel |
+| **Metode bayar** | Tunai, QRIS, atau transfer dengan nomor referensi |
+| **Batch bahan** | Stok dipotong dari batch dengan kedaluwarsa terdekat |
+| **Pengingat** | Endpoint Cron mengirim pengingat ambil ke pelanggan |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |

@@ -201,7 +201,7 @@ test("pesan whatsapp memakai nomor admin", () => {
     namaUsaha: "Warung Kak Ikaa",
   });
   assert.match(pesan, /Warung Kak Ikaa/);
-  assert.match(pesan, /Total: Rp\u00A08\.000/);
+  assert.match(pesan, /Total bayar: Rp\u00A08\.000/);
   const tautan = tautanWhatsApp("6282173282591", pesan);
   assert.match(tautan, /^https:\/\/wa\.me\/6282173282591\?text=/);
 });

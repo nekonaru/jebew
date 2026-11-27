@@ -34,6 +34,38 @@ export async function prediksiStok(): Promise<Baris[]> {
   });
 }
 
+/** Daftar batch bahan dengan sisa dan kedaluwarsa. */
+export async function ambilBatch(): Promise<Baris[]> {
+  return query(
+    `SELECT b.id, b.bahan_id, ba.nama AS bahan, b.nomor_batch, b.tanggal_masuk,
+            b.tanggal_kedaluwarsa, b.jumlah, b.sisa, b.harga_satuan
+     FROM batch_bahan b JOIN bahan ba ON ba.id = b.bahan_id
+     WHERE b.sisa > 0
+     ORDER BY CASE WHEN b.tanggal_kedaluwarsa IS NULL THEN 1 ELSE 0 END,
+              b.tanggal_kedaluwarsa ASC, b.id ASC
+     LIMIT 200`,
+  );
+}
+
+export async function simpanBatch(input: {
+  bahan_id: number; nomor_batch: string; tanggal_masuk: string;
+  tanggal_kedaluwarsa: string; jumlah: number; harga_satuan: number;
+}): Promise<void> {
+  await denganTransaksi(async () => {
+    await jalankan(
+      `INSERT INTO batch_bahan (bahan_id, nomor_batch, tanggal_masuk, tanggal_kedaluwarsa, jumlah, sisa, harga_satuan)
+       VALUES ($1,$2,$3,$4,$5,$5,$6)
+       ON CONFLICT (bahan_id, nomor_batch) DO UPDATE SET
+         jumlah = batch_bahan.jumlah + EXCLUDED.jumlah,
+         sisa = batch_bahan.sisa + EXCLUDED.sisa,
+         harga_satuan = EXCLUDED.harga_satuan`,
+      [input.bahan_id, input.nomor_batch.trim().toUpperCase(), input.tanggal_masuk,
+        input.tanggal_kedaluwarsa || null, input.jumlah, input.harga_satuan],
+    );
+    await jalankan("UPDATE bahan SET stok = stok + $1 WHERE id = $2", [input.jumlah, input.bahan_id]);
+  });
+}
+
 /** Riwayat harga bahan dari supplier. */
 export async function ambilSupplierHarga(): Promise<Baris[]> {
   return query(

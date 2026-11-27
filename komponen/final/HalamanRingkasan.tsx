@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { formatRupiah } from "@/lib/format.ts";
+import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { tautanWhatsApp } from "@/lib/wa.ts";
 import { usePeran } from "./Panel.tsx";
@@ -53,6 +53,7 @@ export default function HalamanRingkasan() {
   const [gagal, setGagal] = useState(false);
   const [statusSibuk, setStatusSibuk] = useState(false);
   const [langkahPanduan, setLangkahPanduan] = useState<number[]>([]);
+  const [target, setTarget] = useState<{ target_omzet: number; target_transaksi: number } | null>(null);
 
   const muatPublik = () => fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik);
 
@@ -71,6 +72,15 @@ export default function HalamanRingkasan() {
       return baru;
     });
   }
+
+  useEffect(() => {
+    if (!pemilik) return;
+    const hari = tanggalHariIni();
+    void fetch(`/api/target?dari=${hari}&sampai=${hari}`)
+      .then(ambilJson<{ target: { target_omzet: number; target_transaksi: number }[] }>)
+      .then((d) => setTarget(d.target?.[0] ?? null))
+      .catch(() => setTarget(null));
+  }, [pemilik]);
 
   useEffect(() => {
     void fetch("/api/statistik").then(ambilJson<Ringkasan>).then(setStatistik)
@@ -174,6 +184,36 @@ export default function HalamanRingkasan() {
         <Statistik label="Bahan menipis" nilai={gagal ? "-" : String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
         {pemilik && <Statistik label="Nilai stok" nilai={gagal ? "-" : formatRupiah(statistik?.nilaiStok ?? 0)} keterangan="Bahan aktif" />}
       </div>
+
+      {pemilik && target && statistik && (
+        <Kartu>
+          <h2 className="text-lg font-semibold">Target hari ini</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {[
+              { label: "Omzet", nilai: statistik.omzet, target: Number(target.target_omzet), rupiah: true },
+              { label: "Transaksi", nilai: statistik.transaksi, target: Number(target.target_transaksi), rupiah: false },
+            ].map((t) => {
+              const persen = t.target > 0 ? Math.min(100, Math.round((t.nilai / t.target) * 100)) : 0;
+              return (
+                <div key={t.label}>
+                  <div className="flex justify-between text-xs">
+                    <span className="font-semibold">{t.label}</span>
+                    <span className="text-tinta-lemah">
+                      {t.rupiah ? formatRupiah(t.nilai) : t.nilai} / {t.rupiah ? formatRupiah(t.target) : t.target}
+                    </span>
+                  </div>
+                  <div role="progressbar" aria-valuenow={persen} aria-valuemin={0} aria-valuemax={100}
+                    aria-label={`Progres target ${t.label}`}
+                    className="mt-2 h-2 overflow-hidden rounded-full bg-latar">
+                    <div className="h-full rounded-full bg-utama" style={{ width: `${persen}%` }} />
+                  </div>
+                  <p className="mt-1 text-[11px] text-tinta-lemah">{persen}% tercapai</p>
+                </div>
+              );
+            })}
+          </div>
+        </Kartu>
+      )}
 
       {pemilik && !gagal && <Kartu>
         <GrafikOmzet data={statistik?.tren ?? []} />
