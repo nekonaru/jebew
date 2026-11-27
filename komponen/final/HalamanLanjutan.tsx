@@ -5,7 +5,7 @@ import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
-const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator"] as const;
+const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional"] as const;
 type Tab = typeof TAB[number];
 const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -38,6 +38,12 @@ export default function HalamanLanjutan() {
     nomor_batch: "", tanggal_masuk: tanggalHariIni(), tanggal_kedaluwarsa: "", jumlah: "1", harga_satuan: "0",
   });
   const [kalkulator, setKalkulator] = useState({ hpp: "0", margin: "30" });
+  const [operasional, setOperasional] = useState<{ piutang: Baris[]; shift: Baris[] }>({ piutang: [], shift: [] });
+  const [formPiutang, setFormPiutang] = useState({
+    kode_lacak: "", nama: "", jumlah: "0", jatuh_tempo: tanggalHariIni(), catatan: "",
+  });
+  const [formShift, setFormShift] = useState({ nama: "", kas_awal: "0" });
+  const [formLimbah, setFormLimbah] = useState({ jumlah: "1", alasan: "" });
 
   const muat = useCallback(async () => {
     try {
@@ -59,6 +65,11 @@ export default function HalamanLanjutan() {
         const d = await fetch(`/api/target?dari=${tanggalHariIni()}&sampai=${tanggalHariIni()}`)
           .then(ambilJson<{ target: Baris[] }>);
         setData(d.target ?? []);
+      } else if (tab === "Piutang" || tab === "Operasional") {
+        const d = await fetch("/api/operasional").then(ambilJson<{
+          piutang: Baris[]; shift: Baris[];
+        }>);
+        setOperasional({ piutang: d.piutang ?? [], shift: d.shift ?? [] });
       } else {
         const [d, bahan, supplier] = await Promise.all([
           fetch("/api/stok-lanjutan").then(ambilJson<{
@@ -141,6 +152,17 @@ export default function HalamanLanjutan() {
       setJenis("sukses"); setPesan(hasil.nomor ? `Purchase order ${hasil.nomor} dibuat.` : "Harga supplier tercatat.");
       void muat();
     } catch (e) { setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal menyimpan data stok"); }
+  }
+
+  async function kirimOperasional(badan: Record<string, unknown>, pesanSukses: string) {
+    try {
+      const respons = await fetch("/api/operasional", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(badan),
+      });
+      await ambilJson(respons);
+      setJenis("sukses"); setPesan(pesanSukses); void muat();
+    } catch (err) { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan"); }
   }
 
   async function simpanBatchData(e: React.FormEvent) {
@@ -401,6 +423,90 @@ export default function HalamanLanjutan() {
               ))}
               {stokLanjutan.harga.length === 0 && <li className="text-tinta-lemah">Belum ada riwayat harga.</li>}
             </ul>
+          </Kartu>
+        </div>
+      )}
+
+      {tab === "Piutang" && (
+        <div className="space-y-5">
+          <Kartu>
+            <h2 className="text-lg font-semibold">Tambah tagihan piutang</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              void kirimOperasional({ aksi: "piutang", ...formPiutang, jumlah: Number(formPiutang.jumlah) }, "Piutang ditambahkan.");
+              setFormPiutang({ kode_lacak: "", nama: "", jumlah: "0", jatuh_tempo: tanggalHariIni(), catatan: "" });
+            }} className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div><label htmlFor="pi-kode">Kode lacak</label><input id="pi-kode" required minLength={4} value={formPiutang.kode_lacak} onChange={(e) => setFormPiutang({ ...formPiutang, kode_lacak: e.target.value })} /></div>
+              <div><label htmlFor="pi-nama">Nama pelanggan</label><input id="pi-nama" required value={formPiutang.nama} onChange={(e) => setFormPiutang({ ...formPiutang, nama: e.target.value })} /></div>
+              <div><label htmlFor="pi-jumlah">Jumlah</label><input id="pi-jumlah" type="number" min={1} required value={formPiutang.jumlah} onChange={(e) => setFormPiutang({ ...formPiutang, jumlah: e.target.value })} /></div>
+              <div><label htmlFor="pi-tempo">Jatuh tempo</label><input id="pi-tempo" type="date" required value={formPiutang.jatuh_tempo} onChange={(e) => setFormPiutang({ ...formPiutang, jatuh_tempo: e.target.value })} /></div>
+              <div className="sm:col-span-2"><label htmlFor="pi-catatan">Catatan</label><input id="pi-catatan" maxLength={300} value={formPiutang.catatan} onChange={(e) => setFormPiutang({ ...formPiutang, catatan: e.target.value })} /></div>
+              <div className="sm:col-span-2"><Tombol tipe="submit">Simpan piutang</Tombol></div>
+            </form>
+          </Kartu>
+          <Kartu>
+            <h2 className="text-lg font-semibold">Daftar piutang</h2>
+            <ul className="mt-4 space-y-2">
+              {operasional.piutang.map((p) => (
+                <li key={String(p.id)} className="flex flex-wrap items-center gap-2 rounded-xl border border-garis px-3 py-2 text-sm">
+                  <span className="font-semibold">{String(p.nama)}</span>
+                  <span className="text-xs text-tinta-lemah">{String(p.kode_lacak)} - tempo {String(p.jatuh_tempo)}</span>
+                  <Badge warna={p.status === "lunas" ? "sukses" : "peringatan"}>{String(p.status)}</Badge>
+                  <span className="ml-auto text-xs">{formatRupiah(Number(p.dibayar))} / {formatRupiah(Number(p.jumlah))}</span>
+                  {p.status !== "lunas" && (
+                    <Tombol jenis="sekunder" kelas="min-h-[36px] px-2 text-xs"
+                      onClick={() => void kirimOperasional({ aksi: "bayar_piutang", id: Number(p.id),
+                        jumlah: Number(p.jumlah) - Number(p.dibayar) }, "Piutang dilunasi.")}>Lunasi</Tombol>
+                  )}
+                </li>
+              ))}
+              {operasional.piutang.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada piutang.</li>}
+            </ul>
+          </Kartu>
+        </div>
+      )}
+
+      {tab === "Operasional" && (
+        <div className="space-y-5">
+          <Kartu>
+            <h2 className="text-lg font-semibold">Shift staf</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              void kirimOperasional({ aksi: "mulai_shift", ...formShift, kas_awal: Number(formShift.kas_awal) }, "Shift dimulai.");
+              setFormShift({ nama: "", kas_awal: "0" });
+            }} className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div><label htmlFor="sh-nama">Nama shift</label><input id="sh-nama" required value={formShift.nama} onChange={(e) => setFormShift({ ...formShift, nama: e.target.value })} placeholder="Pagi" /></div>
+              <div><label htmlFor="sh-kas">Kas awal</label><input id="sh-kas" type="number" min={0} value={formShift.kas_awal} onChange={(e) => setFormShift({ ...formShift, kas_awal: e.target.value })} /></div>
+              <div className="flex items-end"><Tombol tipe="submit" kelas="w-full">Mulai shift</Tombol></div>
+            </form>
+            <ul className="mt-4 space-y-2">
+              {operasional.shift.map((s) => (
+                <li key={String(s.id)} className="flex flex-wrap items-center gap-2 rounded-xl border border-garis px-3 py-2 text-xs">
+                  <span className="font-semibold">{String(s.nama)}</span>
+                  <span className="text-tinta-lemah">{String(s.mulai)}</span>
+                  {s.selesai ? <Badge warna="sukses">Selesai</Badge> : <Badge warna="peringatan">Berjalan</Badge>}
+                  {!s.selesai && (
+                    <Tombol jenis="sekunder" kelas="ml-auto min-h-[36px] px-2 text-xs"
+                      onClick={() => void kirimOperasional({ aksi: "selesai_shift", id: Number(s.id),
+                        kas_akhir: Number(s.kas_awal), catatan: "" }, "Shift selesai.")}>Selesaikan</Tombol>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Kartu>
+          <Kartu>
+            <h2 className="text-lg font-semibold">Catat bahan rusak</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!formStok.bahan_id) { setJenis("galat"); setPesan("Pilih bahan di tab Stok lanjutan."); return; }
+              void kirimOperasional({ aksi: "limbah", bahan_id: Number(formStok.bahan_id),
+                jumlah: Number(formLimbah.jumlah), alasan: formLimbah.alasan }, "Limbah tercatat.");
+              setFormLimbah({ jumlah: "1", alasan: "" });
+            }} className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div><label htmlFor="lm-jumlah">Jumlah</label><input id="lm-jumlah" type="number" min={0.01} step="any" required value={formLimbah.jumlah} onChange={(e) => setFormLimbah({ ...formLimbah, jumlah: e.target.value })} /></div>
+              <div className="sm:col-span-2"><label htmlFor="lm-alasan">Alasan</label><input id="lm-alasan" required maxLength={300} value={formLimbah.alasan} onChange={(e) => setFormLimbah({ ...formLimbah, alasan: e.target.value })} placeholder="Contoh: terbuang saat persiapan" /></div>
+              <div className="sm:col-span-3"><Tombol tipe="submit">Catat limbah</Tombol></div>
+            </form>
           </Kartu>
         </div>
       )}

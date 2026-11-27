@@ -318,6 +318,84 @@ export async function hapusHariLibur(id: number): Promise<void> {
   await jalankan("DELETE FROM hari_libur WHERE id = $1", [id]);
 }
 
+/** Tagihan piutang pelanggan. */
+export async function ambilPiutang(): Promise<Baris[]> {
+  return query(
+    `SELECT id, kode_lacak, nama, jumlah, dibayar, jatuh_tempo, status, catatan
+     FROM piutang ORDER BY jatuh_tempo, id DESC LIMIT 200`,
+  );
+}
+
+export async function simpanPiutang(input: {
+  kode_lacak: string; nama: string; jumlah: number; jatuh_tempo: string; catatan: string;
+}): Promise<void> {
+  await jalankan(
+    `INSERT INTO piutang (kode_lacak, nama, jumlah, jatuh_tempo, catatan)
+     VALUES ($1,$2,$3,$4,$5)`,
+    [input.kode_lacak.trim().toUpperCase(), input.nama.trim().slice(0, 100),
+      input.jumlah, input.jatuh_tempo, input.catatan.slice(0, 300)],
+  );
+}
+
+export async function bayarPiutang(id: number, jumlah: number): Promise<void> {
+  await denganTransaksi(async () => {
+    const baris = await querySatu<{ jumlah: number; dibayar: number }>(
+      "SELECT jumlah, dibayar FROM piutang WHERE id = $1 FOR UPDATE", [id],
+    );
+    if (!baris) throw new GalatBisnis("Tagihan tidak ditemukan");
+    const dibayar = Number(baris.dibayar) + jumlah;
+    if (dibayar > Number(baris.jumlah)) throw new GalatBisnis("Pembayaran melebihi tagihan");
+    await jalankan(
+      `UPDATE piutang SET dibayar = $1,
+       status = CASE WHEN $1 >= jumlah THEN 'lunas' ELSE 'sebagian' END WHERE id = $2`,
+      [dibayar, id],
+    );
+  });
+}
+
+/** Shift kerja staf. */
+export async function ambilShift(): Promise<Baris[]> {
+  return query(
+    `SELECT s.id, s.nama, s.mulai, s.selesai, s.kas_awal, s.kas_akhir, s.catatan,
+            p.nama AS pengguna
+     FROM shift s LEFT JOIN pengguna p ON p.id = s.pengguna_id
+     ORDER BY s.mulai DESC LIMIT 100`,
+  );
+}
+
+export async function mulaiShift(nama: string, kasAwal: number, penggunaId?: number): Promise<void> {
+  await jalankan(
+    `INSERT INTO shift (nama, kas_awal, pengguna_id) VALUES ($1,$2,$3)`,
+    [nama.trim().slice(0, 100), kasAwal, penggunaId ?? null],
+  );
+}
+
+export async function selesaiShift(id: number, kasAkhir: number, catatan: string): Promise<void> {
+  await jalankan(
+    `UPDATE shift SET selesai = (now() AT TIME ZONE 'Asia/Jakarta'),
+     kas_akhir = $1, catatan = $2 WHERE id = $3 AND selesai IS NULL`,
+    [kasAkhir, catatan.slice(0, 300), id],
+  );
+}
+
+/** Catat bahan rusak atau terbuang. */
+export async function catatLimbah(
+  bahanId: number, jumlah: number, alasan: string, penggunaId?: number,
+): Promise<void> {
+  await denganTransaksi(async () => {
+    const baris = await querySatu<{ stok: number }>(
+      "SELECT stok FROM bahan WHERE id = $1 FOR UPDATE", [bahanId],
+    );
+    if (!baris) throw new GalatBisnis("Bahan tidak ditemukan");
+    await jalankan("UPDATE bahan SET stok = stok - $1 WHERE id = $2 AND stok >= $1", [jumlah, bahanId]);
+    await jalankan(
+      `INSERT INTO pergerakan_stok (bahan_id, jenis, jumlah, stok_sebelum, stok_sesudah, referensi, catatan, pengguna_id)
+       VALUES ($1,'rusak',$2,$3,$4,'Limbah',$5,$6)`,
+      [bahanId, jumlah, Number(baris.stok), Number(baris.stok) - jumlah, alasan.slice(0, 300), penggunaId ?? null],
+    );
+  });
+}
+
 /** Target omzet harian. */
 export async function ambilTarget(dari: string, sampai: string): Promise<Baris[]> {
   return query(

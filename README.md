@@ -141,6 +141,11 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Kalkulator harga** | Harga jual disarankan dari HPP dan margin target |
 | **Checklist harian** | Enam tugas buka dan tutup warung tersimpan per tanggal |
 | **Kartu member** | Tingkat, poin, dan kode undangan tampil di halaman lacak |
+| **Bundling** | Diskon otomatis untuk minimum porsi tertentu |
+| **Piutang dan shift** | Tagihan pelanggan, pembayaran, shift staf, dan kas awal akhir |
+| **Limbah** | Bahan rusak dicatat dengan alasan dan mengurangi stok |
+| **Promo publik** | Halaman `/promo` menampilkan promo yang sedang aktif |
+| **Halaman menu** | Setiap menu punya URL dan metadata sendiri untuk dibagikan |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |

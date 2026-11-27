@@ -84,6 +84,10 @@ export default function HalamanPengaturan() {
           banner_tautan: pengaturan.banner_tautan ?? "",
           minimum_preorder: pengaturan.minimum_preorder ?? "0",
           biaya_kirim: pengaturan.biaya_kirim ?? "0",
+          bundling_aktif: pengaturan.bundling_aktif ?? "false",
+          bundling_min: pengaturan.bundling_min ?? "3",
+          bundling_diskon: pengaturan.bundling_diskon ?? "5",
+          batal_batas_menit: pengaturan.batal_batas_menit ?? "120",
         }),
       });
       await ambilJson(respons);
@@ -275,6 +279,14 @@ export default function HalamanPengaturan() {
                 <div className="sm:col-span-2"><label htmlFor="s-logo">URL logo</label><input id="s-logo" value={pengaturan.logo_url ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, logo_url: e.target.value })} placeholder="https://... atau /assets/logo.svg" /></div>
                 <div><label htmlFor="s-minimum">Minimum preorder</label><input id="s-minimum" type="number" min={0} value={pengaturan.minimum_preorder ?? "0"} onChange={(e) => setPengaturan({ ...pengaturan, minimum_preorder: e.target.value })} /></div>
                 <div><label htmlFor="s-ongkir">Biaya kirim</label><input id="s-ongkir" type="number" min={0} value={pengaturan.biaya_kirim ?? "0"} onChange={(e) => setPengaturan({ ...pengaturan, biaya_kirim: e.target.value })} /></div>
+                <div><label htmlFor="s-batal">Batas batal otomatis, menit</label><input id="s-batal" type="number" min={0} value={pengaturan.batal_batas_menit ?? "120"} onChange={(e) => setPengaturan({ ...pengaturan, batal_batas_menit: e.target.value })} /></div>
+                <div><label htmlFor="s-bundling-min">Minimum porsi bundling</label><input id="s-bundling-min" type="number" min={2} value={pengaturan.bundling_min ?? "3"} onChange={(e) => setPengaturan({ ...pengaturan, bundling_min: e.target.value })} /></div>
+                <div><label htmlFor="s-bundling-diskon">Diskon bundling persen</label><input id="s-bundling-diskon" type="number" min={0} max={100} value={pengaturan.bundling_diskon ?? "5"} onChange={(e) => setPengaturan({ ...pengaturan, bundling_diskon: e.target.value })} /></div>
+                <div className="sm:col-span-2"><label className="flex items-center gap-2 text-xs text-tinta-lemah">
+                  <input type="checkbox" checked={pengaturan.bundling_aktif === "true"}
+                    onChange={(e) => setPengaturan({ ...pengaturan, bundling_aktif: e.target.checked ? "true" : "false" })} />
+                  Aktifkan diskon bundling otomatis
+                </label></div>
                 <div className="sm:col-span-2"><label htmlFor="s-deskripsi">Deskripsi singkat</label><textarea id="s-deskripsi" rows={2} maxLength={1000} value={pengaturan.deskripsi_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, deskripsi_usaha: e.target.value })} /></div>
                 <div><label htmlFor="s-banner-judul">Judul banner</label><input id="s-banner-judul" value={pengaturan.banner_judul ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, banner_judul: e.target.value })} /></div>
                 <div><label htmlFor="s-banner-tautan">Tautan banner</label><input id="s-banner-tautan" value={pengaturan.banner_tautan ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, banner_tautan: e.target.value })} /></div>

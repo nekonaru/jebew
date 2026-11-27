@@ -556,6 +556,8 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             ikon="M6 2h9l5 5v15H6zM15 2v5h5M9 13h6M9 17h4" />
           <InfoRingkas judul="Lacak pesanan" isi="Pakai kode dari website" aksi="/lacak"
             ikon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <InfoRingkas judul="Promo aktif" isi="Lihat kode yang tersedia" aksi="/promo"
+            ikon="M20 12v8H4v-8M12 2v10m0 0l4-4m-4 4L8 6" />
           <InfoRingkas judul="Pesan cepat" isi="Klik menu, isi data di akhir"
             ikon="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           {diperbarui && (
@@ -659,7 +661,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                   <button type="button"
                     aria-label={`Bagikan menu ${m.nama}`}
                     onClick={() => {
-                      const tautan = `${window.location.origin}/?menu=${m.id}`;
+                      const tautan = `${window.location.origin}/menu/${m.id}`;
                       if (navigator.share) {
                         void navigator.share({ title: m.nama, text: m.deskripsi, url: tautan }).catch(() => {});
                       } else {

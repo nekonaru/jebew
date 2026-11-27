@@ -40,6 +40,10 @@ const skema = z.object({
   banner_tautan: z.string().trim().max(500).optional(),
   minimum_preorder: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
   biaya_kirim: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
+  bundling_aktif: z.enum(["true", "false"]).optional(),
+  bundling_min: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
+  bundling_diskon: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
+  batal_batas_menit: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
 }).strict();
 
 export async function PUT(req: Request) {

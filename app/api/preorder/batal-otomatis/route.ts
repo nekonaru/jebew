@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { aman, galat, izinLaju } from "@/lib/api-final.ts";
-import { query } from "@/lib/database.ts";
+import { query, querySatu } from "@/lib/database.ts";
 import { ubahStatusPreorder } from "@/lib/final/transaksi.ts";
 
 export const runtime = "nodejs";
@@ -20,7 +20,11 @@ export async function POST(req: Request) {
         return NextResponse.json({ pesan: "Terlalu banyak permintaan. Coba lagi sebentar." }, { status: 429 });
       }
     }
-    const batas = Number(new URL(req.url).searchParams.get("menit") ?? 120);
+    const pengaturan = await querySatu<{ nilai: string }>(
+      "SELECT nilai FROM pengaturan WHERE kunci = 'batal_batas_menit'",
+    );
+    const batas = Number(new URL(req.url).searchParams.get("menit")
+      ?? pengaturan?.nilai ?? 120);
     const menit = Number.isFinite(batas) && batas >= 0 ? Math.min(10080, batas) : 120;
     const lewat = await query<{ id: number }>(
       `SELECT id FROM preorder

@@ -25,6 +25,10 @@ export function pengaturanPublik(pengaturan: Record<string, string>) {
     banner_tautan: pengaturan.banner_tautan ?? "",
     minimum_preorder: pengaturan.minimum_preorder ?? "0",
     biaya_kirim: pengaturan.biaya_kirim ?? "0",
+    bundling_aktif: pengaturan.bundling_aktif ?? "false",
+    bundling_min: pengaturan.bundling_min ?? "3",
+    bundling_diskon: pengaturan.bundling_diskon ?? "5",
+    batal_batas_menit: pengaturan.batal_batas_menit ?? "120",
   };
 }
 

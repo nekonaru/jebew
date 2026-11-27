@@ -130,6 +130,11 @@ export async function POST(req: Request) {
       ...badan,
       minimum: Number(pengaturan.minimum_preorder ?? 0),
       ongkir: Number(pengaturan.biaya_kirim ?? 0),
+      bundling: {
+        aktif: (pengaturan.bundling_aktif ?? "false") === "true",
+        min: Number(pengaturan.bundling_min ?? 3),
+        diskon: Number(pengaturan.bundling_diskon ?? 5),
+      },
     });
     if (hasil.kode_promo) await pakaiPromo(hasil.kode_promo, hasil.kode_lacak, hasil.diskon ?? 0);
     if (hasil.poin_dipakai) await tukarPoin(badan.whatsapp, hasil.poin_dipakai);

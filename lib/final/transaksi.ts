@@ -206,6 +206,7 @@ export type PreorderInput = {
   ongkir?: number;
   metode_bayar?: "tunai" | "qris" | "transfer";
   bukti_bayar?: string;
+  bundling?: { aktif: boolean; min: number; diskon: number };
 };
 
 function kodePendek(panjang: number): string {
@@ -248,7 +249,10 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
     }
     const ongkir = input.tipe_pesanan === "kirim"
       ? Math.max(0, Math.floor(Number(input.ongkir ?? 0))) : 0;
-    const diskon = Math.min(subtotal, (promo?.diskon ?? 0) + diskonPoin);
+    const jumlahPorsi = input.items.reduce((n, i) => n + i.jumlah, 0);
+    const bundling = input.bundling?.aktif && jumlahPorsi >= input.bundling.min
+      ? Math.floor(subtotal * Math.min(100, input.bundling.diskon) / 100) : 0;
+    const diskon = Math.min(subtotal, (promo?.diskon ?? 0) + diskonPoin + bundling);
     const total = subtotal - diskon + ongkir;
     const kode = `JBW-${kodePendek(3)}`;
     const kodeLacak = kodePendek(4);

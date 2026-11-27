@@ -1,5 +1,24 @@
 # Riwayat Perubahan
 
+## final-v5.0.0
+
+Penjualan lanjutan dan operasional yang lebih terukur.
+
+### Fitur baru
+
+- **Diskon bundling.** Pemilik mengaktifkan diskon otomatis untuk jumlah porsi minimum tertentu.
+- **Batas batal otomatis.** Pemilik menentukan berapa menit setelah waktu ambil pesanan dibatalkan otomatis.
+- **Piutang pelanggan.** Tagihan, jatuh tempo, pembayaran sebagian, dan status lunas tersedia di Fitur lanjutan.
+- **Shift staf.** Mulai dan selesaikan shift beserta kas awal dan kas akhir.
+- **Catatan limbah.** Bahan rusak dicatat dengan alasan dan langsung mengurangi stok.
+- **Halaman promo publik.** Daftar promo aktif bisa dibuka pengunjung tanpa masuk.
+- **Halaman menu per item.** Setiap menu punya halaman sendiri dengan metadata dan Open Graph untuk dibagikan.
+- **Panggilan pelanggan.** Layar dapur bisa menandai pesanan yang sedang dipanggil.
+
+### Perbaikan
+
+- **Skrip uji lebih tahan versi.** Pemeriksaan health kini menerima semua rilis mayor dari v4 ke atas.
+
 ## final-v4.2.0
 
 Penyelesaian alur dapur dan konsumen.

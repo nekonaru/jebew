@@ -24,6 +24,7 @@ function detikAmbil(teks: string): number {
 export default function LayarDapur() {
   const [daftar, setDaftar] = useState<Preorder[]>([]);
   const [sekarang, setSekarang] = useState(Date.now());
+  const [dipanggil, setDipanggil] = useState<number | null>(null);
 
   const muat = useCallback(async () => {
     try {
@@ -88,7 +89,14 @@ export default function LayarDapur() {
                         {p.items.map((i, n) => <li key={n}>{i.nama_menu} x{i.jumlah}</li>)}
                       </ul>
                       {p.catatan && <p className="mt-2 rounded-lg bg-latar p-2 text-xs">{p.catatan}</p>}
-                      <Tombol kelas="mt-4 w-full" onClick={() => void lanjut(p.id, k.berikut)}>{k.aksi}</Tombol>
+                      {k.status === "siap" && (
+                        <Tombol jenis="sekunder" kelas="mt-3 w-full"
+                          onClick={() => setDipanggil(p.id)}>
+                          {dipanggil === p.id ? "Sedang dipanggil" : "Panggil pelanggan"}
+                        </Tombol>
+                      )}
+                      <Tombol kelas={`mt-3 w-full ${dipanggil === p.id ? "ring-4 ring-aksen" : ""}`}
+                        onClick={() => void lanjut(p.id, k.berikut)}>{k.aksi}</Tombol>
                     </article>
                   );
                 })}
