@@ -5,7 +5,7 @@ import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
-const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional"] as const;
+const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional", "Zona kirim"] as const;
 type Tab = typeof TAB[number];
 const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -44,6 +44,8 @@ export default function HalamanLanjutan() {
   });
   const [formShift, setFormShift] = useState({ nama: "", kas_awal: "0" });
   const [formLimbah, setFormLimbah] = useState({ jumlah: "1", alasan: "" });
+  const [zona, setZona] = useState<Baris[]>([]);
+  const [formZona, setFormZona] = useState({ nama: "", tarif: "0", keterangan: "" });
 
   const muat = useCallback(async () => {
     try {
@@ -65,6 +67,9 @@ export default function HalamanLanjutan() {
         const d = await fetch(`/api/target?dari=${tanggalHariIni()}&sampai=${tanggalHariIni()}`)
           .then(ambilJson<{ target: Baris[] }>);
         setData(d.target ?? []);
+      } else if (tab === "Zona kirim") {
+        const d = await fetch("/api/zona-kirim").then(ambilJson<{ zona: Baris[] }>);
+        setZona(d.zona ?? []);
       } else if (tab === "Piutang" || tab === "Operasional") {
         const d = await fetch("/api/operasional").then(ambilJson<{
           piutang: Baris[]; shift: Baris[];
@@ -404,7 +409,11 @@ export default function HalamanLanjutan() {
                   <span className="font-semibold">{String(p.nomor)}</span>
                   <Badge warna={p.status === "diterima" ? "sukses" : "peringatan"}>{String(p.status)}</Badge>
                   <span className="text-xs text-tinta-lemah">{String(p.supplier ?? "Tanpa supplier")} - {Number(p.jumlah_item)} item - {formatRupiah(Number(p.total))}</span>
-                  {p.status !== "diterima" && (
+                  {p.status === "draft" && (
+                    <Tombol jenis="sekunder" onClick={() => void kirimOperasional({ aksi: "kirim_po", id: Number(p.id) }, "Purchase order dikirim.")}
+                      kelas="ml-auto min-h-[38px] px-3 text-xs">Kirim</Tombol>
+                  )}
+                  {p.status === "dikirim" && (
                     <Tombol onClick={() => void terimaPO(Number(p.id))} kelas="ml-auto min-h-[38px] px-3 text-xs">Terima</Tombol>
                   )}
                 </li>
@@ -425,6 +434,38 @@ export default function HalamanLanjutan() {
             </ul>
           </Kartu>
         </div>
+      )}
+
+      {tab === "Zona kirim" && (
+        <Kartu>
+          <h2 className="text-lg font-semibold">Zona kirim</h2>
+          <p className="mt-1 text-xs text-tinta-lemah">Tarif per zona dipakai otomatis saat pelanggan memilih pesanan dikirim.</p>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            void fetch("/api/zona-kirim", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ nama: formZona.nama, tarif: Number(formZona.tarif),
+                keterangan: formZona.keterangan, aktif: true }),
+            }).then(ambilJson).then(() => {
+              setJenis("sukses"); setPesan("Zona kirim disimpan.");
+              setFormZona({ nama: "", tarif: "0", keterangan: "" }); void muat();
+            }).catch((err) => { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan zona"); });
+          }} className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div><label htmlFor="z-nama">Nama zona</label><input id="z-nama" required maxLength={60} value={formZona.nama} onChange={(e) => setFormZona({ ...formZona, nama: e.target.value })} placeholder="Dekat" /></div>
+            <div><label htmlFor="z-tarif">Tarif</label><input id="z-tarif" type="number" min={0} required value={formZona.tarif} onChange={(e) => setFormZona({ ...formZona, tarif: e.target.value })} /></div>
+            <div><label htmlFor="z-keterangan">Keterangan</label><input id="z-keterangan" maxLength={200} value={formZona.keterangan} onChange={(e) => setFormZona({ ...formZona, keterangan: e.target.value })} /></div>
+            <div className="sm:col-span-3"><Tombol tipe="submit">Tambah zona</Tombol></div>
+          </form>
+          <ul className="mt-4 space-y-2">
+            {zona.map((z) => (
+              <li key={String(z.id)} className="flex justify-between rounded-xl border border-garis px-3 py-2 text-sm">
+                <span className="font-semibold">{String(z.nama)}</span>
+                <span>{formatRupiah(Number(z.tarif))}</span>
+              </li>
+            ))}
+            {zona.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada zona kirim.</li>}
+          </ul>
+        </Kartu>
       )}
 
       {tab === "Piutang" && (

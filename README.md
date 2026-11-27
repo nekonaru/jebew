@@ -146,6 +146,11 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Limbah** | Bahan rusak dicatat dengan alasan dan mengurangi stok |
 | **Promo publik** | Halaman `/promo` menampilkan promo yang sedang aktif |
 | **Halaman menu** | Setiap menu punya URL dan metadata sendiri untuk dibagikan |
+| **Zona kirim** | Tarif per zona dipakai otomatis untuk pesanan dikirim |
+| **Bukti transfer** | Pelanggan mengunggah bukti bayar berukuran kecil setelah pesanan dibuat |
+| **QRIS statis** | Teks rekening atau gambar QRIS tampil di checkout |
+| **Pesan dari meja** | Tautan meja mengisi nomor meja otomatis |
+| **Manfaat tingkat** | Diskon otomatis untuk pelanggan Silver, Gold, dan Platinum |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |

@@ -44,6 +44,8 @@ const skema = z.object({
   bundling_min: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
   bundling_diskon: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
   batal_batas_menit: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
+  qris_gambar: z.string().trim().max(500).optional(),
+  qris_teks: z.string().trim().max(300).optional(),
 }).strict();
 
 export async function PUT(req: Request) {

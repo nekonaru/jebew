@@ -88,6 +88,8 @@ export default function HalamanPengaturan() {
           bundling_min: pengaturan.bundling_min ?? "3",
           bundling_diskon: pengaturan.bundling_diskon ?? "5",
           batal_batas_menit: pengaturan.batal_batas_menit ?? "120",
+          qris_gambar: pengaturan.qris_gambar ?? "",
+          qris_teks: pengaturan.qris_teks ?? "",
         }),
       });
       await ambilJson(respons);
@@ -282,6 +284,8 @@ export default function HalamanPengaturan() {
                 <div><label htmlFor="s-batal">Batas batal otomatis, menit</label><input id="s-batal" type="number" min={0} value={pengaturan.batal_batas_menit ?? "120"} onChange={(e) => setPengaturan({ ...pengaturan, batal_batas_menit: e.target.value })} /></div>
                 <div><label htmlFor="s-bundling-min">Minimum porsi bundling</label><input id="s-bundling-min" type="number" min={2} value={pengaturan.bundling_min ?? "3"} onChange={(e) => setPengaturan({ ...pengaturan, bundling_min: e.target.value })} /></div>
                 <div><label htmlFor="s-bundling-diskon">Diskon bundling persen</label><input id="s-bundling-diskon" type="number" min={0} max={100} value={pengaturan.bundling_diskon ?? "5"} onChange={(e) => setPengaturan({ ...pengaturan, bundling_diskon: e.target.value })} /></div>
+                <div className="sm:col-span-2"><label htmlFor="s-qris-teks">Informasi QRIS atau rekening</label><input id="s-qris-teks" maxLength={300} value={pengaturan.qris_teks ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, qris_teks: e.target.value })} /></div>
+                <div className="sm:col-span-2"><label htmlFor="s-qris-gambar">URL gambar QRIS</label><input id="s-qris-gambar" maxLength={500} value={pengaturan.qris_gambar ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, qris_gambar: e.target.value })} placeholder="https://... atau /assets/qris.png" /></div>
                 <div className="sm:col-span-2"><label className="flex items-center gap-2 text-xs text-tinta-lemah">
                   <input type="checkbox" checked={pengaturan.bundling_aktif === "true"}
                     onChange={(e) => setPengaturan({ ...pengaturan, bundling_aktif: e.target.checked ? "true" : "false" })} />

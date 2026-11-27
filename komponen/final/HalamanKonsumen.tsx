@@ -21,7 +21,7 @@ type PengaturanTampil = {
   alamat_usaha?: string; peta_usaha?: string; deskripsi_usaha?: string;
   email_usaha?: string; instagram_usaha?: string; logo_url?: string;
   banner_judul?: string; banner_isi?: string; banner_tautan?: string;
-  minimum_preorder?: string; biaya_kirim?: string;
+  minimum_preorder?: string; biaya_kirim?: string; qris_gambar?: string; qris_teks?: string;
 };
 type DataAwal = { menu: Menu[]; pengaturan: PengaturanTampil };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
@@ -85,6 +85,9 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [kodeUndangan, setKodeUndangan] = useState("");
   const [metodeBayar, setMetodeBayar] = useState<"tunai" | "qris" | "transfer">("tunai");
   const [buktiBayar, setBuktiBayar] = useState("");
+  const [zonaList, setZonaList] = useState<{ id: number; nama: string; tarif: number }[]>([]);
+  const [zonaId, setZonaId] = useState("");
+  const [buktiGambar, setBuktiGambar] = useState("");
   const [ulasanPublik, setUlasanPublik] = useState<{
     rating: number; komentar: string; dibuat_pada: string;
   }[]>([]);
@@ -115,6 +118,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   }, []);
   useEffect(() => {
     void fetch("/api/slot").then(ambilJson<{ slot: Slot[] }>).then((s) => setSlot(s.slot ?? [])).catch(() => {});
+    void fetch("/api/zona-kirim")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d: { zona?: { id: number; nama: string; tarif: number }[] } | null) => setZonaList(d?.zona ?? []))
+      .catch(() => setZonaList([]));
     void fetch("/api/ulasan/publik")
       .then((r) => r.ok ? r.json() : null)
       .then((d: { ulasan?: { rating: number; komentar: string; dibuat_pada: string }[] } | null) =>
@@ -128,8 +135,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   }, [muat]);
 
   useEffect(() => {
-    const nilai = new URLSearchParams(window.location.search).get("undangan");
+    const params = new URLSearchParams(window.location.search);
+    const nilai = params.get("undangan");
     if (nilai) setKodeUndangan(nilai.slice(0, 20));
+    const mejaDariTautan = params.get("meja");
+    if (mejaDariTautan) {
+      setMeja(mejaDariTautan.slice(0, 20));
+      setTipePesanan("dine_in");
+    }
   }, []);
 
   useEffect(() => {
@@ -327,6 +340,29 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     setDialogKeranjang(false); setDialogCheckout(true);
   }
 
+  function unggahBukti(berkas: File | undefined) {
+    if (!berkas || !hasil) return;
+    if (berkas.size > 300 * 1024) {
+      setToast("Bukti bayar maksimal 300 KB."); setToastGalat(true); setToastUrut((n) => n + 1);
+      return;
+    }
+    const pembaca = new FileReader();
+    pembaca.onload = () => {
+      void fetch("/api/bukti-bayar", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kode_lacak: hasil.kode_lacak, data_url: String(pembaca.result) }),
+      }).then((r) => r.ok ? r.json() : Promise.reject(new Error("Gagal mengunggah")))
+        .then(() => {
+          setBuktiGambar(String(pembaca.result));
+          setToast("Bukti bayar tersimpan."); setToastGalat(false); setToastUrut((n) => n + 1);
+        })
+        .catch(() => {
+          setToast("Bukti bayar gagal disimpan."); setToastGalat(true); setToastUrut((n) => n + 1);
+        });
+    };
+    pembaca.readAsDataURL(berkas);
+  }
+
   async function cekPromo() {
     if (!kodePromo.trim()) { setInfoDiskon("Masukkan kode promo terlebih dahulu."); return; }
     try {
@@ -344,8 +380,9 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   }
 
   const diskonPoin = Math.min(1000000, Math.floor(Number(poinDipakai || 0) / 100) * 5000);
+  const zonaDipilih = zonaList.find((z) => z.id === Number(zonaId));
   const ongkirDiperkirakan = tipePesanan === "kirim"
-    ? Math.max(0, Number(data.pengaturan.biaya_kirim ?? 0)) : 0;
+    ? (zonaDipilih?.tarif ?? Math.max(0, Number(data.pengaturan.biaya_kirim ?? 0))) : 0;
   const totalAkhir = Math.max(0, totalCheckout - diskonPromo - diskonPoin + ongkirDiperkirakan);
 
   async function kirim(e: FormEvent) {
@@ -358,6 +395,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     if (!setuju) galatBaru.setuju = "Periksa pesanan lalu centang konfirmasi";
     if (tipePesanan === "dine_in" && !meja.trim()) galatBaru.meja = "Nomor meja wajib diisi";
     if (tipePesanan === "kirim" && !alamatKirim.trim()) galatBaru.alamat = "Alamat kirim wajib diisi";
+    if (tipePesanan === "kirim" && zonaList.length > 0 && !zonaId) galatBaru.alamat = "Pilih zona kirim dan alamat tujuan";
     setKesalahan(galatBaru);
     if (Object.keys(galatBaru).length > 0) {
       const urutan: [keyof typeof galatBaru, string][] = [
@@ -403,6 +441,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           kode_undangan: kodeUndangan || undefined,
           metode_bayar: metodeBayar,
           bukti_bayar: metodeBayar === "transfer" ? buktiBayar : "",
+          zona_id: tipePesanan === "kirim" && zonaId ? Number(zonaId) : undefined,
         }),
       });
       const dataHasil = await ambilJson<Hasil>(respons);
@@ -412,7 +451,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         else localStorage.removeItem("jebew_kontak");
       } catch { /* penyimpanan lokal tidak tersedia */ }
       setKeranjang([]); setNama(""); setWhatsapp(""); setSlotId(""); setWaktu(""); setCatatan("");
-      setKodePromo(""); setDiskonPromo(0); setPoinDipakai(""); setInfoDiskon(""); setPesananBesar(false); setSetuju(false); setKesalahan({});
+      setKodePromo(""); setDiskonPromo(0); setPoinDipakai(""); setInfoDiskon(""); setPesananBesar(false); setSetuju(false); setKesalahan({}); setBuktiGambar("");
       try { localStorage.removeItem("jebew_draf"); } catch { /* abaikan */ }
       void muat();
     } catch (err) { setPesan(err instanceof Error ? err.message : "Gagal mengirim pre-order"); }
@@ -876,7 +915,18 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                   aria-invalid={Boolean(kesalahan.alamat)} onChange={(e) => setAlamatKirim(e.target.value)}
                   placeholder="Nama jalan, nomor rumah, patokan" />
                 {kesalahan.alamat && <p className="mt-1 text-xs text-bahaya">{kesalahan.alamat}</p>}
-                <p className="mt-1 text-[11px] text-tinta-lemah">Admin akan menghubungi untuk konfirmasi biaya kirim.</p>
+                {zonaList.length > 0 && (
+                  <div className="mt-3">
+                    <label htmlFor="p-zona">Zona kirim</label>
+                    <select id="p-zona" value={zonaId} onChange={(e) => setZonaId(e.target.value)}>
+                      <option value="">Pilih zona</option>
+                      {zonaList.map((z) => (
+                        <option key={z.id} value={z.id}>{z.nama} - {formatRupiah(z.tarif)}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <p className="mt-1 text-[11px] text-tinta-lemah">Ongkir mengikuti zona yang dipilih.</p>
               </div>
             )}
           </fieldset>
@@ -893,6 +943,16 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                 </label>
               ))}
             </div>
+            {metodeBayar === "qris" && (data.pengaturan.qris_gambar || data.pengaturan.qris_teks) && (
+              <div className="mt-3 rounded-xl border border-garis bg-latar p-3 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-tinta-lemah">QRIS warung</p>
+                {data.pengaturan.qris_gambar && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={data.pengaturan.qris_gambar} alt="Kode QRIS warung" className="mx-auto mt-2 h-32 w-32 object-contain" />
+                )}
+                {data.pengaturan.qris_teks && <p className="mt-2 text-xs text-tinta-lemah">{data.pengaturan.qris_teks}</p>}
+              </div>
+            )}
             {metodeBayar === "transfer" && (
               <div className="mt-3">
                 <label htmlFor="p-bukti">Nomor referensi transfer</label>
@@ -1027,6 +1087,20 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-garis px-4 text-sm font-semibold text-utama transition hover:bg-latar">
               Salin kode lacak {hasil.kode_lacak}
             </button>
+            {metodeBayar === "transfer" && (
+              <div className="rounded-xl border border-garis p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-utama">Bukti transfer, opsional</p>
+                <label htmlFor="bukti-transfer" className="mt-2 block cursor-pointer text-xs font-semibold text-utama">
+                  Pilih gambar bukti, maksimal 300 KB
+                </label>
+                <input id="bukti-transfer" type="file" accept="image/png,image/jpeg,image/webp"
+                  className="mt-1 text-xs" onChange={(e) => unggahBukti(e.target.files?.[0])} />
+                {buktiGambar && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={buktiGambar} alt="Pratinjau bukti transfer" className="mt-3 h-28 rounded-xl object-contain" />
+                )}
+              </div>
+            )}
             <pre className="overflow-x-auto rounded-xl bg-latar p-4 text-xs leading-relaxed">{hasil.pesan}</pre>
             {hasil.tautan ? (
               <a href={hasil.tautan} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-sukses px-4 text-sm font-semibold text-white hover:brightness-95">Kirim ke WhatsApp</a>

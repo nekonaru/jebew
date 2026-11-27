@@ -207,6 +207,8 @@ export type PreorderInput = {
   metode_bayar?: "tunai" | "qris" | "transfer";
   bukti_bayar?: string;
   bundling?: { aktif: boolean; min: number; diskon: number };
+  zona_kirim?: string;
+  tingkat?: string;
 };
 
 function kodePendek(panjang: number): string {
@@ -215,7 +217,7 @@ function kodePendek(panjang: number): string {
 
 export async function simpanPreorder(input: PreorderInput): Promise<{
   kode: string; kode_lacak: string; total: number; diskon: number; ongkir: number;
-  items: Barang[]; kode_promo: string | null; poin_dipakai: number;
+  items: Barang[]; kode_promo: string | null; poin_dipakai: number; zona_kirim: string;
 }> {
   return denganTransaksi(async () => {
     if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(input.waktu_ambil)
@@ -252,7 +254,10 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
     const jumlahPorsi = input.items.reduce((n, i) => n + i.jumlah, 0);
     const bundling = input.bundling?.aktif && jumlahPorsi >= input.bundling.min
       ? Math.floor(subtotal * Math.min(100, input.bundling.diskon) / 100) : 0;
-    const diskon = Math.min(subtotal, (promo?.diskon ?? 0) + diskonPoin + bundling);
+    const persenTingkat = input.tingkat === "Platinum" ? 5 : input.tingkat === "Gold" ? 3
+      : input.tingkat === "Silver" ? 2 : 0;
+    const diskonTingkat = Math.floor(subtotal * persenTingkat / 100);
+    const diskon = Math.min(subtotal, (promo?.diskon ?? 0) + diskonPoin + bundling + diskonTingkat);
     const total = subtotal - diskon + ongkir;
     const kode = `JBW-${kodePendek(3)}`;
     const kodeLacak = kodePendek(4);
@@ -271,12 +276,12 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
 
     const baris = await querySatu<{ id: number }>(
       `INSERT INTO preorder (kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, slot_id, catatan, diskon,
-        tipe_pesanan, meja, alamat_kirim, kode_undangan, metode_bayar, bukti_bayar, ongkir)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
+        tipe_pesanan, meja, alamat_kirim, kode_undangan, metode_bayar, bukti_bayar, ongkir, zona_kirim)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
       [kode, kodeLacak, input.nama_pelanggan, input.whatsapp, input.waktu_ambil,
         input.slot_id, input.catatan, diskon, input.tipe_pesanan ?? "ambil",
         input.meja ?? "", input.alamat_kirim ?? "", input.kode_undangan ?? "",
-        input.metode_bayar ?? "tunai", input.bukti_bayar ?? "", ongkir],
+        input.metode_bayar ?? "tunai", input.bukti_bayar ?? "", ongkir, input.zona_kirim ?? ""],
     );
     await catatRiwayatStatus(baris!.id, "baru");
     for (const item of barang) {
@@ -290,6 +295,7 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
     return {
       kode, kode_lacak: kodeLacak, total, diskon, ongkir, items: barang,
       kode_promo: promo?.kode ?? null, poin_dipakai: poin,
+      zona_kirim: input.zona_kirim ?? "",
     };
   });
 }

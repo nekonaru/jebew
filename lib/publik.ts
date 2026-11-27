@@ -29,6 +29,8 @@ export function pengaturanPublik(pengaturan: Record<string, string>) {
     bundling_min: pengaturan.bundling_min ?? "3",
     bundling_diskon: pengaturan.bundling_diskon ?? "5",
     batal_batas_menit: pengaturan.batal_batas_menit ?? "120",
+    qris_gambar: pengaturan.qris_gambar ?? "",
+    qris_teks: pengaturan.qris_teks ?? "",
   };
 }
 

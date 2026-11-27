@@ -1,5 +1,22 @@
 # Riwayat Perubahan
 
+## final-v5.1.0
+
+Pengiriman, pembayaran, dan loyalitas yang lebih lengkap.
+
+### Fitur baru
+
+- **Zona kirim.** Pemilik membuat zona beserta tarif. Pelanggan memilih zona saat pesanan dikirim dan ongkir dihitung server.
+- **Unggah bukti transfer.** Pelanggan mengunggah gambar kecil setelah pesanan dibuat. Bukti tersimpan pada pesanan.
+- **QRIS statis.** Pemilik mengisi teks rekening atau URL gambar QRIS. Informasi tampil di checkout saat metode QRIS dipilih.
+- **Pesan dari meja.** Halaman `/meja/[nomor]` mengarah ke pemesanan dengan nomor meja terisi otomatis.
+- **Persetujuan purchase order.** Purchase order berstatus draft kini dikirim ke supplier sebelum diterima.
+- **Manfaat tingkat loyalitas.** Pelanggan Silver, Gold, dan Platinum mendapat diskon otomatis 2, 3, dan 5 persen.
+
+### Perbaikan
+
+- **Alur kirim lebih jelas.** Zona kirim, alamat, dan ongkir ditampilkan di ringkasan sebelum konfirmasi.
+
 ## final-v5.0.0
 
 Penjualan lanjutan dan operasional yang lebih terukur.

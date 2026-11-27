@@ -7,7 +7,10 @@ import { penggunaSaatIni } from "@/lib/auth.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "@/lib/wa.ts";
 import { jamMenitWIB, tanggalHariIni, tanggalValid } from "@/lib/format.ts";
 import { statusPreorder } from "@/lib/jadwal.ts";
-import { ambilHariLibur, ambilJadwalHarian, pakaiPromo, tukarPoin } from "@/lib/final/tambahan.ts";
+import {
+  ambilHariLibur, ambilJadwalHarian, ambilPoin, pakaiPromo, tukarPoin,
+} from "@/lib/final/tambahan.ts";
+import { querySatu } from "@/lib/database.ts";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -89,6 +92,7 @@ const skema = z.object({
   kode_undangan: z.string().trim().max(20).optional(),
   metode_bayar: z.enum(["tunai", "qris", "transfer"]).optional(),
   bukti_bayar: z.string().trim().max(300).optional(),
+  zona_id: z.number().int().positive().optional(),
 }).strict();
 
 export async function POST(req: Request) {
@@ -126,10 +130,25 @@ export async function POST(req: Request) {
     if (badan.tipe_pesanan === "kirim" && !badan.alamat_kirim?.trim()) {
       return NextResponse.json({ pesan: "Alamat kirim wajib diisi untuk pesanan dikirim" }, { status: 400 });
     }
+    let tarifZona = 0;
+    let namaZona = "";
+    if (badan.zona_id) {
+      const zona = await querySatu<{ tarif: number; nama: string }>(
+        "SELECT tarif, nama FROM zona_kirim WHERE id = $1 AND aktif = TRUE", [badan.zona_id],
+      );
+      if (!zona) return NextResponse.json({ pesan: "Zona kirim tidak tersedia" }, { status: 400 });
+      tarifZona = Number(zona.tarif);
+      namaZona = zona.nama;
+    }
+    if (badan.tipe_pesanan === "kirim" && !namaZona && !badan.zona_id && !Number(pengaturan.biaya_kirim ?? 0)) {
+      return NextResponse.json({ pesan: "Pilih zona kirim terlebih dahulu" }, { status: 400 });
+    }
     const hasil = await simpanPreorder({
       ...badan,
+      zona_kirim: namaZona,
+      tingkat: (await ambilPoin(badan.whatsapp)).tingkat,
       minimum: Number(pengaturan.minimum_preorder ?? 0),
-      ongkir: Number(pengaturan.biaya_kirim ?? 0),
+      ongkir: badan.zona_id ? tarifZona : Number(pengaturan.biaya_kirim ?? 0),
       bundling: {
         aktif: (pengaturan.bundling_aktif ?? "false") === "true",
         min: Number(pengaturan.bundling_min ?? 3),
@@ -155,6 +174,7 @@ export async function POST(req: Request) {
       metode: badan.metode_bayar ?? "tunai",
       ongkir: hasil.ongkir,
       buktiBayar: badan.bukti_bayar,
+      zona: hasil.zona_kirim || undefined,
     });
     return NextResponse.json({
       kode: hasil.kode, kode_lacak: hasil.kode_lacak, total: hasil.total, ongkir: hasil.ongkir,

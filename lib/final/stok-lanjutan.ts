@@ -129,6 +129,13 @@ export async function simpanPurchaseOrder(input: {
   });
 }
 
+/** Tandai purchase order dikirim ke supplier. */
+export async function kirimPurchaseOrder(id: number): Promise<void> {
+  await jalankan(
+    "UPDATE purchase_order SET status = 'dikirim' WHERE id = $1 AND status = 'draft'", [id],
+  );
+}
+
 /** Tandai purchase order diterima dan tambah stok serta riwayat harga. */
 export async function terimaPurchaseOrder(id: number, penggunaId?: number): Promise<void> {
   await denganTransaksi(async () => {

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { aman, bacaJsonTerbatasi, galat } from "@/lib/api-final.ts";
 import {
   ambilBatch, ambilPurchaseOrder, ambilSupplierHarga, prediksiStok,
-  simpanBatch, simpanPurchaseOrder, simpanSupplierHarga, terimaPurchaseOrder,
+  kirimPurchaseOrder, simpanBatch, simpanPurchaseOrder, simpanSupplierHarga, terimaPurchaseOrder,
 } from "@/lib/final/stok-lanjutan.ts";
 
 export const runtime = "nodejs";
@@ -55,7 +55,11 @@ const batchSkema = z.object({
   harga_satuan: z.number().int().min(0).max(100000000),
 }).strict();
 
-const skema = z.discriminatedUnion("aksi", [hargaSkema, poSkema, terimaSkema, batchSkema]);
+const kirimPoSkema = z.object({
+  aksi: z.literal("kirim_po"), id: z.number().int().positive(),
+}).strict();
+
+const skema = z.discriminatedUnion("aksi", [hargaSkema, poSkema, terimaSkema, batchSkema, kirimPoSkema]);
 
 export async function POST(req: Request) {
   try {
@@ -69,6 +73,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ berhasil: true, nomor });
     } else if (badan.aksi === "batch") {
       await simpanBatch(badan);
+    } else if (badan.aksi === "kirim_po") {
+      await kirimPurchaseOrder(badan.id);
     } else {
       await terimaPurchaseOrder(badan.id, pengguna?.id);
     }
