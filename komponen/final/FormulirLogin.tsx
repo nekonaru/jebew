@@ -11,6 +11,8 @@ export default function FormulirLogin() {
   const [pesan, setPesan] = useState("");
   const [loading, setLoading] = useState(false);
   const [tampilSandi, setTampilSandi] = useState(false);
+  const [tantangan, setTantangan] = useState("");
+  const [kode2fa, setKode2fa] = useState("");
 
   async function masuk(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,12 +24,36 @@ export default function FormulirLogin() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, kata_sandi: kataSandi }),
       });
-      const data = (await jawaban.json()) as { pesan?: string };
+      const data = (await jawaban.json()) as { pesan?: string; butuh2fa?: boolean; tantangan?: string };
       if (!jawaban.ok) throw new Error(data.pesan ?? "Gagal masuk");
+      if (data.butuh2fa && data.tantangan) {
+        setTantangan(data.tantangan);
+        setPesan("");
+        setLoading(false);
+        return;
+      }
       router.push("/admin");
       router.refresh();
     } catch (err) {
       setPesan(err instanceof Error ? err.message : "Gagal masuk");
+      setLoading(false);
+    }
+  }
+
+  async function verifikasi(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true); setPesan("");
+    try {
+      const jawaban = await fetch("/api/auth/2fa/verifikasi", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tantangan, kode: kode2fa }),
+      });
+      const data = (await jawaban.json()) as { pesan?: string };
+      if (!jawaban.ok) throw new Error(data.pesan ?? "Kode tidak valid");
+      router.push("/admin");
+      router.refresh();
+    } catch (err) {
+      setPesan(err instanceof Error ? err.message : "Gagal memverifikasi kode");
       setLoading(false);
     }
   }
@@ -41,6 +67,28 @@ export default function FormulirLogin() {
           <h1 className="mt-4 text-2xl font-semibold">Selamat datang kembali</h1>
           <p className="mt-1 text-sm text-tinta-lemah">Masuk untuk mengelola Warung Kak Ikaa.</p>
         </div>
+        {tantangan ? (
+          <form onSubmit={(e) => void verifikasi(e)} className="space-y-5 rounded-kartu border border-garis bg-permukaan p-6 shadow-kartu">
+            <div>
+              <h2 className="font-judul text-lg font-semibold">Kode verifikasi</h2>
+              <p className="mt-1 text-xs text-tinta-lemah">Masukkan enam angka dari aplikasi authenticator Anda.</p>
+            </div>
+            <div>
+              <label htmlFor="kode2fa">Kode 2FA</label>
+              <input id="kode2fa" inputMode="numeric" pattern="[0-9]*" maxLength={6} required
+                autoComplete="one-time-code" value={kode2fa}
+                onChange={(e) => setKode2fa(e.target.value.replace(/\D/g, ""))} placeholder="000000" />
+            </div>
+            <Pesan teks={pesan} jenis="galat" />
+            <Tombol tipe="submit" nonaktif={loading} kelas="w-full">
+              {loading ? "Memverifikasi..." : "Verifikasi dan masuk"}
+            </Tombol>
+            <button type="button" onClick={() => { setTantangan(""); setKode2fa(""); setPesan(""); }}
+              className="w-full text-center text-xs font-semibold text-utama hover:underline">
+              Kembali ke halaman masuk
+            </button>
+          </form>
+        ) : (
         <form onSubmit={masuk} className="space-y-5 rounded-kartu border border-garis bg-permukaan p-6 shadow-kartu">
           <div>
             <label htmlFor="email">Email</label>
@@ -80,6 +128,7 @@ export default function FormulirLogin() {
             </p>
           )}
         </form>
+        )}
         <p className="mt-6 text-center text-sm">
           <a href="/" className="font-semibold text-utama hover:underline">Lihat website konsumen</a>
         </p>

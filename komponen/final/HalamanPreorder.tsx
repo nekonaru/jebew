@@ -62,6 +62,15 @@ export default function HalamanPreorder() {
     finally { setMemproses(false); }
   }
 
+  async function batalkanLewatWaktu() {
+    try {
+      const respons = await fetch("/api/preorder/batal-otomatis", { method: "POST" });
+      const hasil = await ambilJson<{ dibatalkan: number }>(respons);
+      setJenis("sukses"); setPesan(`${hasil.dibatalkan} pesanan lewat waktu dibatalkan.`);
+      void muat();
+    } catch (e) { setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal membatalkan pesanan"); }
+  }
+
   const tampil = daftar;
   const warna = { baru: "peringatan", diproses: "info", siap: "sukses", selesai: "netral", batal: "bahaya" } as const;
 
@@ -96,6 +105,8 @@ export default function HalamanPreorder() {
         >
           Unduh CSV pre-order
         </a>
+        <Tombol jenis="sekunder" kelas="mt-3 min-h-[40px] px-4 text-xs" nonaktif={memproses}
+          onClick={() => void batalkanLewatWaktu()}>Batalkan yang lewat waktu</Tombol>
       </Kartu>
 
       <div className="mb-5 flex flex-wrap gap-2" role="group" aria-label="Filter status">

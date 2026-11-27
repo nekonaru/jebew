@@ -18,6 +18,9 @@ type PengaturanTampil = {
   hari_buka?: string; jam_buka?: string; jam_tutup?: string; toko_aktif?: string;
   preorder_aktif?: string; preorder_jam_buka?: string; preorder_jam_tutup?: string;
   status_toko?: InfoStatus; status_preorder?: InfoStatus;
+  alamat_usaha?: string; peta_usaha?: string; deskripsi_usaha?: string;
+  email_usaha?: string; instagram_usaha?: string; logo_url?: string;
+  banner_judul?: string; banner_isi?: string; banner_tautan?: string;
 };
 type DataAwal = { menu: Menu[]; pengaturan: PengaturanTampil };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
@@ -71,11 +74,20 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [diskonPromo, setDiskonPromo] = useState(0);
   const [poinDipakai, setPoinDipakai] = useState("");
   const [saldoPoin, setSaldoPoin] = useState(0);
+  const [tingkatPoin, setTingkatPoin] = useState("Reguler");
   const [infoDiskon, setInfoDiskon] = useState("");
   const [pesananBesar, setPesananBesar] = useState(false);
   const [setuju, setSetuju] = useState(false);
+  const [tipePesanan, setTipePesanan] = useState<"ambil" | "dine_in" | "kirim">("ambil");
+  const [meja, setMeja] = useState("");
+  const [alamatKirim, setAlamatKirim] = useState("");
+  const [kodeUndangan, setKodeUndangan] = useState("");
+  const [ulasanPublik, setUlasanPublik] = useState<{
+    rating: number; komentar: string; dibuat_pada: string;
+  }[]>([]);
   const [kesalahan, setKesalahan] = useState<{
     nama?: string; whatsapp?: string; waktu?: string; setuju?: string;
+    meja?: string; alamat?: string;
   }>({});
   const [pesan, setPesan] = useState("");
   const [jenis, setJenis] = useState<"galat">("galat");
@@ -100,12 +112,22 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   }, []);
   useEffect(() => {
     void fetch("/api/slot").then(ambilJson<{ slot: Slot[] }>).then((s) => setSlot(s.slot ?? [])).catch(() => {});
+    void fetch("/api/ulasan/publik")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d: { ulasan?: { rating: number; komentar: string; dibuat_pada: string }[] } | null) =>
+        setUlasanPublik(d?.ulasan ?? []))
+      .catch(() => setUlasanPublik([]));
     void muat();
     const t = setInterval(() => {
       if (document.visibilityState === "visible") void muat();
     }, 15000);
     return () => clearInterval(t);
   }, [muat]);
+
+  useEffect(() => {
+    const nilai = new URLSearchParams(window.location.search).get("undangan");
+    if (nilai) setKodeUndangan(nilai.slice(0, 20));
+  }, []);
 
   useEffect(() => {
     try {
@@ -122,6 +144,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         const isi = JSON.parse(draf) as {
           nama?: string; whatsapp?: string; catatan?: string; kodePromo?: string;
           poinDipakai?: string; waktu?: string; pesananBesar?: boolean;
+          tipePesanan?: string; meja?: string; alamatKirim?: string;
         };
         if (typeof isi.nama === "string") setNama(isi.nama.slice(0, 100));
         if (typeof isi.whatsapp === "string") setWhatsapp(isi.whatsapp.slice(0, 30));
@@ -130,6 +153,11 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         if (typeof isi.poinDipakai === "string") setPoinDipakai(isi.poinDipakai.slice(0, 10));
         if (typeof isi.waktu === "string") setWaktu(isi.waktu.slice(0, 30));
         if (typeof isi.pesananBesar === "boolean") setPesananBesar(isi.pesananBesar);
+        if (isi.tipePesanan === "ambil" || isi.tipePesanan === "dine_in" || isi.tipePesanan === "kirim") {
+          setTipePesanan(isi.tipePesanan);
+        }
+        if (typeof isi.meja === "string") setMeja(isi.meja.slice(0, 20));
+        if (typeof isi.alamatKirim === "string") setAlamatKirim(isi.alamatKirim.slice(0, 300));
       }
     } catch { /* abaikan draf rusak */ }
   }, []);
@@ -157,18 +185,22 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       try {
         localStorage.setItem("jebew_draf", JSON.stringify({
           nama, whatsapp, catatan, kodePromo, poinDipakai, waktu, pesananBesar,
+          tipePesanan, meja, alamatKirim,
         }));
       } catch { /* penyimpanan lokal tidak tersedia */ }
     }, 300);
     return () => clearTimeout(t);
-  }, [nama, whatsapp, catatan, kodePromo, poinDipakai, waktu, pesananBesar]);
+  }, [nama, whatsapp, catatan, kodePromo, poinDipakai, waktu, pesananBesar, tipePesanan, meja, alamatKirim]);
 
   useEffect(() => {
     if (whatsapp.trim().length < 8) { setSaldoPoin(0); return; }
     const t = setTimeout(() => {
       void fetch(`/api/poin?whatsapp=${encodeURIComponent(whatsapp.trim())}`)
         .then((r) => r.ok ? r.json() : null)
-        .then((d: { poin?: number } | null) => setSaldoPoin(Number(d?.poin ?? 0)))
+        .then((d: { poin?: number; tingkat?: string } | null) => {
+          setSaldoPoin(Number(d?.poin ?? 0));
+          setTingkatPoin(d?.tingkat ?? "Reguler");
+        })
         .catch(() => setSaldoPoin(0));
     }, 300);
     return () => clearTimeout(t);
@@ -313,10 +345,13 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     if (angkaWa.length < 8 || angkaWa.length > 16) galatBaru.whatsapp = "Nomor WhatsApp harus 8 sampai 16 angka";
     if (!slotId && !waktu.trim()) galatBaru.waktu = "Pilih slot atau ketik waktu ambil";
     if (!setuju) galatBaru.setuju = "Periksa pesanan lalu centang konfirmasi";
+    if (tipePesanan === "dine_in" && !meja.trim()) galatBaru.meja = "Nomor meja wajib diisi";
+    if (tipePesanan === "kirim" && !alamatKirim.trim()) galatBaru.alamat = "Alamat kirim wajib diisi";
     setKesalahan(galatBaru);
     if (Object.keys(galatBaru).length > 0) {
       const urutan: [keyof typeof galatBaru, string][] = [
-        ["nama", "p-nama"], ["whatsapp", "p-wa"], ["waktu", "p-waktu"], ["setuju", "p-setuju"],
+        ["nama", "p-nama"], ["whatsapp", "p-wa"], ["waktu", "p-waktu"],
+        ["meja", "p-meja"], ["alamat", "p-alamat-kirim"], ["setuju", "p-setuju"],
       ];
       const pertama = urutan.find(([kunci]) => galatBaru[kunci]);
       if (pertama) document.getElementById(pertama[1])?.focus();
@@ -351,6 +386,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           catatan: pesananBesar ? `${catatan}${catatan ? " - " : ""}[PESANAN BESAR]` : catatan,
           kode_promo: kodePromo.trim() || undefined,
           poin_dipakai: Number(poinDipakai || 0) > 0 ? Number(poinDipakai) : undefined,
+          tipe_pesanan: tipePesanan,
+          meja: tipePesanan === "dine_in" ? meja : "",
+          alamat_kirim: tipePesanan === "kirim" ? alamatKirim : "",
+          kode_undangan: kodeUndangan || undefined,
         }),
       });
       const dataHasil = await ambilJson<Hasil>(respons);
@@ -484,6 +523,18 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             </div>
           </div>
         </section>
+
+        {data.pengaturan.banner_judul && (
+          <section className="reveal mb-9 rounded-kartu border border-aksen/30 bg-gradient-to-r from-aksen/15 to-utama/10 px-6 py-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-utama">Info dari warung</p>
+            <h2 className="mt-2 font-judul text-xl font-semibold">{data.pengaturan.banner_judul}</h2>
+            {data.pengaturan.banner_isi && <p className="mt-1 text-sm text-tinta-lemah">{data.pengaturan.banner_isi}</p>}
+            {data.pengaturan.banner_tautan && (
+              <a href={data.pengaturan.banner_tautan} target="_blank" rel="noopener noreferrer"
+                className="mt-3 inline-flex text-sm font-semibold text-utama hover:underline">Lihat detail</a>
+            )}
+          </section>
+        )}
 
         <section className="reveal mb-9 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-kartu border border-garis bg-permukaan px-5 py-4 shadow-kartu sm:px-7">
           <InfoRingkas judul="Jam toko" isi={`${data.pengaturan.jam_buka ?? "10:00"} - ${data.pengaturan.jam_tutup ?? "21:00"} WIB`}
@@ -754,6 +805,42 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               onChange={(e) => setIngatKontak(e.target.checked)} />
             Ingat nama dan WhatsApp di perangkat ini untuk pesanan berikutnya.
           </label>
+          <fieldset className="rounded-xl border border-garis p-4">
+            <legend className="px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-utama">Jenis pesanan</legend>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {([
+                ["ambil", "Ambil di warung"],
+                ["dine_in", "Makan di tempat"],
+                ["kirim", "Dikirim"],
+              ] as const).map(([nilai, label]) => (
+                <label key={nilai} className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold ${
+                  tipePesanan === nilai ? "border-utama bg-utama/5 text-utama" : "border-garis text-tinta-lemah"
+                }`}>
+                  <input type="radio" name="tipe-pesanan" value={nilai} checked={tipePesanan === nilai}
+                    onChange={() => setTipePesanan(nilai)} />
+                  {label}
+                </label>
+              ))}
+            </div>
+            {tipePesanan === "dine_in" && (
+              <div className="mt-3">
+                <label htmlFor="p-meja">Nomor meja</label>
+                <input id="p-meja" maxLength={20} value={meja} aria-invalid={Boolean(kesalahan.meja)}
+                  onChange={(e) => setMeja(e.target.value)} placeholder="Contoh: A3" />
+                {kesalahan.meja && <p className="mt-1 text-xs text-bahaya">{kesalahan.meja}</p>}
+              </div>
+            )}
+            {tipePesanan === "kirim" && (
+              <div className="mt-3">
+                <label htmlFor="p-alamat-kirim">Alamat kirim</label>
+                <textarea id="p-alamat-kirim" maxLength={300} rows={2} value={alamatKirim}
+                  aria-invalid={Boolean(kesalahan.alamat)} onChange={(e) => setAlamatKirim(e.target.value)}
+                  placeholder="Nama jalan, nomor rumah, patokan" />
+                {kesalahan.alamat && <p className="mt-1 text-xs text-bahaya">{kesalahan.alamat}</p>}
+                <p className="mt-1 text-[11px] text-tinta-lemah">Admin akan menghubungi untuk konfirmasi biaya kirim.</p>
+              </div>
+            )}
+          </fieldset>
           <label className="flex items-start gap-2 rounded-xl border border-garis p-3 text-xs text-tinta-lemah">
             <input type="checkbox" className="mt-0.5" checked={pesananBesar}
               onChange={(e) => setPesananBesar(e.target.checked)} />
@@ -766,7 +853,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <Tombol jenis="sekunder" kelas="min-h-[46px] px-3 text-xs" onClick={() => void cekPromo()}>Cek</Tombol>
             </div>
             <div className="mt-3">
-              <label htmlFor="p-poin">Pakai poin, saldo {saldoPoin} poin</label>
+              <label htmlFor="p-poin">Pakai poin, saldo {saldoPoin} poin, tingkat {tingkatPoin}</label>
               <input id="p-poin" type="number" min={0} step={100} max={saldoPoin} value={poinDipakai}
                 onChange={(e) => setPoinDipakai(e.target.value)} placeholder="Kelipatan 100 poin" />
               <p className="mt-1 text-[11px] text-tinta-lemah">100 poin menjadi diskon 5.000 rupiah.</p>
@@ -828,9 +915,11 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
               <div className="flex justify-between gap-3"><dt>Nama</dt><dd className="font-semibold text-tinta">{nama || "-"}</dd></div>
               <div className="flex justify-between gap-3"><dt>WhatsApp</dt><dd className="font-semibold text-tinta">{whatsapp || "-"}</dd></div>
               <div className="flex justify-between gap-3"><dt>Waktu ambil</dt><dd className="font-semibold text-tinta">{slot.find((s) => s.id === Number(slotId)) ? `${slot.find((s) => s.id === Number(slotId))?.tanggal} ${slot.find((s) => s.id === Number(slotId))?.jam} WIB` : waktu || "-"}</dd></div>
+              <div className="flex justify-between gap-3"><dt>Jenis</dt><dd className="font-semibold text-tinta">{tipePesanan === "dine_in" ? `Makan di tempat${meja ? `, meja ${meja}` : ""}` : tipePesanan === "kirim" ? "Dikirim" : "Ambil di warung"}</dd></div>
               <div className="flex justify-between gap-3"><dt>Jumlah</dt><dd className="font-semibold text-tinta">{jumlahItem} porsi</dd></div>
               {kodePromo && <div className="flex justify-between gap-3"><dt>Promo</dt><dd className="font-semibold text-tinta">{kodePromo}</dd></div>}
               {diskonPoin > 0 && <div className="flex justify-between gap-3"><dt>Poin</dt><dd className="font-semibold text-tinta">{poinDipakai} poin</dd></div>}
+              {kodeUndangan && <div className="flex justify-between gap-3"><dt>Undangan</dt><dd className="font-semibold text-tinta">{kodeUndangan}</dd></div>}
               <div className="flex justify-between gap-3 border-t border-garis pt-2 text-sm"><dt className="font-semibold text-tinta">Total bayar</dt><dd className="font-bold text-utama">{formatRupiah(totalAkhir)}</dd></div>
             </dl>
           </details>
@@ -891,6 +980,45 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           </div>
         )}
       </Dialog>
+
+      {(data.pengaturan.deskripsi_usaha || data.pengaturan.alamat_usaha) && (
+        <section className="reveal border-t border-garis">
+          <div className="mx-auto max-w-6xl px-4 py-10">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Tentang kami</p>
+            <h2 className="mt-3 font-judul text-2xl font-semibold">{data.pengaturan.nama_usaha ?? "Warung Kak Ikaa"}</h2>
+            {data.pengaturan.deskripsi_usaha && (
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-tinta-lemah">{data.pengaturan.deskripsi_usaha}</p>
+            )}
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs text-tinta-lemah">
+              {data.pengaturan.alamat_usaha && <span>Alamat: {data.pengaturan.alamat_usaha}</span>}
+              {data.pengaturan.email_usaha && <span>Email: {data.pengaturan.email_usaha}</span>}
+              {data.pengaturan.instagram_usaha && <span>Instagram: {data.pengaturan.instagram_usaha}</span>}
+              {data.pengaturan.peta_usaha && (
+                <a href={data.pengaturan.peta_usaha} target="_blank" rel="noopener noreferrer"
+                  className="font-semibold text-utama hover:underline">Lihat lokasi di peta</a>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {ulasanPublik.length > 0 && (
+        <section className="reveal border-t border-garis">
+          <div className="mx-auto max-w-6xl px-4 py-10">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-utama">Kata pelanggan</p>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {ulasanPublik.slice(0, 6).map((u, i) => (
+                <figure key={i} className="rounded-kartu border border-garis bg-permukaan p-4">
+                  <div aria-label={`${u.rating} dari 5 bintang`} className="text-sm text-aksen">
+                    {"★".repeat(u.rating)}{"☆".repeat(5 - u.rating)}
+                  </div>
+                  <blockquote className="mt-2 text-sm text-tinta">{u.komentar || "Pelanggan memberikan rating tanpa komentar."}</blockquote>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="reveal border-t border-garis">
         <div className="mx-auto max-w-6xl px-4 py-12">

@@ -1,6 +1,7 @@
 // Fitur lanjutan Jebew: riwayat status, notifikasi, promo, poin, ulasan, dan jadwal.
 // Semua akses data terjadi di server. Semua waktu memakai WIB.
 
+import { randomBytes } from "node:crypto";
 import { jalankan, query, querySatu, denganTransaksi } from "../database.ts";
 import { GalatBisnis } from "./galat.ts";
 import { nomorWhatsApp } from "../wa.ts";
@@ -161,7 +162,9 @@ export async function pakaiPromo(
 }
 
 /** Tambah poin loyalitas. Seribu rupiah setara satu poin. */
-export async function tambahPoin(whatsapp: string, total: number): Promise<void> {
+export async function tambahPoin(
+  whatsapp: string, total: number, kodeUndangan?: string,
+): Promise<void> {
   const nomor = nomorWhatsApp(whatsapp);
   if (!nomor) return;
   const poin = Math.floor(total / 1000);
@@ -180,15 +183,47 @@ export async function tambahPoin(whatsapp: string, total: number): Promise<void>
       "INSERT INTO poin_mutasi (whatsapp, poin, keterangan) VALUES ($1,$2,$3)",
       [nomor, poin, "Pesanan pre-order"],
     );
+    if (kodeUndangan) {
+      const pengaju = await querySatu<{ whatsapp: string }>(
+        "SELECT whatsapp FROM poin_pelanggan WHERE kode_undangan = $1", [kodeUndangan.trim().toUpperCase()],
+      );
+      if (pengaju && pengaju.whatsapp !== nomor) {
+        await jalankan(
+          `UPDATE poin_pelanggan SET diundang_oleh = COALESCE(diundang_oleh, $1)
+           WHERE whatsapp = $2 AND diundang_oleh IS NULL`,
+          [pengaju.whatsapp, nomor],
+        );
+        await jalankan(
+          "UPDATE poin_pelanggan SET poin = poin + 50, diperbarui_pada = (now() AT TIME ZONE 'Asia/Jakarta') WHERE whatsapp = $1",
+          [pengaju.whatsapp],
+        );
+        await jalankan(
+          "INSERT INTO poin_mutasi (whatsapp, poin, keterangan) VALUES ($1,$2,$3)",
+          [pengaju.whatsapp, 50, "Undangan pelanggan baru"],
+        );
+      }
+    }
   });
 }
 
-export async function ambilPoin(whatsapp: string): Promise<{ poin: number; total_belanja: number }> {
+export async function ambilPoin(whatsapp: string): Promise<{
+  poin: number; total_belanja: number; tingkat: string; kode_undangan: string;
+}> {
   const nomor = nomorWhatsApp(whatsapp);
-  const baris = await querySatu<{ poin: number; total_belanja: number }>(
-    "SELECT poin, total_belanja FROM poin_pelanggan WHERE whatsapp = $1", [nomor],
-  );
-  return { poin: angka(baris?.poin), total_belanja: angka(baris?.total_belanja) };
+  const baris = await querySatu<{
+    poin: number; total_belanja: number; kode_undangan: string | null;
+  }>("SELECT poin, total_belanja, kode_undangan FROM poin_pelanggan WHERE whatsapp = $1", [nomor]);
+  const total = angka(baris?.total_belanja);
+  const tingkat = total >= 1000000 ? "Platinum" : total >= 500000 ? "Gold" : total >= 100000 ? "Silver" : "Reguler";
+  let kode = String(baris?.kode_undangan ?? "");
+  if (!kode && nomor) {
+    kode = randomBytes(4).toString("hex").toUpperCase();
+    await jalankan(
+      "UPDATE poin_pelanggan SET kode_undangan = $1 WHERE whatsapp = $2 AND kode_undangan IS NULL",
+      [kode, nomor],
+    );
+  }
+  return { poin: angka(baris?.poin), total_belanja: total, tingkat, kode_undangan: kode };
 }
 
 /** Tukar poin menjadi diskon. Seratus poin setara lima ribu rupiah. */

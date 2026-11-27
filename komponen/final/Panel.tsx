@@ -26,13 +26,17 @@ const NAV: ItemNav[] = [
   { href: "/admin/laporan", label: "Laporan", ikon: "M4 19V9m6 10V5m6 14v-7m4 7H2", grup: "Keuangan" },
   { href: "/admin/keuangan", label: "Keuangan", ikon: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6", grup: "Keuangan" },
   { href: "/admin/master", label: "Master data", ikon: "M4 7h16M4 12h16M4 17h10", grup: "Pengaturan" },
+  { href: "/admin/keamanan", label: "Keamanan", ikon: "M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6zM9 12l2 2 4-4", grup: "Pengaturan" },
   { href: "/admin/lanjutan", label: "Fitur lanjutan", ikon: "M12 2v4m0 12v4M4.9 4.9l2.8 2.8m9.6 9.6l2.8 2.8M2 12h4m12 0h4M4.9 19.1l2.8-2.8m9.6-9.6l2.8-2.8M12 8a4 4 0 100 8 4 4 0 000-8z", grup: "Pengaturan" },
   { href: "/admin/pengaturan", label: "Pengaturan", ikon: "M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 00-1.7-1L14.5 3h-4l-.3 2.5a7 7 0 00-1.7 1l-2.4-1-2 3.5L6.1 11a7 7 0 000 2l-2 1.5 2 3.5 2.4-1a7 7 0 001.7 1l.3 2h4l.3-2a7 7 0 001.7-1l2.4 1 2-3.5-2-1.5c.1-.3.1-.7.1-1z", grup: "Pengaturan" },
 ];
 
 const GRUP = ["Utama", "Operasional", "Keuangan", "Pengaturan"];
 const NAV_BAWAH = ["/admin", "/admin/kasir", "/admin/preorder", "/admin/dapur", "/admin/menu"];
-const HANYA_PEMILIK = ["/admin/master", "/admin/pengaturan", "/admin/laporan", "/admin/keuangan"];
+const HANYA_PEMILIK = [
+  "/admin/master", "/admin/pengaturan", "/admin/laporan", "/admin/keuangan", "/admin/lanjutan",
+];
+const UNTUK_DAPUR = ["/admin", "/admin/preorder", "/admin/dapur", "/admin/menu", "/admin/stok"];
 
 export default function Panel({
   children, nama, peran,
@@ -44,10 +48,10 @@ export default function Panel({
   const acuanCari = useRef<HTMLInputElement>(null);
   const [jumlahNotif, setJumlahNotif] = useState(0);
 
-  const item = useMemo(
-    () => NAV.filter((n) => !HANYA_PEMILIK.includes(n.href) || peran === "pemilik"),
-    [peran],
-  );
+  const item = useMemo(() => NAV.filter((n) => {
+    if (peran === "dapur") return UNTUK_DAPUR.includes(n.href);
+    return !HANYA_PEMILIK.includes(n.href) || peran === "pemilik";
+  }), [peran]);
   const hasil = useMemo(() => {
     const teks = cari.trim().toLowerCase();
     if (!teks) return item;
@@ -136,7 +140,7 @@ export default function Panel({
           <div className="hidden px-4 py-5 lg:block">
             <div className="mb-3 rounded-xl bg-latar px-3 py-2.5">
               <p className="text-xs font-semibold">{nama}</p>
-              <p className="text-[11px] capitalize text-tinta-lemah">{peran === "pemilik" ? "Pemilik" : "Kasir"}</p>
+              <p className="text-[11px] capitalize text-tinta-lemah">{peran === "pemilik" ? "Pemilik" : peran === "dapur" ? "Dapur" : "Kasir"}</p>
             </div>
             <button onClick={() => void keluar()}
               className="w-full rounded-xl border border-garis px-3 py-2 text-sm font-semibold text-tinta-lemah transition hover:bg-latar">

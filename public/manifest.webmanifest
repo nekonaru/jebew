@@ -1,0 +1,15 @@
+{
+  "name": "Jebew - Warung Kak Ikaa",
+  "short_name": "Jebew",
+  "description": "Pesan mie hangat dan chili oil dari Warung Kak Ikaa.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF1D6",
+  "theme_color": "#D8432B",
+  "lang": "id",
+  "icons": [
+    { "src": "/assets/jebew-icon.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/jebew-icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

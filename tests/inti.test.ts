@@ -7,6 +7,7 @@ import {
 } from "../lib/inti-final.ts";
 import { formatRupiah, tanggalHariIni, tanggalParameter, tanggalValid } from "../lib/format.ts";
 import { hariTermasuk, jamDalamRentang, statusPreorder, statusToko } from "../lib/jadwal.ts";
+import { cocokTOTP, kodeTOTP } from "../lib/totp.ts";
 import { susunPesanWhatsApp, tautanWhatsApp } from "../lib/wa.ts";
 
 const bahan: InfoBahan[] = [
@@ -173,6 +174,15 @@ test("jadwal harian menggantikan jam umum dan hari libur ditolak", () => {
   assert.equal(statusToko(pengaturan, new Date("2026-11-26T23:30:00Z"), jadwal).buka, false);
   assert.equal(statusPreorder(pengaturan, new Date("2026-11-26T03:30:00Z"), jadwal).buka, false);
   assert.equal(statusToko(pengaturan, kamis, [], ["2026-11-26"]).buka, false);
+});
+
+test("kode TOTP enam angka dan jendela verifikasi", () => {
+  const rahasia = "JBSWY3DPEHPK3PXP";
+  const kode = kodeTOTP(rahasia, 1700000000000);
+  assert.match(kode, /^\d{6}$/);
+  assert.equal(cocokTOTP(rahasia, kode, 1700000000000), true);
+  assert.equal(cocokTOTP(rahasia, kode, 1700000030000), true);
+  assert.equal(cocokTOTP(rahasia, "0000000", 1700000000000), false);
 });
 
 test("format rupiah dan tanggal", () => {

@@ -10,6 +10,7 @@ type Preorder = {
   id: number; kode: string; kode_lacak: string; nama_pelanggan: string;
   whatsapp: string; waktu_ambil: string; catatan: string; status: string;
   dibuat_pada: string; total: number;
+  tipe_pesanan?: string; meja?: string; alamat_kirim?: string;
   items: { nama_menu: string; nama_varian: string; jumlah: number }[];
 };
 type Notifikasi = { id: number; status: string; pesan: string; tujuan: string; kode_pesanan: string | null };
@@ -165,6 +166,11 @@ export default function HalamanDapur() {
                       </div>
                       <span className="rounded-full bg-latar px-2 py-1 text-[10px] font-semibold text-tinta-lemah">{durasi(p.dibuat_pada)}</span>
                     </div>
+                    {(p.tipe_pesanan === "dine_in" || p.tipe_pesanan === "kirim") && (
+                      <p className="mt-2 text-xs font-semibold text-utama">
+                        {p.tipe_pesanan === "dine_in" ? `Meja ${p.meja || "-"}` : `Kirim ke ${p.alamat_kirim || "-"}`}
+                      </p>
+                    )}
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <p className="text-xs font-semibold">Ambil {p.waktu_ambil} WIB</p>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${

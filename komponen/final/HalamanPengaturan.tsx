@@ -72,6 +72,16 @@ export default function HalamanPengaturan() {
           preorder_aktif: pengaturan.preorder_aktif ?? "true",
           preorder_jam_buka: pengaturan.preorder_jam_buka ?? "10:00",
           preorder_jam_tutup: pengaturan.preorder_jam_tutup ?? "21:00",
+          alamat_usaha: pengaturan.alamat_usaha ?? "",
+          peta_usaha: pengaturan.peta_usaha ?? "",
+          deskripsi_usaha: pengaturan.deskripsi_usaha ?? "",
+          email_usaha: pengaturan.email_usaha ?? "",
+          instagram_usaha: pengaturan.instagram_usaha ?? "",
+          logo_url: pengaturan.logo_url ?? "",
+          pemeliharaan: pengaturan.pemeliharaan ?? "false",
+          banner_judul: pengaturan.banner_judul ?? "",
+          banner_isi: pengaturan.banner_isi ?? "",
+          banner_tautan: pengaturan.banner_tautan ?? "",
         }),
       });
       await ambilJson(respons);
@@ -253,6 +263,25 @@ export default function HalamanPengaturan() {
             <div><label htmlFor="s-nama">Nama usaha</label><input id="s-nama" value={pengaturan.nama_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, nama_usaha: e.target.value })} /></div>
             <div><label htmlFor="s-tagline">Tagline</label><input id="s-tagline" value={pengaturan.tagline ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, tagline: e.target.value })} /></div>
             <div><label htmlFor="s-wa">WhatsApp admin</label><input id="s-wa" value={pengaturan.whatsapp_admin ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, whatsapp_admin: e.target.value })} /></div>
+            <fieldset className="rounded-xl border border-garis p-4">
+              <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-tinta-lemah">Profil dan banner website</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div><label htmlFor="s-alamat">Alamat</label><input id="s-alamat" value={pengaturan.alamat_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, alamat_usaha: e.target.value })} /></div>
+                <div><label htmlFor="s-peta">Tautan peta</label><input id="s-peta" value={pengaturan.peta_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, peta_usaha: e.target.value })} placeholder="https://maps..." /></div>
+                <div><label htmlFor="s-email">Email</label><input id="s-email" type="email" value={pengaturan.email_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, email_usaha: e.target.value })} /></div>
+                <div><label htmlFor="s-instagram">Instagram</label><input id="s-instagram" value={pengaturan.instagram_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, instagram_usaha: e.target.value })} /></div>
+                <div className="sm:col-span-2"><label htmlFor="s-logo">URL logo</label><input id="s-logo" value={pengaturan.logo_url ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, logo_url: e.target.value })} placeholder="https://... atau /assets/logo.svg" /></div>
+                <div className="sm:col-span-2"><label htmlFor="s-deskripsi">Deskripsi singkat</label><textarea id="s-deskripsi" rows={2} maxLength={1000} value={pengaturan.deskripsi_usaha ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, deskripsi_usaha: e.target.value })} /></div>
+                <div><label htmlFor="s-banner-judul">Judul banner</label><input id="s-banner-judul" value={pengaturan.banner_judul ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, banner_judul: e.target.value })} /></div>
+                <div><label htmlFor="s-banner-tautan">Tautan banner</label><input id="s-banner-tautan" value={pengaturan.banner_tautan ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, banner_tautan: e.target.value })} /></div>
+                <div className="sm:col-span-2"><label htmlFor="s-banner-isi">Isi banner</label><input id="s-banner-isi" maxLength={300} value={pengaturan.banner_isi ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, banner_isi: e.target.value })} /></div>
+              </div>
+              <label className="mt-3 flex items-center gap-2 text-xs text-tinta-lemah">
+                <input type="checkbox" checked={pengaturan.pemeliharaan === "true"}
+                  onChange={(e) => setPengaturan({ ...pengaturan, pemeliharaan: e.target.checked ? "true" : "false" })} />
+                Mode pemeliharaan, sembunyikan website konsumen sementara
+              </label>
+            </fieldset>
             <div>
               <label htmlFor="s-hari">Hari buka</label>
               <input id="s-hari" value={pengaturan.hari_buka ?? ""} onChange={(e) => setPengaturan({ ...pengaturan, hari_buka: e.target.value })} placeholder="Senin - Minggu" />
@@ -356,7 +385,7 @@ export default function HalamanPengaturan() {
               </button>
             </div>
           </div>
-          <div><label htmlFor="u-peran">Peran</label><select id="u-peran" value={formP.peran} onChange={(e) => setFormP({ ...formP, peran: e.target.value })}><option value="kasir">Kasir</option><option value="pemilik">Pemilik</option></select></div>
+          <div><label htmlFor="u-peran">Peran</label><select id="u-peran" value={formP.peran} onChange={(e) => setFormP({ ...formP, peran: e.target.value })}><option value="kasir">Kasir</option><option value="dapur">Dapur</option><option value="pemilik">Pemilik</option></select></div>
           <div><label htmlFor="u-aktif">Status</label><select id="u-aktif" value={formP.aktif ? "aktif" : "nonaktif"} onChange={(e) => setFormP({ ...formP, aktif: e.target.value === "aktif" })}><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div>
           <Tombol tipe="submit" kelas="w-full">Simpan pengguna</Tombol>
         </form>

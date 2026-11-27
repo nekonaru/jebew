@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "node:crypto";
 import { z } from "zod";
-import { buatToken, cabutSesi, penggunaSaatIni, pilihanCookie, verifikasiLogin } from "@/lib/auth.ts";
-import { asalValid, galat, izinLaju , bacaJsonTerbatasi} from "@/lib/api-final.ts";
+import {
+  buatTantangan2FA, buatToken, cabutSesi, daftarkanSesi,
+  penggunaSaatIni, pilihanCookie, verifikasiLogin,
+} from "@/lib/auth.ts";
+import { asalValid, galat, izinLaju, bacaJsonTerbatasi } from "@/lib/api-final.ts";
+import { querySatu } from "@/lib/database.ts";
 
 export const runtime = "nodejs";
 
@@ -45,9 +50,20 @@ export async function POST(permintaan: Request) {
       return NextResponse.json({ pesan: "Email atau kata sandi salah" }, { status: 401 });
     }
 
+    const duaFaktor = await querySatu<{ aktif: boolean }>(
+      "SELECT aktif FROM totp_secret WHERE pengguna_id = $1 AND aktif = TRUE", [pengguna.id],
+    );
+    if (duaFaktor) {
+      return NextResponse.json({
+        masuk: false, butuh2fa: true, tantangan: buatTantangan2FA(pengguna.id),
+      });
+    }
+
     const { versi, ...penggunaPublik } = pengguna;
+    const jti = randomBytes(16).toString("hex");
+    await daftarkanSesi(jti, pengguna.id);
     const respons = NextResponse.json({ masuk: true, pengguna: penggunaPublik });
-    respons.cookies.set(pilihanCookie.name, buatToken(penggunaPublik, versi ?? 0), {
+    respons.cookies.set(pilihanCookie.name, buatToken(penggunaPublik, versi ?? 0, jti), {
       httpOnly: pilihanCookie.httpOnly,
       sameSite: pilihanCookie.sameSite,
       secure: pilihanCookie.secure,

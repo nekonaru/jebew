@@ -19,6 +19,61 @@ INSERT INTO pengaturan (kunci, nilai) VALUES
   ('preorder_jam_tutup', '21:00')
 ON CONFLICT (kunci) DO NOTHING;
 
+-- Peran dapur untuk staf yang hanya mengelola pesanan.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'pengguna'::regclass AND conname = 'pengguna_peran_check'
+  ) THEN
+    ALTER TABLE pengguna DROP CONSTRAINT pengguna_peran_check;
+  END IF;
+  ALTER TABLE pengguna ADD CONSTRAINT pengguna_peran_check
+    CHECK (peran IN ('pemilik', 'kasir', 'dapur'));
+END $$;
+
+-- Sesi aktif agar pemilik bisa mencabut perangkat tertentu.
+CREATE TABLE IF NOT EXISTS sesi_aktif (
+  id TEXT PRIMARY KEY,
+  pengguna_id INTEGER NOT NULL REFERENCES pengguna(id) ON DELETE CASCADE,
+  dibuat_pada TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'Asia/Jakarta'),
+  berlaku_hingga TIMESTAMP NOT NULL,
+  terakhir_pakai TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'Asia/Jakarta')
+);
+CREATE INDEX IF NOT EXISTS idx_sesi_aktif_pengguna ON sesi_aktif(pengguna_id);
+
+-- Profil usaha, banner, dan mode pemeliharaan.
+INSERT INTO pengaturan (kunci, nilai) VALUES
+  ('alamat_usaha', ''),
+  ('peta_usaha', ''),
+  ('deskripsi_usaha', ''),
+  ('email_usaha', ''),
+  ('instagram_usaha', ''),
+  ('logo_url', ''),
+  ('pemeliharaan', 'false'),
+  ('banner_judul', ''),
+  ('banner_isi', ''),
+  ('banner_tautan', '')
+ON CONFLICT (kunci) DO NOTHING;
+
+-- Tipe pesanan, meja, dan alamat kirim.
+ALTER TABLE preorder
+  ADD COLUMN IF NOT EXISTS tipe_pesanan TEXT NOT NULL DEFAULT 'ambil'
+    CHECK (tipe_pesanan IN ('ambil', 'dine_in', 'kirim')),
+  ADD COLUMN IF NOT EXISTS meja TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS alamat_kirim TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS dibatalkan_pada TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS kode_undangan TEXT NOT NULL DEFAULT '';
+
+-- Status aktif 2FA.
+ALTER TABLE totp_secret ADD COLUMN IF NOT EXISTS aktif BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Kode undangan pelanggan dan tingkatan loyalitas.
+ALTER TABLE poin_pelanggan
+  ADD COLUMN IF NOT EXISTS kode_undangan TEXT,
+  ADD COLUMN IF NOT EXISTS diundang_oleh TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_poin_undangan ON poin_pelanggan(kode_undangan) WHERE kode_undangan IS NOT NULL;
+
 -- Diskon promo pada preorder.
 ALTER TABLE preorder
   ADD COLUMN IF NOT EXISTS diskon INTEGER NOT NULL DEFAULT 0 CHECK (diskon >= 0);

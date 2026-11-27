@@ -28,6 +28,16 @@ const skema = z.object({
   preorder_aktif: z.enum(["true", "false"]),
   preorder_jam_buka: z.string().trim().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam: HH:mm"),
   preorder_jam_tutup: z.string().trim().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam: HH:mm"),
+  alamat_usaha: z.string().trim().max(200).optional(),
+  peta_usaha: z.string().trim().max(500).optional(),
+  deskripsi_usaha: z.string().trim().max(1000).optional(),
+  email_usaha: z.union([z.literal(""), z.string().email()]).optional(),
+  instagram_usaha: z.string().trim().max(100).optional(),
+  logo_url: z.string().trim().max(500).optional(),
+  pemeliharaan: z.enum(["true", "false"]).optional(),
+  banner_judul: z.string().trim().max(100).optional(),
+  banner_isi: z.string().trim().max(300).optional(),
+  banner_tautan: z.string().trim().max(500).optional(),
 }).strict();
 
 export async function PUT(req: Request) {

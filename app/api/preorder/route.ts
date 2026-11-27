@@ -83,6 +83,10 @@ const skema = z.object({
   catatan: z.string().trim().max(300),
   kode_promo: z.string().trim().max(20).optional(),
   poin_dipakai: z.number().int().min(0).max(100000).optional(),
+  tipe_pesanan: z.enum(["ambil", "dine_in", "kirim"]).optional(),
+  meja: z.string().trim().max(20).optional(),
+  alamat_kirim: z.string().trim().max(300).optional(),
+  kode_undangan: z.string().trim().max(20).optional(),
 }).strict();
 
 export async function POST(req: Request) {
@@ -96,6 +100,9 @@ export async function POST(req: Request) {
     const [pengaturan, jadwal, libur] = await Promise.all([
       ambilPengaturan(), ambilJadwalHarian(), ambilHariLibur(),
     ]);
+    if ((pengaturan.pemeliharaan ?? "false") === "true") {
+      return NextResponse.json({ pesan: "Warung sedang dalam pemeliharaan. Coba lagi sebentar." }, { status: 503 });
+    }
     const jadwalPreorder = statusPreorder(pengaturan, new Date(),
       jadwal.map((j) => ({
         jenis: String(j.jenis), hari: Number(j.hari),
@@ -111,6 +118,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ pesan: "Nomor WhatsApp admin belum dikonfigurasi" }, { status: 500 });
     }
     const badan = skema.parse(await bacaJsonTerbatasi(req));
+    if (badan.tipe_pesanan === "dine_in" && !badan.meja?.trim()) {
+      return NextResponse.json({ pesan: "Nomor meja wajib diisi untuk makan di tempat" }, { status: 400 });
+    }
+    if (badan.tipe_pesanan === "kirim" && !badan.alamat_kirim?.trim()) {
+      return NextResponse.json({ pesan: "Alamat kirim wajib diisi untuk pesanan dikirim" }, { status: 400 });
+    }
     const hasil = await simpanPreorder(badan);
     if (hasil.kode_promo) await pakaiPromo(hasil.kode_promo, hasil.kode_lacak, hasil.diskon ?? 0);
     if (hasil.poin_dipakai) await tukarPoin(badan.whatsapp, hasil.poin_dipakai);

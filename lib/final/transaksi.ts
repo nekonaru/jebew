@@ -176,6 +176,10 @@ export type PreorderInput = {
   catatan: string;
   kode_promo?: string;
   poin_dipakai?: number;
+  tipe_pesanan?: "ambil" | "dine_in" | "kirim";
+  meja?: string;
+  alamat_kirim?: string;
+  kode_undangan?: string;
 };
 
 function kodePendek(panjang: number): string {
@@ -230,10 +234,12 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
     }
 
     const baris = await querySatu<{ id: number }>(
-      `INSERT INTO preorder (kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, slot_id, catatan, diskon)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+      `INSERT INTO preorder (kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, slot_id, catatan, diskon,
+        tipe_pesanan, meja, alamat_kirim, kode_undangan)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
       [kode, kodeLacak, input.nama_pelanggan, input.whatsapp, input.waktu_ambil,
-        input.slot_id, input.catatan, diskon],
+        input.slot_id, input.catatan, diskon, input.tipe_pesanan ?? "ambil",
+        input.meja ?? "", input.alamat_kirim ?? "", input.kode_undangan ?? ""],
     );
     await catatRiwayatStatus(baris!.id, "baru");
     for (const item of barang) {
@@ -337,9 +343,9 @@ export async function selesaikanPreorder(
   await denganTransaksi(async () => {
     const preorder = await querySatu<{
       id: number; status: string; catatan: string; penjualan_id: number | null;
-      kode: string; kode_lacak: string; whatsapp: string; waktu_ambil: string;
+      kode: string; kode_lacak: string; whatsapp: string; waktu_ambil: string; kode_undangan: string;
     }>(
-      `SELECT id, status, catatan, penjualan_id, kode, kode_lacak, whatsapp, waktu_ambil
+      `SELECT id, status, catatan, penjualan_id, kode, kode_lacak, whatsapp, waktu_ambil, kode_undangan
        FROM preorder WHERE id = $1 FOR UPDATE`, [id],
     );
     if (!preorder) throw new GalatBisnis("Preorder tidak ditemukan");
@@ -389,7 +395,7 @@ export async function selesaikanPreorder(
       "UPDATE preorder SET status='selesai', penjualan_id=$1 WHERE id=$2", [baris!.id, id],
     );
     await catatRiwayatStatus(id, "selesai", pengguna?.id);
-    await tambahPoin(preorder!.whatsapp, total);
+    await tambahPoin(preorder!.whatsapp, total, preorder!.kode_undangan || undefined);
     await catatNotifikasi(id, preorder!.whatsapp,
       pesanStatus(preorder!.kode, preorder!.kode_lacak, "selesai", preorder!.waktu_ambil));
     await catatAudit(pengguna, "ubah", "preorder", `${id} selesai, penjualan ${nomor}`);

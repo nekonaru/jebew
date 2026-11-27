@@ -33,7 +33,7 @@ export type PenggunaInput = {
   email: string;
   nama: string;
   kata_sandi?: string;
-  peran: "pemilik" | "kasir";
+  peran: "pemilik" | "kasir" | "dapur";
   aktif: boolean;
 };
 

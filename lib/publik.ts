@@ -13,6 +13,16 @@ export function pengaturanPublik(pengaturan: Record<string, string>) {
     preorder_aktif: pengaturan.preorder_aktif ?? "true",
     preorder_jam_buka: pengaturan.preorder_jam_buka ?? pengaturan.jam_buka ?? "10:00",
     preorder_jam_tutup: pengaturan.preorder_jam_tutup ?? pengaturan.jam_tutup ?? "21:00",
+    alamat_usaha: pengaturan.alamat_usaha ?? "",
+    peta_usaha: pengaturan.peta_usaha ?? "",
+    deskripsi_usaha: pengaturan.deskripsi_usaha ?? "",
+    email_usaha: pengaturan.email_usaha ?? "",
+    instagram_usaha: pengaturan.instagram_usaha ?? "",
+    logo_url: pengaturan.logo_url ?? "",
+    pemeliharaan: pengaturan.pemeliharaan ?? "false",
+    banner_judul: pengaturan.banner_judul ?? "",
+    banner_isi: pengaturan.banner_isi ?? "",
+    banner_tautan: pengaturan.banner_tautan ?? "",
   };
 }
 

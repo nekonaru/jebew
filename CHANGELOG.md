@@ -1,5 +1,30 @@
 # Riwayat Perubahan
 
+## final-v4.0.0
+
+Fondasi platform Jebew v4: peran kerja, keamanan akun, profil usaha, dan penjualan lebih fleksibel.
+
+### Fitur baru
+
+- **Peran dapur.** Staf dapur hanya melihat menu, stok, preorder, dan papan dapur. Halaman keuangan tidak tersedia untuk peran ini.
+- **Verifikasi dua langkah.** Pemilik dan staf dapat mengaktifkan TOTP dari halaman Keamanan. Login meminta kode enam angka bila 2FA aktif.
+- **Kelola sesi aktif.** Halaman Keamanan menampilkan perangkat yang masuk dan tombol untuk mencabut sesi tertentu.
+- **Profil usaha lengkap.** Alamat, tautan peta, deskripsi, email, Instagram, URL logo, dan banner beranda diatur dari Pengaturan.
+- **Mode pemeliharaan.** Pemilik dapat menyembunyikan website konsumen sementara tanpa mengubah data.
+- **Tentang Kami.** Deskripsi dan kontak usaha tampil di beranda bila diisi.
+- **Jenis pesanan.** Pelanggan memilih ambil di warung, makan di tempat dengan nomor meja, atau dikirim dengan alamat tujuan.
+- **Poin dan tingkat loyalitas.** Saldo poin kini disertai tingkat Reguler, Silver, Gold, atau Platinum.
+- **Kode undangan.** Pelanggan yang mengundang teman mendapat tambahan poin setelah pesanan teman selesai.
+- **Ulasan publik.** Ulasan yang disetujui tampil di beranda bersama rating bintang.
+- **PWA dan SEO.** Manifest aplikasi, robots, sitemap, metadata Open Graph, dan warna tema ditambahkan.
+- **Auto-batal preorder.** Pemilik dapat membatalkan pesanan yang sudah lewat waktu ambil dengan satu tombol.
+
+### Perbaikan
+
+- **Validasi server untuk dine-in dan kirim.** Nomor meja dan alamat kirim wajib diisi di server, bukan hanya di browser.
+- **Sesi tercatat.** Setiap login membuat sesi aktif yang bisa dicabut satu per satu.
+- **Muat contoh lengkap.** Penghapusan data contoh kini mencakup sesi, 2FA, dan tabel profil baru.
+
 ## final-v3.2.0
 
 Pendalaman pengalaman: identitas visual, pemilihan waktu, validasi, dan alur kerja yang lebih cepat.

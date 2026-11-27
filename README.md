@@ -126,6 +126,13 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Target harian** | Target omzet dan transaksi yang bisa diatur per tanggal |
 | **Stok lanjutan** | Prediksi stok habis, harga supplier, purchase order, dan penerimaan barang |
 | **Health check** | Endpoint `/api/health` untuk memeriksa database dan konfigurasi |
+| **Peran dapur** | Staf mengelola pesanan tanpa melihat data keuangan |
+| **Keamanan akun** | 2FA TOTP dan pencabutan sesi per perangkat lewat halaman Keamanan |
+| **Profil usaha** | Alamat, peta, kontak, logo, deskripsi, dan banner diatur dari panel |
+| **Mode pemeliharaan** | Sembunyikan website konsumen sementara tanpa menghapus data |
+| **Jenis pesanan** | Ambil di warung, makan di tempat dengan meja, atau kirim ke alamat |
+| **Loyalitas** | Tingkat pelanggan, kode undangan, dan ulasan publik |
+| **PWA dan SEO** | Manifest aplikasi, robots, sitemap, dan metadata Open Graph |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
@@ -183,7 +190,7 @@ npm run dev
 Buka `http://localhost:3000` untuk website konsumen dan `http://localhost:3000/login` untuk admin.
 
 > [!IMPORTANT]
-> `npm run siap:supabase` memasang skema dan data contoh. Perintah `npm run muat:contoh` mengganti seluruh data demo, termasuk menghapus transaksi yang sudah ada. Untuk database yang sudah berisi data, jalankan `npm run db:migrasi` agar kolom HPP, versi sesi, diskon preorder, status siap, dan seluruh tabel fitur lanjutan tersedia tanpa menghapus data.
+> `npm run siap:supabase` memasang skema dan data contoh. Perintah `npm run muat:contoh` mengganti seluruh data demo, termasuk menghapus transaksi yang sudah ada. Untuk database yang sudah berisi data, jalankan `npm run db:migrasi` agar kolom HPP, versi sesi, diskon preorder, status siap, peran dapur, sesi aktif, 2FA, profil usaha, jenis pesanan, dan kode undangan tersedia tanpa menghapus data.
 
 ### Deploy ke Vercel
 

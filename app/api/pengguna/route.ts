@@ -20,7 +20,7 @@ const skema = z.object({
   email: z.string().email(),
   nama: z.string().trim().min(1).max(100),
   kata_sandi: z.union([z.literal(""), z.string().min(8, "Kata sandi minimal 8 karakter").max(100)]).optional(),
-  peran: z.enum(["pemilik", "kasir"]),
+  peran: z.enum(["pemilik", "kasir", "dapur"]),
   aktif: z.boolean(),
 }).strict();
 
