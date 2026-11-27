@@ -18,7 +18,7 @@ const cp = masuk.cookie?.split(";")[0] ?? "";
 const H = { Cookie: cp };
 
 const sehat = await api("/api/health");
-catat("health versi 4.1", sehat.status === 200 && JSON.parse(sehat.teks).versi === "4.1.0", String(sehat.status));
+catat("health versi 4", sehat.status === 200 && String(JSON.parse(sehat.teks).versi).startsWith("4."), String(sehat.status));
 
 const awal = await api("/api/pengaturan", { headers: H });
 const p = JSON.parse(awal.teks);

@@ -656,6 +656,27 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                     <span className="shrink-0 font-judul text-lg font-semibold tracking-tight text-utama">{formatRupiah(m.harga)}</span>
                   </div>
                   <p className="mt-2 flex-1 text-xs leading-relaxed text-tinta-lemah">{m.deskripsi}</p>
+                  <button type="button"
+                    aria-label={`Bagikan menu ${m.nama}`}
+                    onClick={() => {
+                      const tautan = `${window.location.origin}/?menu=${m.id}`;
+                      if (navigator.share) {
+                        void navigator.share({ title: m.nama, text: m.deskripsi, url: tautan }).catch(() => {});
+                      } else {
+                        void navigator.clipboard?.writeText(tautan).then(() => {
+                          setToast(`Tautan ${m.nama} disalin.`); setToastGalat(false); setToastUrut((n) => n + 1);
+                        }).catch(() => {
+                          setToast("Tautan tidak berhasil disalin."); setToastGalat(true); setToastUrut((n) => n + 1);
+                        });
+                      }
+                    }}
+                    className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-utama hover:underline">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current stroke-2">
+                      <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                      <path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4" strokeLinecap="round" />
+                    </svg>
+                    Bagikan menu
+                  </button>
                   {m.varian.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1.5" aria-label={`Varian ${m.nama}`}>
                       {m.varian.map((v) => (

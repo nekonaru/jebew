@@ -54,6 +54,7 @@ export default function HalamanRingkasan() {
   const [statusSibuk, setStatusSibuk] = useState(false);
   const [langkahPanduan, setLangkahPanduan] = useState<number[]>([]);
   const [target, setTarget] = useState<{ target_omzet: number; target_transaksi: number } | null>(null);
+  const [checklist, setChecklist] = useState<number[]>([]);
 
   const muatPublik = () => fetch("/api/dashboard").then(ambilJson<Publik>).then(setPublik);
 
@@ -64,6 +65,22 @@ export default function HalamanRingkasan() {
       if (Array.isArray(daftar)) setLangkahPanduan(daftar.filter((n) => Number.isInteger(n)));
     } catch { /* abaikan data rusak */ }
   }, []);
+
+  useEffect(() => {
+    try {
+      const teks = localStorage.getItem(`jebew_checklist_${tanggalHariIni()}`);
+      const daftar = teks ? JSON.parse(teks) : [];
+      if (Array.isArray(daftar)) setChecklist(daftar.filter((n) => Number.isInteger(n)));
+    } catch { /* abaikan data rusak */ }
+  }, []);
+
+  function centangChecklist(indeks: number) {
+    setChecklist((d) => {
+      const baru = d.includes(indeks) ? d.filter((n) => n !== indeks) : [...d, indeks];
+      try { localStorage.setItem(`jebew_checklist_${tanggalHariIni()}`, JSON.stringify(baru)); } catch { /* abaikan */ }
+      return baru;
+    });
+  }
 
   function centangPanduan(indeks: number) {
     setLangkahPanduan((d) => {
@@ -184,6 +201,34 @@ export default function HalamanRingkasan() {
         <Statistik label="Bahan menipis" nilai={gagal ? "-" : String(statistik?.bahanTipis ?? 0)} keterangan="Perlu restock" />
         {pemilik && <Statistik label="Nilai stok" nilai={gagal ? "-" : formatRupiah(statistik?.nilaiStok ?? 0)} keterangan="Bahan aktif" />}
       </div>
+
+      {pemilik && (
+        <Kartu>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Checklist hari ini</h2>
+              <p className="mt-1 text-xs text-tinta-lemah">Tugas buka dan tutup warung. Tersimpan di perangkat ini.</p>
+            </div>
+            <Badge>{checklist.length} dari 6</Badge>
+          </div>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              "Cek jam buka dan status toko",
+              "Cek stok bahan yang menipis",
+              "Pastikan menu siap dipesan",
+              "Cek notifikasi dan pesanan baru",
+              "Hitung kas fisik saat tutup",
+              "Simpan laporan harian",
+            ].map((tugas, i) => (
+              <li key={tugas} className="flex items-center gap-2 rounded-xl border border-garis px-3 py-2 text-sm">
+                <input type="checkbox" id={`checklist-${i}`} checked={checklist.includes(i)}
+                  onChange={() => centangChecklist(i)} />
+                <label htmlFor={`checklist-${i}`} className="mb-0 normal-case tracking-normal text-tinta">{tugas}</label>
+              </li>
+            ))}
+          </ul>
+        </Kartu>
+      )}
 
       {pemilik && target && statistik && (
         <Kartu>

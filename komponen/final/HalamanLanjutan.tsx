@@ -5,7 +5,7 @@ import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
-const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan"] as const;
+const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator"] as const;
 type Tab = typeof TAB[number];
 const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -37,6 +37,7 @@ export default function HalamanLanjutan() {
   const [formBatch, setFormBatch] = useState({
     nomor_batch: "", tanggal_masuk: tanggalHariIni(), tanggal_kedaluwarsa: "", jumlah: "1", harga_satuan: "0",
   });
+  const [kalkulator, setKalkulator] = useState({ hpp: "0", margin: "30" });
 
   const muat = useCallback(async () => {
     try {
@@ -402,6 +403,48 @@ export default function HalamanLanjutan() {
             </ul>
           </Kartu>
         </div>
+      )}
+
+      {tab === "Kalkulator" && (
+        <Kartu>
+          <h2 className="text-lg font-semibold">Kalkulator harga jual</h2>
+          <p className="mt-1 text-xs text-tinta-lemah">
+            Hitung harga jual dari HPP dan margin yang diinginkan. HPP bisa dilihat di halaman Menu & Resep.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <label htmlFor="k-hpp">HPP per porsi</label>
+              <input id="k-hpp" type="number" min={0} value={kalkulator.hpp}
+                onChange={(e) => setKalkulator({ ...kalkulator, hpp: e.target.value })} />
+            </div>
+            <div>
+              <label htmlFor="k-margin">Margin target persen</label>
+              <input id="k-margin" type="number" min={0} max={90} value={kalkulator.margin}
+                onChange={(e) => setKalkulator({ ...kalkulator, margin: e.target.value })} />
+            </div>
+          </div>
+          {(() => {
+            const hpp = Math.max(0, Number(kalkulator.hpp) || 0);
+            const margin = Math.min(90, Math.max(0, Number(kalkulator.margin) || 0));
+            const harga = Math.ceil(hpp / (1 - margin / 100));
+            return (
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl bg-latar p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-tinta-lemah">HPP</p>
+                  <p className="mt-1 font-judul text-xl font-semibold">{formatRupiah(hpp)}</p>
+                </div>
+                <div className="rounded-xl bg-sukses-terang p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-sukses">Laba per porsi</p>
+                  <p className="mt-1 font-judul text-xl font-semibold text-sukses">{formatRupiah(harga - hpp)}</p>
+                </div>
+                <div className="rounded-xl border border-utama/30 bg-utama/5 p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-utama">Harga disarankan</p>
+                  <p className="mt-1 font-judul text-xl font-semibold text-utama">{formatRupiah(harga)}</p>
+                </div>
+              </div>
+            );
+          })()}
+        </Kartu>
       )}
 
       <Dialog terbuka={dialog} judul="Tambah promo" padaTutup={() => setDialog(false)}>

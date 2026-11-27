@@ -1,5 +1,21 @@
 # Riwayat Perubahan
 
+## final-v4.2.0
+
+Penyelesaian alur dapur dan konsumen.
+
+### Fitur baru
+
+- **Layar dapur penuh.** Halaman `/layar-dapur` menampilkan pesanan besar dengan hitung mundur dan aksi satu klik, cocok untuk layar di area masak. Halaman ini hanya untuk pengguna yang masuk.
+- **Kalkulator harga jual.** Pemilik menghitung harga disarankan dari HPP dan margin target di halaman Fitur lanjutan.
+- **Checklist harian.** Enam tugas buka dan tutup warung tersimpan per tanggal di perangkat.
+- **Kartu member digital.** Halaman lacak menampilkan tingkat, saldo poin, total belanja, dan kode undangan pelanggan.
+- **Bagikan menu.** Pengunjung bisa membagikan atau menyalin tautan menu tertentu.
+
+### Perbaikan
+
+- **Laporan lebih rapi.** Ringkasan kini menampilkan target, checklist, dan panduan dalam kartu terpisah sehingga tidak saling menimpa.
+
 ## final-v4.1.0
 
 Penjualan multikanal ringan, batch bahan, dan otomatisasi pengingat.

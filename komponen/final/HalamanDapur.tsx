@@ -116,7 +116,9 @@ export default function HalamanDapur() {
 
   return (
     <div>
-      <Judul anak="Papan dapur" sub="Pesanan berjalan dari masuk hingga siap diambil. Data menyegarkan tiap 15 detik." />
+      <Judul anak="Papan dapur" sub="Pesanan berjalan dari masuk hingga siap diambil. Data menyegarkan tiap 15 detik."
+        aksi={<a href="/layar-dapur" target="_blank" rel="noopener noreferrer"
+          className="rounded-xl border border-garis px-4 py-2 text-sm font-semibold text-utama hover:bg-latar">Buka layar penuh</a>} />
       <Pesan teks={pesan} jenis={jenis} />
       {undo && (
         <div role="status" className="animasi-toast mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-garis bg-latar px-4 py-3 text-sm">

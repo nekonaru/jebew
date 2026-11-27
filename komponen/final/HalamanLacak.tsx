@@ -7,7 +7,7 @@ import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Kartu, Pesan, Tombol } from "./ui.tsx";
 
 type Hasil = {
-  kode: string; kode_lacak: string; nama_pelanggan: string; waktu_ambil: string;
+  kode: string; kode_lacak: string; nama_pelanggan: string; whatsapp?: string; waktu_ambil: string;
   status: string; dibuat_pada: string; antrean?: number; estimasi_menit?: number;
   riwayat?: { status: string; dicatat_pada: string }[];
   items: { menu_id: number; varian_id: number | null; nama_menu: string; nama_varian: string; jumlah: number; subtotal: number }[];
@@ -25,8 +25,18 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
   const [rating, setRating] = useState(5);
   const [komentar, setKomentar] = useState("");
   const [ulasanTerkirim, setUlasanTerkirim] = useState(false);
+  const [member, setMember] = useState<{
+    poin: number; total_belanja: number; tingkat: string; kode_undangan: string;
+  } | null>(null);
   const [namaUsaha, setNamaUsaha] = useState("Warung Kak Ikaa");
   const pengendali = useRef<AbortController | null>(null);
+
+  function muatMember(whatsapp: string) {
+    void fetch(`/api/poin?whatsapp=${encodeURIComponent(whatsapp)}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((d: typeof member) => setMember(d))
+      .catch(() => setMember(null));
+  }
 
   async function cari(e?: FormEvent) {
     e?.preventDefault();
@@ -40,6 +50,7 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
         signal: kontrol.signal,
       }).then(ambilJson<Hasil>);
       setHasil(data);
+      muatMember(data.whatsapp ?? "");
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setPesan(err instanceof Error ? err.message : "Pesanan tidak ditemukan");
@@ -197,6 +208,27 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
             >
               Pesan menu yang sama lagi
             </Tombol>
+
+            {member && (
+              <Kartu>
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-utama">Kartu member</p>
+                    <p className="mt-1 font-judul text-xl font-semibold">{member.tingkat}</p>
+                  </div>
+                  <Badge warna="sukses">{member.poin} poin</Badge>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 text-xs text-tinta-lemah">
+                  <p>Total belanja: {formatRupiah(member.total_belanja)}</p>
+                  <p>Kode undangan: <span className="font-semibold text-tinta">{member.kode_undangan || "-"}</span></p>
+                </div>
+                {member.kode_undangan && (
+                  <p className="mt-3 text-xs text-tinta-lemah">
+                    Bagikan kode ini. Teman yang memesan mendapat diskon dan kamu mendapat tambahan poin.
+                  </p>
+                )}
+              </Kartu>
+            )}
 
             {hasil.status === "selesai" && (
               <Kartu>

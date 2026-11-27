@@ -137,6 +137,10 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Metode bayar** | Tunai, QRIS, atau transfer dengan nomor referensi |
 | **Batch bahan** | Stok dipotong dari batch dengan kedaluwarsa terdekat |
 | **Pengingat** | Endpoint Cron mengirim pengingat ambil ke pelanggan |
+| **Layar dapur penuh** | Tampilan besar untuk area masak dengan hitung mundur dan aksi cepat |
+| **Kalkulator harga** | Harga jual disarankan dari HPP dan margin target |
+| **Checklist harian** | Enam tugas buka dan tutup warung tersimpan per tanggal |
+| **Kartu member** | Tingkat, poin, dan kode undangan tampil di halaman lacak |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |
