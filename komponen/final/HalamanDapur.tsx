@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { tautanWhatsApp } from "@/lib/wa.ts";
-import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
+import { Badge, Dialog, Judul, Kartu, Pesan, RangkaDaftar, Tombol } from "./ui.tsx";
 
 type Preorder = {
   id: number; kode: string; kode_lacak: string; nama_pelanggan: string;
@@ -20,12 +20,21 @@ const KOLOM = [
   { status: "siap", judul: "Siap diambil", warna: "text-sukses" },
 ] as const;
 
+function waktuAmbil(teks: string): number {
+  return new Date(teks.replace(" ", "T") + "+07:00").getTime();
+}
+
 function durasi(teks: string): string {
-  const waktu = new Date(teks.replace(" ", "T") + "+07:00").getTime();
+  const waktu = waktuAmbil(teks);
   if (!Number.isFinite(waktu)) return "-";
   const menit = Math.max(0, Math.floor((Date.now() - waktu) / 60000));
   if (menit < 60) return `${menit} menit`;
   return `${Math.floor(menit / 60)} jam ${menit % 60} menit`;
+}
+
+function segeraDiambil(teks: string): boolean {
+  const selisih = waktuAmbil(teks) - Date.now();
+  return selisih > 0 && selisih <= 30 * 60 * 1000;
 }
 
 /** Papan dapur: pesanan masuk diproses hingga siap diambil. */
@@ -37,6 +46,7 @@ export default function HalamanDapur() {
   const [selesaiId, setSelesaiId] = useState<number | null>(null);
   const [metode, setMetode] = useState<"tunai" | "qris" | "transfer">("tunai");
   const [sibuk, setSibuk] = useState(false);
+  const [memuat, setMuat] = useState(true);
 
   const muat = useCallback(async () => {
     if (document.visibilityState !== "visible") return;
@@ -48,6 +58,7 @@ export default function HalamanDapur() {
       setDaftar((po.preorder ?? []).filter((p) => ["baru", "diproses", "siap"].includes(p.status)));
       setNotifikasi(notif.notifikasi ?? []);
     } catch { /* biarkan data terakhir */ }
+    finally { setMuat(false); }
   }, []);
   useEffect(() => {
     void muat();
@@ -98,7 +109,8 @@ export default function HalamanDapur() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         {KOLOM.map((kolom) => {
-          const items = daftar.filter((p) => p.status === kolom.status);
+          const items = daftar.filter((p) => p.status === kolom.status)
+            .sort((a, b) => waktuAmbil(a.waktu_ambil) - waktuAmbil(b.waktu_ambil));
           return (
             <section key={kolom.status} className="rounded-kartu border border-garis bg-latar/60 p-4">
               <div className="flex items-center justify-between">
@@ -107,7 +119,9 @@ export default function HalamanDapur() {
               </div>
               <div className="mt-3 space-y-3">
                 {items.map((p) => (
-                  <article key={p.id} className="rounded-xl border border-garis bg-permukaan p-3 shadow-sm">
+                  <article key={p.id} className={`animasi-pindah rounded-xl border bg-permukaan p-3 shadow-sm ${
+                    segeraDiambil(p.waktu_ambil) ? "border-amber-400 ring-2 ring-amber-100" : "border-garis"
+                  }`}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="font-semibold">{p.kode}</p>
@@ -135,7 +149,9 @@ export default function HalamanDapur() {
                     </div>
                   </article>
                 ))}
-                {items.length === 0 && <p className="py-6 text-center text-xs text-tinta-lemah">Tidak ada pesanan.</p>}
+                {memuat ? <RangkaDaftar jumlah={2} /> : items.length === 0 && (
+                  <p className="py-6 text-center text-xs text-tinta-lemah">Tidak ada pesanan.</p>
+                )}
               </div>
             </section>
           );

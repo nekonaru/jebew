@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { besokWIB, formatRupiah, jamMenitWIB, tanggalHariIni } from "@/lib/format.ts";
 import { statusPreorder, statusToko } from "@/lib/jadwal.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
-import { Badge, Dialog, Pesan, Tombol } from "./ui.tsx";
+import { Badge, CentangSukses, Dialog, Langkah, Pesan, Tombol } from "./ui.tsx";
 
 type Menu = {
   id: number; nama: string; harga: number; deskripsi: string; kategori: string; foto: string | null;
@@ -79,6 +79,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [toast, setToast] = useState("");
   const [toastGalat, setToastGalat] = useState(false);
   const [toastUrut, setToastUrut] = useState(0);
+  const [diperbarui, setDiperbarui] = useState("");
 
   const muat = useCallback(async () => {
     try {
@@ -87,11 +88,17 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         fetch("/api/slot").then(ambilJson<{ slot: Slot[] }>),
       ]);
       setData(d); setSlot(s.slot ?? []);
+      setDiperbarui(new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit",
+      }).format(new Date()));
     } catch { /* biarkan data awal */ }
   }, []);
   useEffect(() => {
     void fetch("/api/slot").then(ambilJson<{ slot: Slot[] }>).then((s) => setSlot(s.slot ?? [])).catch(() => {});
-    const t = setInterval(() => void muat(), 15000);
+    void muat();
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") void muat();
+    }, 15000);
     return () => clearInterval(t);
   }, [muat]);
 
@@ -377,7 +384,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-16">
+      <main id="konten-utama" className="mx-auto max-w-6xl px-4 pb-16">
         <section className="animasi-muncul relative my-7 overflow-hidden rounded-kartu border border-garis bg-permukaan px-6 py-9 sm:px-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/jebew-mark.svg" alt="" aria-hidden="true"
@@ -430,6 +437,9 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
             ikon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           <InfoRingkas judul="Pesan cepat" isi="Klik menu, isi data di akhir"
             ikon="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+          {diperbarui && (
+            <p className="ml-auto text-[11px] text-tinta-lemah" role="status">Diperbarui pukul {diperbarui} WIB</p>
+          )}
         </section>
 
         <section className="reveal mb-10">
@@ -647,13 +657,14 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
 
       <Dialog terbuka={dialogCheckout} judul="Langkah 2 dari 3 - Isi data pemesanan" padaTutup={() => setDialogCheckout(false)} lebar="42rem">
         <form onSubmit={kirim} className="space-y-5">
+          <Langkah langkah={2} aktif={2} judul={["Pilih menu", "Isi data", "Kirim WA"]} />
           <div>
             <h3 className="font-judul text-lg font-semibold text-tinta">Data diri dan waktu ambil</h3>
             <p className="mt-1 text-xs leading-relaxed text-tinta-lemah">
               Isi nama dan WhatsApp, lalu pilih slot atau ketik waktu ambil. Setelah pesanan dibuat, tekan Kirim ke WhatsApp agar admin menerima pesanmu.
             </p>
           </div>
-          <div className="rounded-xl bg-latar px-4 py-3 text-sm">
+          <div className="rounded-xl bg-latar px-4 py-3 text-sm lg:sticky lg:top-0 lg:z-10 lg:shadow-sm">
             <div className="flex justify-between"><span>{jumlahItem} item pesanan</span><span className="font-semibold">{formatRupiah(totalCheckout)}</span></div>
             {(diskonPromo > 0 || diskonPoin > 0) && (
               <div className="flex justify-between text-sukses"><span>Diskon</span><span>- {formatRupiah(diskonPromo + diskonPoin)}</span></div>
@@ -727,7 +738,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
       <Dialog terbuka={hasilDialog} judul="Pesanan tercatat" padaTutup={() => setHasilDialog(false)}>
         {hasil && (
           <div className="space-y-4">
-            <Pesan teks={`Pesanan ${hasil.kode} tersimpan. Simpan kode lacak ${hasil.kode_lacak}, lalu tekan Kirim ke WhatsApp agar admin menerima pesananmu.`} jenis="sukses" />
+            <div className="flex items-start gap-3">
+              <CentangSukses />
+              <Pesan teks={`Pesanan ${hasil.kode} tersimpan. Simpan kode lacak ${hasil.kode_lacak}, lalu tekan Kirim ke WhatsApp agar admin menerima pesananmu.`} jenis="sukses" />
+            </div>
             <button type="button"
               onClick={() => {
                 if (!navigator.clipboard?.writeText) {

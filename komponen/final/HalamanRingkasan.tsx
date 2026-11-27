@@ -6,7 +6,7 @@ import { formatRupiah } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { tautanWhatsApp } from "@/lib/wa.ts";
 import { usePeran } from "./Panel.tsx";
-import { Badge, Judul, Kartu, Pesan, Statistik, Tombol } from "./ui.tsx";
+import { Badge, Judul, Kartu, Pesan, RangkaDaftar, Statistik, Tombol } from "./ui.tsx";
 import GrafikOmzet, { type TitikOmzet } from "./GrafikOmzet.tsx";
 
 type Ringkasan = {
@@ -161,7 +161,10 @@ export default function HalamanRingkasan() {
             <Link href="/admin/stok" className="text-xs font-semibold text-utama hover:underline">Kelola stok</Link>
           </div>
           {!statistik ? (
-            <div className="mt-5 rounded-xl bg-latar px-4 py-6 text-center text-sm text-tinta-lemah">Memeriksa stok...</div>
+            <div className="mt-5">
+              <p className="mb-3 text-center text-xs text-tinta-lemah">Memeriksa stok...</p>
+              <RangkaDaftar jumlah={3} />
+            </div>
           ) : statistik.bahanMenipis.length === 0 ? (
             <div className="mt-5 rounded-xl bg-latar px-4 py-6 text-center">
               <Badge warna="sukses">Semua stok aman</Badge>

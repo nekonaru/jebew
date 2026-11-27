@@ -10,7 +10,10 @@ export const metadata: Metadata = {
 export default function LayoutUtama({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <a href="#konten-utama" className="lewati">Lompat ke konten utama</a>
+        {children}
+      </body>
     </html>
   );
 }

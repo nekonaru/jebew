@@ -15,11 +15,23 @@
   --warna-utama-gelap: #9E3322;
   --warna-aksen: #F29A2E;
   --warna-sukses: #24613F;
+  --warna-sukses-terang: #E4F3E8;
+  --warna-peringatan: #B45309;
+  --warna-info: #1D4ED8;
+  --warna-aksen-terang: #FBE3C2;
 
-  /* Gerak */
-  --gerak-cepat: 120ms;
-  --gerak-standar: 220ms;
-  --gerak-lambat: 320ms;
+  /* Bayangan dan radius mengikuti tiga tingkat kedalaman. */
+  --bayang-datar: 0 1px 2px rgba(58, 34, 24, 0.06);
+  --bayang-angkat: 0 8px 24px rgba(58, 34, 24, 0.10);
+  --bayang-melayang: 0 18px 48px rgba(58, 34, 24, 0.16);
+  --radius-kontrol: 12px;
+  --radius-kartu: 16px;
+  --radius-dialog: 20px;
+
+  /* Gerak: cepat untuk balasan, standar untuk perpindahan, lambat untuk konteks baru. */
+  --gerak-cepat: 140ms;
+  --gerak-standar: 240ms;
+  --gerak-lambat: 360ms;
   --ease-masuk: cubic-bezier(0.2, 0, 0, 1);
   --ease-keluar: cubic-bezier(0.3, 0, 1, 1);
   --ease-halus: cubic-bezier(0.4, 0, 0.2, 1);
@@ -102,11 +114,54 @@ button:active:not(:disabled) { transition-duration: var(--gerak-cepat); }
   60% { transform: scale(1.12); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
-.animasi-pop { animation: pop 260ms var(--ease-masuk) both; }
+@keyframes kilau {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes naikToast {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes gambarCentang {
+  from { stroke-dashoffset: 32; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes isiLangkah {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes pindahKartu {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
+.animasi-pop { animation: pop 260ms var(--ease-masuk) both; }
 .animasi-muncul { animation: muncul var(--gerak-lambat) var(--ease-masuk) both; }
 .animasi-geser { animation: geser var(--gerak-standar) var(--ease-masuk) both; }
-.kerangka { animation: denyut 1.4s ease-in-out infinite; }
+.animasi-toast { animation: naikToast var(--gerak-standar) var(--ease-masuk) both; }
+.animasi-pindah { animation: pindahKartu var(--gerak-standar) var(--ease-masuk) both; }
+.animasi-sukses path { stroke-dasharray: 32; animation: gambarCentang 360ms var(--ease-masuk) both; }
+.kerangka {
+  background: linear-gradient(90deg, rgba(234, 220, 195, 0.5), rgba(255, 255, 255, 0.85), rgba(234, 220, 195, 0.5));
+  background-size: 200% 100%;
+  animation: kilau 1.2s ease-in-out infinite;
+}
+.stepper-isi { transform-origin: left center; animation: isiLangkah var(--gerak-standar) var(--ease-masuk) both; }
+
+/* Tautan lompat ke konten untuk pengguna keyboard. */
+.lewati {
+  position: fixed;
+  left: 16px;
+  top: -100px;
+  z-index: 100;
+  border-radius: 12px;
+  background: var(--warna-utama);
+  padding: 10px 16px;
+  color: #fff;
+  font-weight: 600;
+  transition: top var(--gerak-cepat) var(--ease-masuk);
+}
+.lewati:focus { top: 16px; }
 
 /* Muncul saat digulir. Konten tetap terlihat bila browser belum mendukung. */
 .reveal {

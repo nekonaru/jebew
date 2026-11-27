@@ -1,5 +1,28 @@
 # Riwayat Perubahan
 
+## final-v3.1.0
+
+Pembaruan desain, animasi, alur, dan aksesibilitas tanpa mengubah data.
+
+### Fitur baru
+
+- **Sistem token desain.** Warna semantik, bayangan tiga tingkat, radius, dan tiga durasi gerak dipakai konsisten di konsumen dan panel.
+- **Pencarian cepat panel.** Tombol Cari halaman dan pintasan `Ctrl+K` atau `Cmd+K` untuk lompat ke halaman mana pun.
+- **Navigasi berkelompok.** Menu panel dikelompokkan menjadi Utama, Operasional, Keuangan, dan Pengaturan, dengan bilah navigasi bawah di ponsel.
+- **Penanda langkah checkout.** Stepper tiga langkah menggantikan teks datar di formulir pemesanan.
+- **Placeholder memuat.** Skeleton dipakai saat data ringkasan dan papan dapur masih dimuat, sehingga tidak menampilkan kondisi kosong palsu.
+- **Tautan lompat.** Tautan "Lompat ke konten utama" tersedia untuk pengguna keyboard di semua halaman.
+- **Status penyegaran.** Beranda konsumen menampilkan jam data terakhir diperbarui.
+
+### Perbaikan
+
+- **Animasi bermakna.** Toast, sukses, kartu papan dapur, dan langkah checkout memakai animasi singkat dengan arah dan easing yang konsisten.
+- **Header tabel sticky.** Judul kolom tetap terlihat saat daftar panjang digulir.
+- **Polling hemat.** Penyegaran 15 detik dijalankan hanya saat tab browser terlihat.
+- **Kontras dan fokus.** Semua kontrol memakai cincin fokus yang sama dan tombol tutup dialog memakai ukuran sentuh penuh.
+- **Dapur lebih rapi.** Pesanan diurutkan berdasarkan waktu ambil dan diberi penanda jika kurang dari 30 menit menjelang pengambilan.
+- **Gerak dikurangi.** Semua animasi otomatis disederhanakan saat pengguna meminta `prefers-reduced-motion`.
+
 ## final-v3.0.0
 
 Pembaruan besar pertama untuk Jebew v3: dapur terhubung, promosi dan loyalitas, jadwal per hari, serta stok lanjutan.

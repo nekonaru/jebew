@@ -102,7 +102,7 @@ export default function HalamanLacak({ kodeAwal }: { kodeAwal: string }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-10">
+      <main id="konten-utama" className="mx-auto max-w-2xl px-4 py-10">
         <h1 className="font-judul text-2xl font-semibold sm:text-3xl">Lacak pesanan</h1>
         <p className="mt-2 text-sm text-tinta-lemah">Masukkan kode lacak yang dikirim setelah Anda membuat pre-order.</p>
 

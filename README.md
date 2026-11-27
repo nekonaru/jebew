@@ -144,6 +144,7 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Menu favorit** | Simpan menu favorit di perangkat dan saring berdasarkan favorit |
 | **Rekomendasi** | Lihat menu yang sering dipesan bersamaan dengan pilihan pertama |
 | **Pesanan besar** | Opsi pesanan minimal sepuluh porsi untuk kebutuhan katering |
+| **Alur jelas** | Stepper checkout, status penyegaran, skeleton, dan tautan lompat untuk pembaca layar |
 | **Pembaruan berkala** | Status menyegarkan setiap 15 detik |
 
 ---

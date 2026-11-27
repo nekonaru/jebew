@@ -102,7 +102,7 @@ export function Dialog({
     >
       <div className="flex items-center justify-between border-b border-garis px-5 py-4">
         <h2 id={`dlg-${judul.replace(/\s+/g, "-").toLowerCase()}`} className="text-lg font-semibold">{judul}</h2>
-        <Tombol jenis="kosong" onClick={padaTutup} kelas="min-h-[36px] px-2">Tutup</Tombol>
+        <Tombol jenis="kosong" onClick={padaTutup} kelas="px-2">Tutup</Tombol>
       </div>
       <div className="max-h-[75vh] overflow-y-auto px-5 py-5">{children}</div>
     </dialog>
@@ -117,7 +117,7 @@ export function Pesan({ teks, jenis = "info" }: { teks: string; jenis?: "info" |
     galat: "border-red-200 bg-red-50 text-bahaya",
   }[jenis];
   return (
-    <p role={jenis === "galat" ? "alert" : "status"} className={`rounded-xl border px-4 py-3 text-sm ${gaya}`}>
+    <p role={jenis === "galat" ? "alert" : "status"} className={`animasi-toast rounded-xl border px-4 py-3 text-sm ${gaya}`}>
       {teks}
     </p>
   );
@@ -132,13 +132,84 @@ export function Tabel({ children }: { children: ReactNode }) {
 }
 
 export function KepalaTabel({ children }: { children: ReactNode }) {
-  return <thead className="border-b border-garis bg-latar text-[11px] uppercase tracking-wide text-tinta-lemah">{children}</thead>;
+  return <thead className="sticky top-0 z-10 border-b border-garis bg-latar text-[11px] uppercase tracking-wide text-tinta-lemah">{children}</thead>;
 }
 
 export function SelKepala({ children }: { children: ReactNode }) {
-  return <th scope="col" className="px-4 py-3 font-semibold">{children}</th>;
+  return <th scope="col" className="whitespace-nowrap px-4 py-3 font-semibold">{children}</th>;
 }
 
 export function BarisKosong({ kolom, teks }: { kolom: number; teks: string }) {
   return <tr><td colSpan={kolom} className="px-4 py-10 text-center text-sm text-tinta-lemah">{teks}</td></tr>;
+}
+
+/** Placeholder saat data masih dimuat. */
+export function Rangka({ kelas = "" }: { kelas?: string }) {
+  return <div role="status" aria-label="Memuat data" className={`kerangka rounded-xl ${kelas}`} />;
+}
+
+/** Daftar placeholder untuk tabel atau kartu. */
+export function RangkaDaftar({ jumlah = 4 }: { jumlah?: number }) {
+  return (
+    <div className="space-y-3" aria-hidden="true">
+      {Array.from({ length: jumlah }, (_, i) => (
+        <div key={i} className="flex items-center gap-3 rounded-xl border border-garis bg-permukaan p-4">
+          <Rangka kelas="h-9 w-9 shrink-0 rounded-lg" />
+          <div className="flex-1 space-y-2">
+            <Rangka kelas="h-3 w-2/5" />
+            <Rangka kelas="h-3 w-3/5" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Penanda posisi dalam alur beberapa langkah. */
+export function Langkah({
+  langkah, aktif, judul,
+}: { langkah: number; aktif: number; judul: string[] }) {
+  return (
+    <div aria-label={`Langkah ${aktif} dari ${judul.length}`} className="w-full">
+      <ol className="flex items-center gap-2">
+        {judul.map((nama, i) => (
+          <li key={nama} className="flex flex-1 items-center gap-2">
+            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+              i < aktif ? "bg-sukses text-white" : i === aktif ? "bg-utama text-white" : "bg-latar text-tinta-lemah"
+            }`}>{i < aktif ? "✓" : i + 1}</span>
+            <span className={`hidden text-[11px] font-semibold sm:block ${i === aktif ? "text-utama" : "text-tinta-lemah"}`}>{nama}</span>
+            {i < judul.length - 1 && (
+              <span className="h-0.5 flex-1 overflow-hidden rounded-full bg-garis">
+                <span className={`block h-full bg-utama ${i < aktif ? "w-full" : "w-0"}`} />
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+/** Keadaan kosong yang tetap menawarkan tindakan. */
+export function KeadaanKosong({
+  judul, deskripsi, aksi,
+}: { judul: string; deskripsi?: string; aksi?: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-dashed border-garis bg-latar/50 px-5 py-8 text-center">
+      <p className="font-judul text-base font-semibold">{judul}</p>
+      {deskripsi && <p className="mx-auto mt-1 max-w-md text-xs text-tinta-lemah">{deskripsi}</p>}
+      {aksi && <div className="mt-4 flex justify-center">{aksi}</div>}
+    </div>
+  );
+}
+
+/** Ikon centang dengan animasi menggambar. */
+export function CentangSukses() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true" className="animasi-sukses h-10 w-10 text-sukses">
+      <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2" />
+      <path d="M9 16.5l5 5 9-11" fill="none" stroke="currentColor" strokeWidth="2.5"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }

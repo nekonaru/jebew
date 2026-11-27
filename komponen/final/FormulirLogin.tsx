@@ -33,7 +33,7 @@ export default function FormulirLogin() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-latar px-4">
+    <main id="konten-utama" className="flex min-h-screen items-center justify-center bg-latar px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
