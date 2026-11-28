@@ -1,5 +1,24 @@
 # Riwayat Perubahan
 
+## final-v6.2.0
+
+Rilis penutup roadmap v6: multi-lokasi, backup, push, API mitra, dan observability.
+
+### Fitur baru
+
+- **Multi-lokasi ambil.** Pemilik menambah lokasi, pelanggan memilih lokasi bila diwajibkan, dan kode lokasi ikut dalam pesan WhatsApp.
+- **Backup terjadwal.** Endpoint Cron menyimpan salinan seluruh tabel ke database dengan proteksi token.
+- **Riwayat resep.** Panel menampilkan jejak perubahan menu beserta rincian harga dan takaran.
+- **Notifikasi browser.** Pengguna bisa berlangganan web push dari halaman Keamanan bila kunci VAPID tersedia.
+- **API mitra.** Endpoint menu untuk mitra dengan API key dan proteksi 401.
+- **Health detail.** Endpoint `/api/health` kini menyertakan jumlah preorder aktif, bahan menipis, dan notifikasi tertunda.
+- **Uji beban ringan.** Skrip `npm run uji:beban` mengirim seratus permintaan paralel ke dashboard.
+
+### Perbaikan
+
+- **Migrasi penutup.** Tabel lokasi dan backup terjadwal ditambahkan tanpa menghapus data.
+- **Muat contoh aman.** Urutan penghapusan lokasi mengikuti relasi preorder.
+
 ## final-v6.1.0
 
 Tahap penutup roadmap v6: privasi data, dapur cerdas, katering, konten, dan integrasi.

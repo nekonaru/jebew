@@ -92,6 +92,7 @@ export default function HalamanPengaturan() {
           qris_teks: pengaturan.qris_teks ?? "",
           ppn_aktif: pengaturan.ppn_aktif ?? "false",
           ppn_persen: pengaturan.ppn_persen ?? "0",
+          lokasi_aktif: pengaturan.lokasi_aktif ?? "false",
         }),
       });
       await ambilJson(respons);
@@ -286,6 +287,11 @@ export default function HalamanPengaturan() {
                 <div><label htmlFor="s-batal">Batas batal otomatis, menit</label><input id="s-batal" type="number" min={0} value={pengaturan.batal_batas_menit ?? "120"} onChange={(e) => setPengaturan({ ...pengaturan, batal_batas_menit: e.target.value })} /></div>
                 <div><label htmlFor="s-bundling-min">Minimum porsi bundling</label><input id="s-bundling-min" type="number" min={2} value={pengaturan.bundling_min ?? "3"} onChange={(e) => setPengaturan({ ...pengaturan, bundling_min: e.target.value })} /></div>
                 <div><label htmlFor="s-bundling-diskon">Diskon bundling persen</label><input id="s-bundling-diskon" type="number" min={0} max={100} value={pengaturan.bundling_diskon ?? "5"} onChange={(e) => setPengaturan({ ...pengaturan, bundling_diskon: e.target.value })} /></div>
+                <div><label className="flex items-center gap-2 text-xs text-tinta-lemah">
+                  <input type="checkbox" checked={pengaturan.lokasi_aktif === "true"}
+                    onChange={(e) => setPengaturan({ ...pengaturan, lokasi_aktif: e.target.checked ? "true" : "false" })} />
+                  Wajib pilih lokasi ambil
+                </label></div>
                 <div><label htmlFor="s-ppn-persen">PPN persen</label><input id="s-ppn-persen" type="number" min={0} max={100} value={pengaturan.ppn_persen ?? "0"} onChange={(e) => setPengaturan({ ...pengaturan, ppn_persen: e.target.value })} /></div>
                 <div><label className="flex items-center gap-2 text-xs text-tinta-lemah">
                   <input type="checkbox" checked={pengaturan.ppn_aktif === "true"}

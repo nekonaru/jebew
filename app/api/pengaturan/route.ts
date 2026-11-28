@@ -48,6 +48,7 @@ const skema = z.object({
   qris_teks: z.string().trim().max(300).optional(),
   ppn_aktif: z.enum(["true", "false"]).optional(),
   ppn_persen: z.union([z.literal(""), z.string().regex(/^\d+$/)]).optional(),
+  lokasi_aktif: z.enum(["true", "false"]).optional(),
 }).strict();
 
 export async function PUT(req: Request) {

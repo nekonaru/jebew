@@ -5,7 +5,7 @@ import { formatRupiah, tanggalHariIni } from "@/lib/format.ts";
 import { ambilJson } from "@/komponen/api-klien.ts";
 import { Badge, Dialog, Judul, Kartu, Pesan, Tombol } from "./ui.tsx";
 
-const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional", "Zona kirim", "Keuangan", "Langganan", "Artikel"] as const;
+const TAB = ["Promo", "Ulasan", "Jadwal harian", "Target", "Stok lanjutan", "Kalkulator", "Piutang", "Operasional", "Zona kirim", "Keuangan", "Langganan", "Artikel", "Riwayat resep"] as const;
 type Tab = typeof TAB[number];
 const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -47,6 +47,8 @@ export default function HalamanLanjutan() {
   const [formLimbah, setFormLimbah] = useState({ jumlah: "1", alasan: "" });
   const [zona, setZona] = useState<Baris[]>([]);
   const [formZona, setFormZona] = useState({ nama: "", tarif: "0", keterangan: "" });
+  const [lokasiAdmin, setLokasiAdmin] = useState<Baris[]>([]);
+  const [formLokasi, setFormLokasi] = useState({ nama: "", alamat: "" });
   const [keuangan, setKeuangan] = useState<{
     kas: Baris[]; anggaran: Baris[]; hutang: Baris[]; rfm: Baris[];
     retensi: { total: number; kembali: number; persen: number };
@@ -60,6 +62,7 @@ export default function HalamanLanjutan() {
     nama: "", whatsapp: "", menu_id: "", jumlah: "10", jam: "12:00",
   });
   const [formArtikel, setFormArtikel] = useState({ judul: "", isi: "" });
+  const [riwayatResep, setRiwayatResep] = useState<Baris[]>([]);
 
   const muat = useCallback(async () => {
     try {
@@ -84,6 +87,9 @@ export default function HalamanLanjutan() {
       } else if (tab === "Langganan") {
         const d = await fetch("/api/langganan").then(ambilJson<{ langganan: Baris[] }>);
         setLangganan(d.langganan ?? []);
+      } else if (tab === "Riwayat resep") {
+        const d = await fetch("/api/riwayat-resep").then(ambilJson<{ riwayat: Baris[] }>);
+        setRiwayatResep(d.riwayat ?? []);
       } else if (tab === "Artikel") {
         const d = await fetch("/api/artikel").then(ambilJson<{ artikel: Baris[] }>);
         setArtikel(d.artikel ?? []);
@@ -95,8 +101,11 @@ export default function HalamanLanjutan() {
         setKeuangan({ kas: d.kas ?? [], anggaran: d.anggaran ?? [], hutang: d.hutang ?? [],
           rfm: d.rfm ?? [], retensi: d.retensi ?? { total: 0, kembali: 0, persen: 0 } });
       } else if (tab === "Zona kirim") {
-        const d = await fetch("/api/zona-kirim").then(ambilJson<{ zona: Baris[] }>);
-        setZona(d.zona ?? []);
+        const [d, l] = await Promise.all([
+          fetch("/api/zona-kirim").then(ambilJson<{ zona: Baris[] }>),
+          fetch("/api/lokasi").then(ambilJson<{ lokasi: Baris[] }>),
+        ]);
+        setZona(d.zona ?? []); setLokasiAdmin(l.lokasi ?? []);
       } else if (tab === "Piutang" || tab === "Operasional") {
         const d = await fetch("/api/operasional").then(ambilJson<{
           piutang: Baris[]; shift: Baris[];
@@ -537,6 +546,26 @@ export default function HalamanLanjutan() {
         </div>
       )}
 
+      {tab === "Riwayat resep" && (
+        <Kartu>
+          <h2 className="text-lg font-semibold">Riwayat perubahan resep</h2>
+          <p className="mt-1 text-xs text-tinta-lemah">Nilai lama tidak dihapus. Setiap perubahan menyimpan harga dan takaran saat itu.</p>
+          <ul className="mt-4 space-y-2">
+            {riwayatResep.map((r) => (
+              <li key={String(r.id)} className="rounded-xl border border-garis p-3 text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold">{String(r.menu)}</span>
+                  <Badge warna={r.aksi === "tambah" ? "info" : "netral"}>{String(r.aksi)}</Badge>
+                  <span className="text-xs text-tinta-lemah">{String(r.dibuat_pada)}</span>
+                </div>
+                <pre className="mt-2 overflow-x-auto rounded-lg bg-latar p-2 text-[11px]">{String(r.rincian)}</pre>
+              </li>
+            ))}
+            {riwayatResep.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada perubahan resep.</li>}
+          </ul>
+        </Kartu>
+      )}
+
       {tab === "Keuangan" && (
         <div className="space-y-5">
           <Kartu>
@@ -667,6 +696,32 @@ export default function HalamanLanjutan() {
             ))}
             {zona.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada zona kirim.</li>}
           </ul>
+          <div className="mt-6 border-t border-garis pt-5">
+            <h3 className="text-base font-semibold">Lokasi ambil</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              void fetch("/api/lokasi", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nama: formLokasi.nama, alamat: formLokasi.alamat, aktif: true }),
+              }).then(ambilJson).then(() => {
+                setJenis("sukses"); setPesan("Lokasi ditambahkan.");
+                setFormLokasi({ nama: "", alamat: "" }); void muat();
+              }).catch((err) => { setJenis("galat"); setPesan(err instanceof Error ? err.message : "Gagal menyimpan lokasi"); });
+            }} className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div><label htmlFor="lk-nama">Nama lokasi</label><input id="lk-nama" required maxLength={100} value={formLokasi.nama} onChange={(e) => setFormLokasi({ ...formLokasi, nama: e.target.value })} /></div>
+              <div><label htmlFor="lk-alamat">Alamat</label><input id="lk-alamat" maxLength={300} value={formLokasi.alamat} onChange={(e) => setFormLokasi({ ...formLokasi, alamat: e.target.value })} /></div>
+              <div className="flex items-end"><Tombol tipe="submit" kelas="w-full">Tambah lokasi</Tombol></div>
+            </form>
+            <ul className="mt-4 space-y-2">
+              {lokasiAdmin.map((l) => (
+                <li key={String(l.id)} className="flex justify-between rounded-xl border border-garis px-3 py-2 text-sm">
+                  <span className="font-semibold">{String(l.nama)}</span>
+                  <span className="text-xs text-tinta-lemah">{String(l.alamat)}</span>
+                </li>
+              ))}
+              {lokasiAdmin.length === 0 && <li className="text-sm text-tinta-lemah">Belum ada lokasi ambil.</li>}
+            </ul>
+          </div>
         </Kartu>
       )}
 

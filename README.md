@@ -164,6 +164,12 @@ Keduanya memakai repo yang sama tetapi Vercel project berbeda. Jangan menggabung
 | **Langganan katering** | Kelola pelanggan langganan beserta jadwalnya |
 | **Artikel** | Tulis artikel dan resep yang tampil di halaman publik |
 | **Webhook WhatsApp** | Balas status pesanan dari kode lacak melalui webhook bertanda tangan |
+| **Multi-lokasi ambil** | Pemilik menambah cabang, pelanggan memilih lokasi saat pesan |
+| **Backup terjadwal** | Endpoint Cron menyimpan salinan data dengan proteksi token |
+| **Web push** | Langganan notifikasi browser dari halaman Keamanan |
+| **API mitra** | Endpoint menu untuk mitra dengan API key |
+| **Health detail** | `/api/health` memuat preorder aktif, stok menipis, dan notifikasi tertunda |
+| **Uji beban** | `npm run uji:beban` menguji seratus permintaan paralel |
 | **Riwayat transaksi** | Saring berdasarkan tanggal, nomor, menu, metode, dan sumber, lalu lihat rincian atau unduh CSV |
 | **Lacak pesanan** | Halaman publik memakai kode lacak |
 | **Notifikasi** | Pesan WhatsApp terformat otomatis setelah pre-order dibuat |

@@ -34,7 +34,7 @@ const URUTAN_HAPUS = [
   "log_audit", "tutup_kasir", "pengeluaran", "pergerakan_stok", "batch_bahan",
   "penjualan", "preorder", "pembelian", "stok_opname", "resep", "varian",
   "langganan", "menu", "bahan", "slot_waktu", "supplier", "konversi_satuan",
-  "jadwal_harian", "hari_libur", "target_harian", "totp_secret", "push_subscription", "sesi_aktif", "piutang", "shift", "zona_kirim", "anggaran", "survei", "resep_log", "artikel",
+  "jadwal_harian", "hari_libur", "target_harian", "totp_secret", "push_subscription", "sesi_aktif", "piutang", "shift", "zona_kirim", "anggaran", "survei", "resep_log", "artikel", "lokasi", "backup_terjadwal",
   "promo", "poin_pelanggan", "kategori_pengeluaran", "pengguna", "pengaturan", "pembatasan_laju",
 ];
 

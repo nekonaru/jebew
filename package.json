@@ -1,6 +1,6 @@
 {
   "name": "jebew",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,6 +20,8 @@
     "uji:putaran-12": "node scripts/uji-putaran-12.mjs",
     "uji:putaran-13": "node scripts/uji-putaran-13.mjs",
     "uji:putaran-14": "node scripts/uji-putaran-14.mjs",
+    "uji:putaran-15": "node scripts/uji-putaran-15.mjs",
+    "uji:beban": "node scripts/uji-beban.mjs",
     "bersih:laju": "node scripts/bersihkan-laju.mjs",
     "muat:contoh": "node scripts/muat-contoh.mjs",
     "verifikasi": "npm run typecheck && npm run test && npm run build"

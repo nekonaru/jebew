@@ -93,6 +93,7 @@ const skema = z.object({
   metode_bayar: z.enum(["tunai", "qris", "transfer"]).optional(),
   bukti_bayar: z.string().trim().max(300).optional(),
   zona_id: z.number().int().positive().optional(),
+  lokasi_id: z.number().int().positive().optional(),
 }).strict();
 
 export async function POST(req: Request) {
@@ -130,6 +131,17 @@ export async function POST(req: Request) {
     if (badan.tipe_pesanan === "kirim" && !badan.alamat_kirim?.trim()) {
       return NextResponse.json({ pesan: "Alamat kirim wajib diisi untuk pesanan dikirim" }, { status: 400 });
     }
+    let namaLokasi = "";
+    if (badan.lokasi_id) {
+      const lokasi = await querySatu<{ nama: string }>(
+        "SELECT nama FROM lokasi WHERE id = $1 AND aktif = TRUE", [badan.lokasi_id],
+      );
+      if (!lokasi) return NextResponse.json({ pesan: "Lokasi ambil tidak tersedia" }, { status: 400 });
+      namaLokasi = lokasi.nama;
+    }
+    if ((pengaturan.lokasi_aktif ?? "false") === "true" && !badan.lokasi_id) {
+      return NextResponse.json({ pesan: "Pilih lokasi ambil terlebih dahulu" }, { status: 400 });
+    }
     let tarifZona = 0;
     let namaZona = "";
     if (badan.zona_id) {
@@ -146,6 +158,8 @@ export async function POST(req: Request) {
     const hasil = await simpanPreorder({
       ...badan,
       zona_kirim: namaZona,
+      lokasi_id: badan.lokasi_id ?? null,
+      lokasi_nama: namaLokasi,
       tingkat: (await ambilPoin(badan.whatsapp)).tingkat,
       ppn: {
         aktif: (pengaturan.ppn_aktif ?? "false") === "true",
@@ -180,6 +194,7 @@ export async function POST(req: Request) {
       buktiBayar: badan.bukti_bayar,
       zona: hasil.zona_kirim || undefined,
       pajak: hasil.pajak,
+      lokasi: hasil.lokasi_nama || undefined,
     });
     return NextResponse.json({
       kode: hasil.kode, kode_lacak: hasil.kode_lacak, total: hasil.total, ongkir: hasil.ongkir,

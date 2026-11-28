@@ -33,6 +33,7 @@ export function pengaturanPublik(pengaturan: Record<string, string>) {
     qris_teks: pengaturan.qris_teks ?? "",
     ppn_aktif: pengaturan.ppn_aktif ?? "false",
     ppn_persen: pengaturan.ppn_persen ?? "0",
+    lokasi_aktif: pengaturan.lokasi_aktif ?? "false",
   };
 }
 

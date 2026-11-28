@@ -23,6 +23,7 @@ export type RincianPreorder = {
   buktiBayar?: string;
   zona?: string;
   pajak?: number;
+  lokasi?: string;
 };
 
 /** Menyusun pesan teks rapi yang siap dikirim lewat wa.me. */
@@ -44,6 +45,7 @@ export function susunPesanWhatsApp(rincian: RincianPreorder): string {
     `Nama: ${rincian.namaPelanggan}`,
     `WhatsApp: ${rincian.whatsapp}`,
     `Waktu ambil: ${rincian.waktuAmbil}`,
+    ...(rincian.lokasi ? [`Lokasi ambil: ${rincian.lokasi}`] : []),
     `Jenis: ${rincian.tipe === "dine_in" ? "Makan di tempat" : rincian.tipe === "kirim" ? "Dikirim" : "Ambil di warung"}`,
     `Metode bayar: ${rincian.metode ?? "tunai"}`,
     "",

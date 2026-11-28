@@ -210,6 +210,8 @@ export type PreorderInput = {
   zona_kirim?: string;
   tingkat?: string;
   ppn?: { aktif: boolean; persen: number };
+  lokasi_id?: number | null;
+  lokasi_nama?: string;
 };
 
 function kodePendek(panjang: number): string {
@@ -219,6 +221,7 @@ function kodePendek(panjang: number): string {
 export async function simpanPreorder(input: PreorderInput): Promise<{
   kode: string; kode_lacak: string; total: number; diskon: number; ongkir: number; pajak: number;
   items: Barang[]; kode_promo: string | null; poin_dipakai: number; zona_kirim: string;
+  lokasi_id: number | null; lokasi_nama: string;
 }> {
   return denganTransaksi(async () => {
     if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(input.waktu_ambil)
@@ -279,12 +282,13 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
 
     const baris = await querySatu<{ id: number }>(
       `INSERT INTO preorder (kode, kode_lacak, nama_pelanggan, whatsapp, waktu_ambil, slot_id, catatan, diskon,
-        tipe_pesanan, meja, alamat_kirim, kode_undangan, metode_bayar, bukti_bayar, ongkir, zona_kirim, pajak)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`,
+        tipe_pesanan, meja, alamat_kirim, kode_undangan, metode_bayar, bukti_bayar, ongkir, zona_kirim, pajak, lokasi_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING id`,
       [kode, kodeLacak, input.nama_pelanggan, input.whatsapp, input.waktu_ambil,
         input.slot_id, input.catatan, diskon, input.tipe_pesanan ?? "ambil",
         input.meja ?? "", input.alamat_kirim ?? "", input.kode_undangan ?? "",
-        input.metode_bayar ?? "tunai", input.bukti_bayar ?? "", ongkir, input.zona_kirim ?? "", pajak],
+        input.metode_bayar ?? "tunai", input.bukti_bayar ?? "", ongkir, input.zona_kirim ?? "",
+        pajak, input.lokasi_id ?? null],
     );
     await catatRiwayatStatus(baris!.id, "baru");
     for (const item of barang) {
@@ -299,6 +303,8 @@ export async function simpanPreorder(input: PreorderInput): Promise<{
       kode, kode_lacak: kodeLacak, total, diskon, ongkir, pajak, items: barang,
       kode_promo: promo?.kode ?? null, poin_dipakai: poin,
       zona_kirim: input.zona_kirim ?? "",
+      lokasi_id: input.lokasi_id ?? null,
+      lokasi_nama: input.lokasi_nama ?? "",
     };
   });
 }

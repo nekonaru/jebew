@@ -22,7 +22,7 @@ type PengaturanTampil = {
   email_usaha?: string; instagram_usaha?: string; logo_url?: string;
   banner_judul?: string; banner_isi?: string; banner_tautan?: string;
   minimum_preorder?: string; biaya_kirim?: string; qris_gambar?: string; qris_teks?: string;
-  ppn_aktif?: string; ppn_persen?: string;
+  ppn_aktif?: string; ppn_persen?: string; lokasi_aktif?: string;
 };
 type DataAwal = { menu: Menu[]; pengaturan: PengaturanTampil };
 type KeranjangItem = { menuId: number; varianId: number | null; jumlah: number };
@@ -88,6 +88,8 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   const [buktiBayar, setBuktiBayar] = useState("");
   const [zonaList, setZonaList] = useState<{ id: number; nama: string; tarif: number }[]>([]);
   const [zonaId, setZonaId] = useState("");
+  const [lokasiList, setLokasiList] = useState<{ id: number; nama: string; alamat: string }[]>([]);
+  const [lokasiId, setLokasiId] = useState("");
   const [buktiGambar, setBuktiGambar] = useState("");
   const [ulasanPublik, setUlasanPublik] = useState<{
     rating: number; komentar: string; dibuat_pada: string; foto?: string;
@@ -119,6 +121,10 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
   }, []);
   useEffect(() => {
     void fetch("/api/slot").then(ambilJson<{ slot: Slot[] }>).then((s) => setSlot(s.slot ?? [])).catch(() => {});
+    void fetch("/api/lokasi?publik=true")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d: { lokasi?: { id: number; nama: string; alamat: string }[] } | null) => setLokasiList(d?.lokasi ?? []))
+      .catch(() => setLokasiList([]));
     void fetch("/api/zona-kirim")
       .then((r) => r.ok ? r.json() : null)
       .then((d: { zona?: { id: number; nama: string; tarif: number }[] } | null) => setZonaList(d?.zona ?? []))
@@ -397,6 +403,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
     if (angkaWa.length < 8 || angkaWa.length > 16) galatBaru.whatsapp = "Nomor WhatsApp harus 8 sampai 16 angka";
     if (!slotId && !waktu.trim()) galatBaru.waktu = "Pilih slot atau ketik waktu ambil";
     if (!setuju) galatBaru.setuju = "Periksa pesanan lalu centang konfirmasi";
+    if (data.pengaturan.lokasi_aktif === "true" && !lokasiId) galatBaru.alamat = "Pilih lokasi ambil terlebih dahulu";
     if (tipePesanan === "dine_in" && !meja.trim()) galatBaru.meja = "Nomor meja wajib diisi";
     if (tipePesanan === "kirim" && !alamatKirim.trim()) galatBaru.alamat = "Alamat kirim wajib diisi";
     if (tipePesanan === "kirim" && zonaList.length > 0 && !zonaId) galatBaru.alamat = "Pilih zona kirim dan alamat tujuan";
@@ -446,6 +453,7 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
           metode_bayar: metodeBayar,
           bukti_bayar: metodeBayar === "transfer" ? buktiBayar : "",
           zona_id: tipePesanan === "kirim" && zonaId ? Number(zonaId) : undefined,
+          lokasi_id: lokasiId ? Number(lokasiId) : undefined,
         }),
       });
       const dataHasil = await ambilJson<Hasil>(respons);
@@ -934,6 +942,15 @@ export default function HalamanKonsumen({ awal }: { awal: DataAwal }) {
                   </div>
                 )}
                 <p className="mt-1 text-[11px] text-tinta-lemah">Ongkir mengikuti zona yang dipilih.</p>
+              </div>
+            )}
+            {data.pengaturan.lokasi_aktif === "true" && (
+              <div className="mt-3">
+                <label htmlFor="p-lokasi">Lokasi ambil</label>
+                <select id="p-lokasi" value={lokasiId} onChange={(e) => setLokasiId(e.target.value)}>
+                  <option value="">Pilih lokasi</option>
+                  {lokasiList.map((l) => <option key={l.id} value={l.id}>{l.nama}{l.alamat ? ` - ${l.alamat}` : ""}</option>)}
+                </select>
               </div>
             )}
           </fieldset>

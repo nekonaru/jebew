@@ -73,6 +73,35 @@ export default function HalamanKeamanan() {
     <div>
       <Judul anak="Keamanan akun" sub="Lindungi akun dengan kode verifikasi dan kelola perangkat yang masuk." />
       <Pesan teks={pesan} jenis={jenis} />
+      <Kartu>
+        <h2 className="text-lg font-semibold">Notifikasi browser</h2>
+        <p className="mt-1 text-xs text-tinta-lemah">Izinkan notifikasi agar pemilik mendapat pemberitahuan preorder baru pada perangkat ini.</p>
+        <Tombol kelas="mt-4" onClick={() => {
+          void (async () => {
+            if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+              setJenis("galat"); setPesan("Browser tidak mendukung notifikasi."); return;
+            }
+            const izin = await Notification.requestPermission();
+            if (izin !== "granted") { setJenis("galat"); setPesan("Izin notifikasi ditolak."); return; }
+            const kunci = await fetch("/api/push/kunci").then((r) => r.json()) as { kunci: string };
+            if (!kunci.kunci) { setJenis("galat"); setPesan("Kunci VAPID belum diatur."); return; }
+            const daftar = await navigator.serviceWorker.ready;
+            const langganan = await daftar.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: kunci.kunci,
+            });
+            const json = langganan.toJSON();
+            await fetch("/api/push", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ endpoint: json.endpoint, p256dh: json.keys?.p256dh ?? "", auth: json.keys?.auth ?? "" }),
+            });
+            setJenis("sukses"); setPesan("Perangkat ini berlangganan notifikasi.");
+          })().catch((e) => {
+            setJenis("galat"); setPesan(e instanceof Error ? e.message : "Gagal mengaktifkan notifikasi");
+          });
+        }}>Aktifkan notifikasi browser</Tombol>
+      </Kartu>
+
       <div className="grid gap-5 lg:grid-cols-2">
         <Kartu>
           <div className="flex items-center justify-between gap-3">
